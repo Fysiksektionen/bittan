@@ -3,3 +3,5 @@ services:
     build: bittan
     ports:
       - '8000:8000'
+    volumes: 
+      - ./bittan:/bittan
