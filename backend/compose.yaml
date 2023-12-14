@@ -5,3 +5,13 @@ services:
       - '8000:8000'
     volumes: 
       - ./bittan:/bittan
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: bittan_db 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
