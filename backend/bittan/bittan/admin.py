@@ -45,3 +45,4 @@ class ChapterEventDetailView(PermissionRequiredMixin, DetailView):
 
         }
 
+
