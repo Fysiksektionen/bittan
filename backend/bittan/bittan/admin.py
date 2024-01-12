@@ -38,4 +38,3 @@ class ChapterEventDetailView(PermissionRequiredMixin, DetailView):
             "opts": self.model._meta,
 
         }
-
