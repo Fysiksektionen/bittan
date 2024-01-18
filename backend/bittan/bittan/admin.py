@@ -7,17 +7,12 @@ from django.utils.html import format_html
 
 
 admin.site.register(TicketType)
-#admin.site.register(ChapterEvent)
 admin.site.register(Payment)
 admin.site.register(Ticket)
-
-#class ChapterEventInline(admin.TabularInline):
-#    model = ChapterEvent
 
 @admin.register(ChapterEvent)
 class ChapterEventAdmin(admin.ModelAdmin):
     list_display = ["title", "description", "max_tickets", "detail"]
-    #inlines = [ChapterEventInline]
 
     def get_urls(self):
         return [
@@ -44,5 +39,3 @@ class ChapterEventDetailView(PermissionRequiredMixin, DetailView):
             "opts": self.model._meta,
 
         }
-
-

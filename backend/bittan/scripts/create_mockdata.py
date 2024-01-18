@@ -42,4 +42,7 @@ ticket1 = Ticket.objects.create(
             ticket_type = standardbiljett
         )
 
+TicketType(price=199.99, title="Standardbiljett", description="En vanlig biljett.").save()
+TicketType(price=99.50, title="Studentbiljett", description="En billigare biljett.").save()
+
 ChapterEvent(title="Fysikalen Dag 1").save()

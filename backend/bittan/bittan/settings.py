@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 	'bittan',
 	'djmoney'
-	'bittan'
 ]
 
 MIDDLEWARE = [
