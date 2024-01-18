@@ -41,3 +41,4 @@ ticket1 = Ticket.objects.create(
             status = TicketStatus.PAID,
             ticket_type = standardbiljett
         )
+ChapterEvent(title="Fysikalen Dag 1").save()
