@@ -12,6 +12,7 @@ from bittan.models import TicketType, ChapterEvent
 import datetime
 
 User.objects.create_superuser("admin", None, "admin")
+User.objects.create_user("staff", None, "staff", is_staff=True)
 
 NOW = datetime.datetime.now()
 
