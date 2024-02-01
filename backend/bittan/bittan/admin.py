@@ -13,7 +13,6 @@ admin.site.register(Ticket)
 @admin.register(ChapterEvent)
 class ChapterEventAdmin(admin.ModelAdmin):
     list_display = ["title", "description", "max_tickets", "detail"]
-
     def get_urls(self):
         return [
             path(
