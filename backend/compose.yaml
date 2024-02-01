@@ -7,6 +7,7 @@ services:
       - ./bittan:/bittan
     depends_on:
       - postgres
+    container_name: bittan_server
   postgres:
     image: postgres
     environment:
@@ -15,3 +16,4 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - '5432:5432'
+    container_name: bittan_postgres
