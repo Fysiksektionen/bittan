@@ -1,0 +1,34 @@
+{% extends 'admin/base_site.html' %}
+
+{% load i18n admin_urls %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+        &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+        &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+        &rsaquo; {{ object }}
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    <h1>{{ object.title }}</h1>
+
+    <dl>
+        <dt>Description:</dt>
+        <dd>{{ object.description }}</dd>
+        <dt>Max tickets:</dt>
+        <dd>{{ object.max_tickets }}</dd>
+				<dt>Sales stop at</dt>
+				<dd>{{object.sales_stop_at}}</dd>
+    </dl>
+
+    {% for item in object.ticket_types.all %}
+		<dd>{{item.title}}</dd> 
+		<dd>{{item.price}}</dd> 
+		<dd>{{item.description}}</dd> 
+		<dd style="margin-bottom: 12px">{{item.reservation_duration}}</dd> 
+    {% endfor %}
+
+{% endblock %}
