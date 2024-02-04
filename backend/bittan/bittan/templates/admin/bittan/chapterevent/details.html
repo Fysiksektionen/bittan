@@ -24,11 +24,25 @@
 				<dd>{{object.sales_stop_at}}</dd>
     </dl>
 
-    {% for item in object.ticket_types.all %}
-		<dd>{{item.title}}</dd> 
-		<dd>{{item.price}}</dd> 
-		<dd>{{item.description}}</dd> 
-		<dd style="margin-bottom: 12px">{{item.reservation_duration}}</dd> 
-    {% endfor %}
-
+		<table style="width: 100%; margin: 12px;">
+				<thead>
+						<tr>
+            <td>Biljettyp</td>
+            <td>Antal</td>
+            <td>Pris</td>
+            <td>Total</td>
+						</tr>
+				</thead>
+				<tbody>
+						{% for item in object.ticket_types.all %}
+						<tr>
+						<td>{{item.title}}</td>
+						<td>{{item.ticket_set.all.count}}</td>
+						<td>{{item.price}}</td>
+						<td></td>
+						</tr>
+						{% endfor %}
+				</tbody>
+		</table>
+		
 {% endblock %}
