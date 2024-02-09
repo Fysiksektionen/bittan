@@ -1,6 +1,7 @@
 from django.db import models
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
+from django.db.models import F
 
 class ChapterEvent(models.Model):
 	title = models.TextField()
