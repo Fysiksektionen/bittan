@@ -1,6 +1,7 @@
 {% extends 'admin/base_site.html' %}
 
 {% load i18n admin_urls %}
+{% load staff_page_tags %}
 
 {% block breadcrumbs %}
     <div class="breadcrumbs">
@@ -39,14 +40,14 @@
 						<td>{{item.title}}</td>
 						<td>{{item.ticket_set.all.count}}</td>
 						<td>{{item.price}}</td>
-						<td></td>
+						<td>{% get_total_by_ticket_type object item.pk %}
+						</td>
 						</tr>
 						{% endfor %}
 						<tr>
 							<td>{{Total}}</td>
 							<td></td>
 							<td></td>
-							<!-- <td>object.total_amount</td> -->
 							<td>{{object.total_price}}</td>
 						</tr>
 				</tbody>
