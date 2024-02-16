@@ -15,4 +15,7 @@ class ChapterEvent(models.Model):
 		"""
 		Returns the total price of all paid (non admin-generated) ticets. 
 		"""
-		return sum([x.price * x.ticket_set.filter(status="PAID").count() for x in self.ticket_types.all()])
+		return sum(x.price * x.ticket_set.filter(status="PAID").count() for x in self.ticket_types.all())
+	
+	def total_price_by_ticket_type(self, ticket_type_id) -> float:
+		return sum(x.price * x.ticket_set.filter(status="PAID").count() for x in self.ticket_types.filter(id=ticket_type_id))
