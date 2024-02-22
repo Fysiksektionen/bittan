@@ -17,26 +17,26 @@ admin.site.register(Ticket)
 
 @admin.register(ChapterEvent)
 class ChapterEventAdmin(admin.ModelAdmin):
-    list_display = ["title", "description", "max_tickets", "detail"]
+    list_display = ["title", "description", "max_tickets", "staffoverview"]
     #inlines = [ChapterEventInline]
 
     def get_urls(self):
         return [
             path(
-                "<pk>/detail",
-                self.admin_site.admin_view(ChapterEventDetailView.as_view()),
-                name=f"bittan_chapterevent_details"
+                "<pk>/staffoverview",
+                self.admin_site.admin_view(ChapterEventStaffoverviewView.as_view()),
+                name=f"bittan_chapterevent_staffoverview"
             ),
             *super().get_urls(),
         ]
 
-    def detail(self, obj: ChapterEvent) -> str:
-        url = reverse("admin:bittan_chapterevent_details", args=[obj.pk])
+    def staffoverview(self, obj: ChapterEvent) -> str:
+        url = reverse("admin:bittan_chapterevent_staffoverview", args=[obj.pk])
         return format_html(f'<a href="{url}">📝</a>')
 
-class ChapterEventDetailView(PermissionRequiredMixin, DetailView):
+class ChapterEventStaffoverviewView(PermissionRequiredMixin, DetailView):
     permission_required = "bittan.view_chapter_events"
-    template_name = "admin/bittan/chapterevent/details.html"
+    template_name = "admin/bittan/chapterevent/staffoverview.html"
     model = ChapterEvent
     def get_context_data(self, **kwargs):
         return {
