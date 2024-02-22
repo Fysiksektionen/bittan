@@ -7,3 +7,4 @@ class TicketType(models.Model):
 	title = models.TextField()
 	description = models.TextField()
 	reservation_duration = models.DurationField(default=datetime.timedelta(hours=1))
+	is_visible = models.BooleanField(default=True)
