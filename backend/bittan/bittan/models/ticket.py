@@ -5,6 +5,7 @@ import datetime
 class TicketStatus(models.TextChoices):
 	PAID = "PAID"
 	FAILED_BY_ADMIN = "FAILED_BY_ADMIN"
+	ALIVE = "ALIVE"
 
 class Ticket(models.Model):
 	external_id = models.TextField()
