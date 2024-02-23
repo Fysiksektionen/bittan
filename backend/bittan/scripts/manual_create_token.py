@@ -1,4 +1,5 @@
-"""Run this manually to create a token to Google's API, given that credentials.json exists."""
+"""Run this manually to create a token to Google's API, given that credentials.json exists.
+May not work in a Docker container; run on your local machine and then upload the generated gmail_token.json"""
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 def main():
