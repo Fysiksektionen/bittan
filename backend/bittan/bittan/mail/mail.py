@@ -37,6 +37,8 @@ def send_mail(reciever_address: str, subject: str, message_content: str):
 	except HttpError as error:
 		if error.reason == "Invalid To header":
 			raise InvalidRecieverAddressError(f"Invalid address: '{reciever_address}'")
+	if not "SENT" in sent_message["labelIds"]:
+		raise MailError("Mail was not sent for unknown reasons.")
 	return
 
 def _get_credentials() -> Credentials:
