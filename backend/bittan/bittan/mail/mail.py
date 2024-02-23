@@ -6,6 +6,14 @@ from email.message import EmailMessage
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+class MailError(Exception):
+	"""Base class for all Exceptions raised by mail."""
+	pass
+
+class InvalidRecieverAddressError(MailError):
+	pass
 
 def send_mail(reciever_address: str, subject: str, message_content: str):
 	"""Sends a mail message. Only mails a single str with no attachments."""
@@ -18,12 +26,17 @@ def send_mail(reciever_address: str, subject: str, message_content: str):
 	message["Subject"] = subject
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 	create_message = {"raw": encoded_message}
-	sent_message = (
-		service.users()
-		.messages()
-		.send(userId="me", body=create_message)
-		.execute()
-	)
+
+	try:
+		sent_message = (
+			service.users()
+			.messages()
+			.send(userId="me", body=create_message)
+			.execute()
+		)
+	except HttpError as error:
+		if error.reason == "Invalid To header":
+			raise InvalidRecieverAddressError(f"Invalid address: '{reciever_address}'")
 	return
 
 def _get_credentials() -> Credentials:
