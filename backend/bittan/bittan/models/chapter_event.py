@@ -12,7 +12,7 @@ class ChapterEvent(models.Model):
 		"""
 		Returns the total count of alive tickets for the chapter event. 
 		"""
-		return sum(x.ticker_set.filter(status="ALIVE").count() for x in self.ticket_types.all())
+		return sum(x.ticket_set.filter(status="ALIVE").count() for x in self.ticket_types.all())
 
 	@property
 	def total_price(self) -> float:
