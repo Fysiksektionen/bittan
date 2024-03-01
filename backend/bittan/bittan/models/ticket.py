@@ -8,8 +8,8 @@ class TicketStatus(models.TextChoices):
 	ALIVE = "ALIVE"
 
 class Ticket(models.Model):
-	external_id = models.TextField()
+	external_id = models.TextField(unique=True)
 	time_created = models.DateTimeField()
-	payment = models.ForeignKey('Payment', on_delete=models.DO_NOTHING)
+	payment = models.ForeignKey('Payment', on_delete=models.DO_NOTHING, null=True)
 	status = models.TextField(choices=TicketStatus)
 	ticket_type = models.ForeignKey('TicketType', on_delete=models.DO_NOTHING)
