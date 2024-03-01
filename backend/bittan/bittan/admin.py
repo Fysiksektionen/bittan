@@ -17,7 +17,7 @@ admin.site.register(Ticket)
 
 @admin.register(ChapterEvent)
 class ChapterEventAdmin(admin.ModelAdmin):
-    list_display = ["title", "description", "max_tickets", "detail"]
+    list_display = ["title", "description", "max_tickets", "detail", "pk"]
     #inlines = [ChapterEventInline]
 
     def get_urls(self):
