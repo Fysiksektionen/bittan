@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-import datetime
+from django.utils import timezone
 
 @api_view(['POST'])
 def reserve_ticket(request):
@@ -24,7 +24,7 @@ def reserve_ticket(request):
         tickets.extend(
             Ticket.objects.create(
                 external_id=f"{Ticket.objects.count() + 1}",
-                time_created=datetime.datetime.now(),
+                time_created=timezone.now(),
                 payment=None,
                 status=TicketStatus.ALIVE,
                 ticket_type=TicketType.objects.get(title=ticket["ticket_type"])
