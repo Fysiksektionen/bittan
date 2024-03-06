@@ -7,8 +7,11 @@ from ..models import ChapterEvent, Ticket, TicketType
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+import random
+import string
 
 from django.utils import timezone
+
 
 @api_view(['POST'])
 def reserve_ticket(request):
@@ -23,7 +26,7 @@ def reserve_ticket(request):
     for ticket in response_data["tickets"]:
         tickets.extend(
             Ticket.objects.create(
-                external_id=f"{Ticket.objects.count() + 1}",
+                external_id=''.join(random.choice(string.ascii_letters + string.digits) for _ in range(4)),
                 time_created=timezone.now(),
                 payment=None,
                 status=TicketStatus.ALIVE,
@@ -32,3 +35,4 @@ def reserve_ticket(request):
         )
     request.session["reserved_tickets"] = list([x.pk for x in tickets])
     return Response(status=status.HTTP_200_OK)
+
