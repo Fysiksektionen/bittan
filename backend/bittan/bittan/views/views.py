@@ -1,14 +1,14 @@
 import json
 
 from bittan.models.ticket import TicketStatus
+from bittan.models.payment import PaymentStatus
 
-from ..models import ChapterEvent, Ticket, TicketType
+from ..models import ChapterEvent, Ticket, TicketType, Payment
 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 import random
-import string
 
 from django.utils import timezone
 
@@ -22,17 +22,26 @@ def reserve_ticket(request):
         return Response(
             status=status.HTTP_403_FORBIDDEN
         )
+    payment = Payment.objects.create(
+        time_created = timezone.now(),
+        swish_id = None, 
+        status = PaymentStatus.ALIVE,
+        telephone_number = None,
+        email = None, 
+        total_price = None
+    )
     tickets  = []
     for ticket in response_data["tickets"]:
         tickets.extend(
             Ticket.objects.create(
-                external_id=''.join(random.choice(string.ascii_letters + string.digits) for _ in range(4)),
+                external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                 time_created=timezone.now(),
-                payment=None,
+                payment=payment,
                 status=TicketStatus.ALIVE,
                 ticket_type=TicketType.objects.get(title=ticket["ticket_type"])
             ) for _ in range(ticket["count"])
         )
-    request.session["reserved_tickets"] = list([x.pk for x in tickets])
+    payment.total_price = sum(x.ticket_type.price for x in tickets)
+    payment.save(update_fields=["total_price"])
+    request.session["reserved_payment"] = payment.pk
     return Response(status=status.HTTP_200_OK)
-
