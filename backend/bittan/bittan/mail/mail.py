@@ -7,6 +7,8 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import qrcode
+import io
 
 class MailError(Exception):
 	"""Base class for all Exceptions raised by mail."""
@@ -15,13 +17,21 @@ class MailError(Exception):
 class InvalidRecieverAddressError(MailError):
 	pass
 
-def send_mail(reciever_address: str, subject: str, message_content: str):
+def make_qr_image(content: str) -> bytes:
+	img = qrcode.make(content)
+	b = io.BytesIO()
+	img.save(b, format="PNG")
+	return b.getvalue()
+
+def send_mail(reciever_address: str, subject: str, message_content: str, image: bytes | None = None):
 	"""Sends a mail message. Only mails a single str with no attachments."""
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
 	message = EmailMessage()
 
 	message.set_content(message_content)
+	if image is not None:
+		message.add_attachment(image, maintype="image", subtype="png", filename="biljett")
 	message["To"] = reciever_address
 	message["Subject"] = subject
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
