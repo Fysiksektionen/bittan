@@ -23,15 +23,15 @@ def make_qr_image(content: str) -> bytes:
 	img.save(b, format="PNG")
 	return b.getvalue()
 
-def send_mail(reciever_address: str, subject: str, message_content: str, image: bytes | None = None):
-	"""Sends a mail message. Only mails a single str with no attachments."""
+def send_mail(reciever_address: str, subject: str, message_content: str, image: bytes | None = None, image_filename: str = "Biljett"):
+	"""Sends a mail message. May include a png image."""
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
 	message = EmailMessage()
 
 	message.set_content(message_content)
 	if image is not None:
-		message.add_attachment(image, maintype="image", subtype="png", filename="biljett")
+		message.add_attachment(image, maintype="image", subtype="png", filename=image_filename)
 	message["To"] = reciever_address
 	message["Subject"] = subject
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
