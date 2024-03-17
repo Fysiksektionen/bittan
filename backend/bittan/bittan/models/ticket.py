@@ -8,7 +8,7 @@ class TicketStatus(models.TextChoices):
 
 class Ticket(models.Model):
 	external_id = models.TextField()
-	time_created = models.DateTimeField()
+	# time_created = models.DateTimeField(default=datetime.datetime.now())
 	payment = models.ForeignKey('Payment', on_delete=models.DO_NOTHING)
 	status = models.TextField(choices=TicketStatus)
 	ticket_type = models.ForeignKey('TicketType', on_delete=models.DO_NOTHING)

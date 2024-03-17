@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,8 @@ SECRET_KEY = 'django-insecure-s624n0s_!oexn6#=uas1qglb_1=jenz4k5641+ibfdajk48=xu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [] if not True else ["*"]
+# ALLOWED_HOSTS = [] if not (os.environ["ENVIRONMENT"] == "DEBUG") else ["*"]
 
 
 # Application definition
@@ -37,8 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
 	'bittan',
-	'djmoney'
+	'djmoney',
 ]
 
 MIDDLEWARE = [
