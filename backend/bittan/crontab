@@ -1,0 +1,1 @@
+* * * * * cd ~/../bittan && /usr/local/bin/python manage.py run_cleaner >> bittancronoutput.txt 2>&1
