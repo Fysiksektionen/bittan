@@ -7,6 +7,9 @@ services:
       - ./bittan:/bittan
     depends_on:
       - postgres
+    environment:
+      PYTHONUNBUFFERED: 1
+      DEBUG: "True" 
     container_name: bittan_server
   postgres:
     image: postgres

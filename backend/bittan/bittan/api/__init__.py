@@ -1,1 +1,1 @@
-from .swish import swish_callback
+from .swish import swish_callback, make_dummy_request
