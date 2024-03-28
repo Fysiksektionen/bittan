@@ -23,10 +23,9 @@ def reserve_ticket(request):
             status=status.HTTP_403_FORBIDDEN
         )
     payment = Payment.objects.create(
-        time_created = timezone.now(),
+        expires_at = timezone.now(),
         swish_id = None, 
         status = PaymentStatus.ALIVE,
-        telephone_number = None,
         email = None, 
         total_price = None
     )
@@ -45,3 +44,36 @@ def reserve_ticket(request):
     payment.save(update_fields=["total_price"])
     request.session["reserved_payment"] = payment.pk
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def start_payment(request):
+    payment_id = request.session["reserved_payment"]
+    payment = Payment.objects.get(pk=payment_id)
+    
+
+    tickets = payment.ticket_set
+    chapter_event = tickets.first().ticket_type.chapterevent_set.first()
+
+    # Kolla att biljetterna fortfarande är giltiga,
+    if payment.status != PaymentStatus.ALIVE:
+    #   Nej -->  Kolla om det går att skapa nya biljetter
+        if tickets.count() > chapter_event.ticket_count():
+            # Nej --> Informera den stackars kunden om att den är alldeles för långsam.
+            # Skriv något vettigt i responsen så att klient vet att biljetterna är slut. 
+            return Response()
+        payment.expires_at = timezone.now()
+    # Ja --> Skapa biljetter (Lås?), uppdatera session och forsätt
+    payment.payment_started = True
+    payment.save(update_fields=["payment_started"])
+    # Ja --> Frys? Biljetterns och forstätt
+    pass
+    
+
+    # Hämta/beräkna den datan som Swish behöver (tel nummer, belopp, etc)
+
+    # Interagera med swish, skicka belopp och swish message. Få tillbaka swish_payment_request
+ 
+    # Fråga efter token för swish_id
+
+    return Response(chapter_event.title)
