@@ -10,7 +10,7 @@ def run_cleaner():
         payment.save()
 
 class Command(BaseCommand):
-    help = "Run cleaner."
+    help = "Run the cleaner. Changes the status of expired payments."
 
     def handle(self, *args, **options):
         run_cleaner()
