@@ -18,13 +18,38 @@ class InvalidRecieverAddressError(MailError):
 	pass
 
 def make_qr_image(content: str) -> bytes:
+	"""
+	Creates a QR image. Meant to be used together with `send_mail`, such as:
+	```
+	send_mail(..., image=make_qr_image("abc"), ...)
+	```
+
+	Args:
+		content (str): The text to be encoded.
+
+	Returns:
+		bytes: A bytes representation of the image, encoded as png.
+	"""
 	img = qrcode.make(content)
 	b = io.BytesIO()
 	img.save(b, format="PNG")
 	return b.getvalue()
 
 def send_mail(reciever_address: str, subject: str, message_content: str, image: bytes | None = None, image_filename: str = "Biljett"):
-	"""Sends a mail message. May include a png image."""
+	"""
+	Sends an email message.
+
+	Args:
+		reciever_address (str): The email address that should recieve the email.
+		subject (str): The subject of the email.
+		message_content (str): The text sent in the email.
+		image (bytes | None, optional): A png image to attach. Defaults to None.
+		image_filename (str, optional): The filename of the image attachment. Only applied if image is not None. Defaults to "Biljett".
+
+	Raises:
+		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
+		MailError: Raised if some miscellaneous error occured while sending the email.
+	"""
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
 	message = EmailMessage()
