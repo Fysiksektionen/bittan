@@ -1,9 +1,13 @@
 from django.core.management.base import BaseCommand
-from bittan.models import TicketType
+from bittan.models import Payment
+from bittan.models.payment import PaymentStatus
 
 def run_cleaner():
-    TicketType.objects.create(price=69, title="Cleanerbiljett", description="Biljett skapad av Cleaner")
-    print("Cleaner was run")
+    for payment in Payment.objects.filter(
+        status = PaymentStatus.RESERVED
+    ):
+        payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+        payment.save()
 
 class Command(BaseCommand):
     help = "Run cleaner."
