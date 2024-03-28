@@ -1,10 +1,13 @@
 from django.core.management.base import BaseCommand
+import datetime
 from bittan.models import Payment
 from bittan.models.payment import PaymentStatus
 
 def run_cleaner():
+    NOW = datetime.datetime.now()
     for payment in Payment.objects.filter(
-        status = PaymentStatus.RESERVED
+        status = PaymentStatus.RESERVED,
+        expires_at__lte = NOW
     ):
         payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
         payment.save()
