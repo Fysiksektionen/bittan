@@ -1,4 +1,4 @@
-**/*/__pycache__
-**/*/.env
+__pycache__
+.env
 backend/postgres-data
 *.env
