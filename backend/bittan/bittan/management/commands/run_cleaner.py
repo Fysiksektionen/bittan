@@ -7,7 +7,8 @@ def run_cleaner():
     NOW = datetime.datetime.now()
     for payment in Payment.objects.filter(
         status = PaymentStatus.RESERVED,
-        expires_at__lte = NOW
+        expires_at__lte = NOW,
+        payment_started = False
     ):
         payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
         payment.save()
