@@ -20,7 +20,6 @@ import os
 # Loading environment variables 
 load_dotenv()
 
-print(os.environ)
 class ENV_VAR_NAMES:
     # A URI from where the application is reachable from the web. Should end with a '/'. 
     # E.g https://bittan.com/
