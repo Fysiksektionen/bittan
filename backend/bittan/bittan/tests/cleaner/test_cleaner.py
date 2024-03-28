@@ -85,3 +85,21 @@ class RunCleanerTest(TestCase):
 			Payment.objects.filter(id=self.payment_started_id).get().status,
 			PaymentStatus.RESERVED
 		)
+
+	def test_disable_multiple(self):
+		NOW = datetime.datetime.now()
+		self.payment_expires_now2_id = Payment.objects.create(
+			expires_at = NOW,
+			swish_id = "abc",
+			status = PaymentStatus.RESERVED,
+			email = "abc"
+		).id
+		call_command("run_cleaner")
+		self.assertEqual(
+			Payment.objects.filter(id=self.payment_expires_now_id).get().status,
+			PaymentStatus.FAILED_EXPIRED_RESERVATION
+		)
+		self.assertEqual(
+			Payment.objects.filter(id=self.payment_expires_now2_id).get().status,
+			PaymentStatus.FAILED_EXPIRED_RESERVATION
+		)
