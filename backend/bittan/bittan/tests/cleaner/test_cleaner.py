@@ -5,7 +5,7 @@ import time
 from bittan.models import TicketType, ChapterEvent, Payment, Ticket
 from bittan.models.payment import PaymentStatus
 
-class SendMailTest(TestCase):
+class RunCleanerTest(TestCase):
 
 	def setUp(self):		
 		NOW = datetime.datetime.now()
