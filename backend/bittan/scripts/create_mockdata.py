@@ -10,7 +10,6 @@ django.setup()
 from django.contrib.auth.models import User
 from bittan.models import TicketType, ChapterEvent, ticket_type, Payment, Ticket
 from bittan.models.payment import PaymentStatus
-from bittan.models.ticket import TicketStatus
 import datetime
 
 User.objects.create_superuser("admin", None, "admin")
@@ -38,7 +37,6 @@ ticket1 = Ticket.objects.create(
             external_id = "1234",
             time_created = NOW,
             payment = payment1,
-            status = TicketStatus.PAID,
             ticket_type = standardbiljett
         )
 ChapterEvent(title="Fysikalen Dag 1").save()

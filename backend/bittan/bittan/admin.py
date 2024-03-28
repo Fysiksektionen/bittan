@@ -14,7 +14,7 @@ admin.site.register(Payment)
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ["external_id", "time_created", "payment", "status", "ticket_type", "pk"]
+    list_display = ["external_id", "time_created", "payment", "ticket_type", "pk"]
 
 #class ChapterEventInline(admin.TabularInline):
 #    model = ChapterEvent

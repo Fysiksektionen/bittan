@@ -1,6 +1,5 @@
 import json
 
-from bittan.models.ticket import TicketStatus
 from bittan.models.payment import PaymentStatus
 
 from ..models import ChapterEvent, Ticket, TicketType, Payment
@@ -36,7 +35,6 @@ def reserve_ticket(request):
                 external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                 time_created=timezone.now(),
                 payment=payment,
-                status=TicketStatus.ALIVE,
                 ticket_type=TicketType.objects.get(title=ticket["ticket_type"])
             ) for _ in range(ticket["count"])
         )
@@ -50,7 +48,6 @@ def reserve_ticket(request):
 def start_payment(request):
     payment_id = request.session["reserved_payment"]
     payment = Payment.objects.get(pk=payment_id)
-    
 
     tickets = payment.ticket_set
     chapter_event = tickets.first().ticket_type.chapterevent_set.first()
