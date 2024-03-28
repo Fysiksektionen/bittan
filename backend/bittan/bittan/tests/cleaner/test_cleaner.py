@@ -23,7 +23,7 @@ class SendMailTest(TestCase):
 			email = "abc"
 		).id
 		self.payment_expires_future_id = Payment.objects.create(
-			expires_at = NOW + datetime.timedelta(days=1),
+			expires_at = NOW + datetime.timedelta(minutes=5),
 			swish_id = "abc",
 			status = PaymentStatus.RESERVED,
 			email = "abc"
@@ -51,4 +51,15 @@ class SendMailTest(TestCase):
 		self.assertEqual(
 			Payment.objects.filter(id=self.payment_expires_now_id).get().status,
 			PaymentStatus.FAILED_EXPIRED_RESERVATION
+		)
+
+	def test_ignores_expires_future(self):
+		self.assertEqual(
+			Payment.objects.filter(id=self.payment_expires_future_id).get().status,
+			PaymentStatus.RESERVED
+		)
+		call_command("run_cleaner")
+		self.assertEqual(
+			Payment.objects.filter(id=self.payment_expires_future_id).get().status,
+			PaymentStatus.RESERVED
 		)
