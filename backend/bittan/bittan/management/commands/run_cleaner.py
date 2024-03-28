@@ -5,13 +5,13 @@ from bittan.models.payment import PaymentStatus
 
 def run_cleaner():
     NOW = datetime.datetime.now()
-    for payment in Payment.objects.filter(
+    Payment.objects.filter(
         status = PaymentStatus.RESERVED,
         expires_at__lte = NOW,
         payment_started = False
-    ):
-        payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-        payment.save()
+    ).update(
+        status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+    )
 
 class Command(BaseCommand):
     help = "Run the cleaner. Changes the status of expired payments."
