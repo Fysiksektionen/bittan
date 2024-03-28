@@ -7,29 +7,28 @@ from ..models.swish_payment_request import PaymentStatus, PaymentErrorCode, Swis
 from datetime import datetime
 from enum import Enum
 
-
-
-
 @api_view(['POST'])
 def swish_callback(request: Request):
 	print("Tog emot en request från swish:")
-	swish_callback = SwishPaymentRequestResponse(request.data)
+	print(request.data)
 
-	model = SwishPaymentRequestModel.objects.get(pk=swish_callback.id)
-	Swish.get_instance().update_payment_request(swish_callback)
+	Swish.get_instance().handle_swish_callback(request.data)
 
-	# reference = request.data.get("paymentReference")
-	# response_code = PaymentResponseCode.from_swish_reponse_code(request.data.get('status'))
-	# # if request.status
-	# print(response_code)
-
-	# Swish.get_instance().callback_function(reference, response_code)
-	return Response("Hello :D", status=status.HTTP_201_CREATED)
+	# Swish expects a 201 when a callback is sucessfully recieved
+	return Response("", status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
-def make_dummy_request(request: Request):
+def debug_make_request(request: Request):
 	resp = Swish.get_instance().create_swish_payment(123, "Hejsan")
 	print("Skapade betalning")
-	print(f'id: {resp.id}, token: {resp.swish_token}')
-	return Response("Skapade swish request", status=status.HTTP_201_CREATED)
+	print(f'id: {resp.id}, token: {resp.token}')
+	return Response(f"{resp.id}", status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def debug_query(request: Request, id):
+	# print("KÖRDE DEBUG QUERY")
+	resp = Swish.get_instance().get_payment_request(id)
+	print(resp)
+	print(f'id: {resp.id}, token?: {resp.token or ''}, status: {resp.status}')
+	return Response("Letade lite i databasen", status=status.HTTP_200_OK)
