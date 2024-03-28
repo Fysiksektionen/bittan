@@ -74,3 +74,14 @@ class SendMailTest(TestCase):
 			Payment.objects.filter(id=self.payment_paid_id).get().status,
 			PaymentStatus.PAID
 		)
+
+	def test_ignores_payment_started(self):
+		self.assertEqual(
+			Payment.objects.filter(id=self.payment_started_id).get().status,
+			PaymentStatus.RESERVED
+		)
+		call_command("run_cleaner")
+		self.assertEqual(
+			Payment.objects.filter(id=self.payment_started_id).get().status,
+			PaymentStatus.RESERVED
+		)
