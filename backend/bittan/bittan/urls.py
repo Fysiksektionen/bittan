@@ -21,5 +21,6 @@ from .views import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("reserve-ticket/", views.reserve_ticket)
+    path("reserve-ticket/", views.reserve_ticket),
+    path("start-payment/", views.start_payment),
 ]
