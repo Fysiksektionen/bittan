@@ -5,7 +5,9 @@ from django_enumfield import enum
 class PaymentStatus(enum.Enum):
 	PAID = 1,
 	CANCELLED = 2,
-	WAITING = 3,
+	CREATED = 3,
+	DECLINED=4
+	ERROR=5
 
 	# __SWISH_API_STATUS_MAPPINGS = {
 	# 	# TODO Fill in the types when swish docs are updated
