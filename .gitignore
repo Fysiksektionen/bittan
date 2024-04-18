@@ -1,2 +1,7 @@
 __pycache__
+<<<<<<< HEAD
 **/venv/**
+=======
+backend/postgres-data
+*.env
+>>>>>>> main

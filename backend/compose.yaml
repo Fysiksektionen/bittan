@@ -13,6 +13,8 @@ services:
     container_name: bittan_server
   postgres:
     image: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: bittan_db 
       POSTGRES_USER: postgres
