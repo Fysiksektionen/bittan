@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 class ChapterEvent(models.Model):
 	title = models.TextField()
@@ -6,3 +7,4 @@ class ChapterEvent(models.Model):
 	max_tickets = models.IntegerField()
 	sales_stop_at = models.DateTimeField()
 	ticket_types = models.ManyToManyField('TicketType')
+	reservation_duration = models.DurationField(default=timezone.timedelta(hours=1))
