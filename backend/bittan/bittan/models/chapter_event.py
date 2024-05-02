@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils import timezone
-=======
 
 class ChapterEvent(models.Model):
 	title = models.TextField()
