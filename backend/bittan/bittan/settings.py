@@ -150,3 +150,35 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Application Url
 APPLICATION_URL = urlparse(os.getenv(ENV_VAR_NAMES.APPLICATION_URL))
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "fileInfo": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "log-info.log",
+            "formatter": "level_time",
+        },
+        "fileWarning": {
+            "level": "WARNING",
+            "class": "logging.FileHandler",
+            "filename": "log-warning.log",
+            "formatter": "level_time",
+        },
+    },
+    "formatters": {
+        "level_time": {
+            "format": "{levelname} {asctime} {message}",
+            "style": "{",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["fileInfo", "fileWarning"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}
