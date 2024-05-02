@@ -1,6 +1,7 @@
 from django.db import models
 from djmoney.models.fields import MoneyField
 from django_enumfield import enum
+import logging
 
 class PaymentStatus(enum.Enum):
 	PAID = 1,
@@ -21,6 +22,7 @@ class PaymentStatus(enum.Enum):
 	def from_swish_api_status(status: str):
 		# Try to get the status from the mapping otherwise log an error and None
 		if status not in PaymentStatus.__SWISH_API_STATUS_MAPPINGS:
+			logging.ERROR(f"Unknown Swish API status: {status}")
 			return None
 		return PaymentStatus[status]
 
