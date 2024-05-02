@@ -75,7 +75,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 		if error.reason == "Invalid To header":
 			raise InvalidRecieverAddressError(f"Invalid address: '{reciever_address}'")
 	if not "SENT" in sent_message["labelIds"]:
-		logging.error(f"Could not send mail. Address: {reciever_address}; Message content:\n{message_content}")
+		logging.error(f"Could not send mail. Address: {reciever_address}; Has image: {bool(image)}; Message content:\n{message_content}")
 		raise MailError("Mail was not sent for unknown reasons.")
 	return
 
