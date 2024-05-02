@@ -9,6 +9,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import qrcode
 import io
+import logging
 
 class MailError(Exception):
 	"""Base class for all Exceptions raised by mail."""
@@ -73,6 +74,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 		if error.reason == "Invalid To header":
 			raise InvalidRecieverAddressError(f"Invalid address: '{reciever_address}'")
 	if not "SENT" in sent_message["labelIds"]:
+		logging.error(f"Could not send mail. Address: {reciever_address}; Message content:\n{message_content}")
 		raise MailError("Mail was not sent for unknown reasons.")
 	return
 
@@ -89,6 +91,7 @@ def _get_credentials() -> Credentials:
 			f.write(creds.to_json())
 
 	if not creds:
+		logging.error("Could not get Google Credentials.")
 		raise Exception("Could not get Google Credentials")
 	
 	return creds
