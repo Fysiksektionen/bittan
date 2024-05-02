@@ -9,17 +9,19 @@ class PaymentStatus(enum.Enum):
 	DECLINED=4
 	ERROR=5
 
-	# __SWISH_API_STATUS_MAPPINGS = {
-	# 	# TODO Fill in the types when swish docs are updated
-	# 	"CANCELLED": CANCELLED,
-	# 	"WAITING": WAITING, # I have no idea if this is a response we can have 
-	# 	"PAID": PAID,
-	# }
+	__SWISH_API_STATUS_MAPPINGS = {
+		"PAID": PAID,
+		"CANCELLED": CANCELLED,
+		"CREATED":CREATED,
+		"DECLINE": DECLINED,
+		"ERROR": ERROR,
+	}
 
 	@staticmethod
 	def from_swish_api_status(status: str):
-		# TODO Fix when docs are updated
-		print("GOT status: " + status)
+		# Try to get the status from the mapping otherwise log an error and None
+		if status not in PaymentStatus.__SWISH_API_STATUS_MAPPINGS:
+			return None
 		return PaymentStatus[status]
 
 class PaymentErrorCode(enum.Enum):
@@ -47,13 +49,11 @@ class PaymentErrorCode(enum.Enum):
 			return None
 
 		return PaymentErrorCode.UNKNOWN
-		# return PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS[status]
-
 
 class SwishPaymentRequestModel(models.Model):
 	# time_created = models.DateTimeField(auto_now_add=True)
 	id = models.TextField(primary_key=True)
-	status = enum.EnumField(PaymentStatus, default=PaymentStatus.WAITING)
+	status = enum.EnumField(PaymentStatus, default=PaymentStatus.CREATED)
 	error_code = enum.EnumField(PaymentErrorCode, null=True)
 
 	amount = models.IntegerField()
