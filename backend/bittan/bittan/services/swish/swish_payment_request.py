@@ -14,7 +14,7 @@ class PaymentStatus(Enum):
 	__SWISH_API_STATUS_MAPPINGS = {
 		# TODO Fill in the types when swish docs are updated
 		SwishApiStatus.CANCELLED: CANCELLED,
-		SwishApiStatus.WAITING: WAITING,
+		SwishApiStatus.CREATED: WAITING,
 		SwishApiStatus.PAID: PAID,
 	}
 
