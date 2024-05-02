@@ -4,6 +4,7 @@ from google.oauth2.credentials import Credentials
 import base64
 from email.message import EmailMessage
 from google.auth.transport.requests import Request
+from google.auth.exceptions import RefreshError
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -86,12 +87,16 @@ def _get_credentials() -> Credentials:
 	if os.path.exists("gmail_token.json"):
 		creds = Credentials.from_authorized_user_file("gmail_token.json", scopes)
 	if creds and creds.expired and creds.refresh_token:
-		creds.refresh(Request())
+		try:
+			creds.refresh(Request())
+		except RefreshError as e:
+			logging.error(f"Could not get Google Credentials because Refresh failed, causing the following exception:\n{e}")
+			raise MailError("Could not get Google Credientials")
 		with open("gmail_token.json", "w") as f:
 			f.write(creds.to_json())
 
 	if not creds:
-		logging.error("Could not get Google Credentials.")
-		raise Exception("Could not get Google Credentials")
+		logging.error("Could not get Google Credentials, unknown reason.")
+		raise MailError("Could not get Google Credentials")
 	
 	return creds
