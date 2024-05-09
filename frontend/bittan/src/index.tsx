@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import './index.css';
 import Root from "./routes/root";
+import OtherPage from './routes/otherpage';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Root/>,
+  },
+  {
+    path: "otherpage",
+    element: <OtherPage/>,
   },
 ]);
 root.render(
