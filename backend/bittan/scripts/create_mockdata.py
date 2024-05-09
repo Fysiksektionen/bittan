@@ -24,12 +24,10 @@ chapter_event1 = ChapterEvent.objects.create(title="Fysikalen Dag 1", descriptio
 chapter_event1.ticket_types.add(standardbiljett, studentbiljett)
 
 payment1 = Payment.objects.create(
-            time_created = NOW,
+            expires_at = NOW + datetime.timedelta(hours=1),
             swish_id = "Hej",
-            status = PaymentStatus.ALIVE,
-            telephone_number = "123-456 78 90",
+            status = PaymentStatus.RESERVED,
             email = "mail@mail.com",
-            total_price = 199.99,
             sent_email = True
         )
 
@@ -39,4 +37,3 @@ ticket1 = Ticket.objects.create(
             payment = payment1,
             ticket_type = standardbiljett
         )
-ChapterEvent(title="Fysikalen Dag 1").save()
