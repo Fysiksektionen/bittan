@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from .views.views import get_chapterevents
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+	path('get_chapterevents/', get_chapterevents)
 ]
