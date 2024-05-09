@@ -10,36 +10,45 @@ from rest_framework.decorators import api_view
 import random
 
 from django.utils import timezone
+from django.db.utils import IntegrityError
+
+import logging
 
 
 @api_view(['POST'])
 def reserve_ticket(request):
     response_data: dict = request.data
     reservation_count: int = sum(x["count"] for x in response_data["tickets"])
-    chapter_event: ChapterEvent = ChapterEvent.objects.get(pk=response_data["chapter_event"]) 
-    if reservation_count > chapter_event.max_tickets - chapter_event.ticket_count:
+    chapter_event: ChapterEvent = ChapterEvent.objects.get(id=response_data["chapter_event"])
+    if reservation_count > chapter_event.max_tickets - chapter_event.alive_ticket_count:
         return Response(
             status=status.HTTP_403_FORBIDDEN
         )
     payment = Payment.objects.create(
-        expires_at = timezone.now(),
+        expires_at = timezone.now() + chapter_event.reservation_duration,
         swish_id = None, 
-        status = PaymentStatus.ALIVE,
+        status = PaymentStatus.RESERVED,
         email = None, 
-        total_price = None
     )
     tickets  = []
     for ticket in response_data["tickets"]:
-        tickets.extend(
-            Ticket.objects.create(
-                external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
-                time_created=timezone.now(),
-                payment=payment,
-                ticket_type=TicketType.objects.get(title=ticket["ticket_type"])
-            ) for _ in range(ticket["count"])
-        )
-    payment.total_price = sum(x.ticket_type.price for x in tickets)
-    payment.save(update_fields=["total_price"])
+        for _ in range(ticket["count"]):
+            for _ in range(1000):
+                try: 
+                    tickets.append(
+                        Ticket.objects.create(
+                            external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
+                            time_created=timezone.now(),
+                            payment=payment,
+                            ticket_type=TicketType.objects.get(title=ticket["ticket_type"])
+                        )
+                    )
+                except IntegrityError as e:
+                    continue
+                break
+            else: 
+                #TODO log a CRITICAL error.
+                return Response(status=500) # Returns status internal server error. 
     request.session["reserved_payment"] = payment.pk
     return Response(status=status.HTTP_200_OK)
 
