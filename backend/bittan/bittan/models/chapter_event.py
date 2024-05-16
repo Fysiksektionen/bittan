@@ -8,3 +8,4 @@ class ChapterEvent(models.Model):
 	sales_stop_at = models.DateTimeField()
 	ticket_types = models.ManyToManyField('TicketType')
 	reservation_duration = models.DurationField(default=timezone.timedelta(hours=1))
+	event_at = models.DateTimeField()
