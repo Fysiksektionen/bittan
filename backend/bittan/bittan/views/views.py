@@ -15,11 +15,11 @@ from django.utils import timezone
 class ChapterEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChapterEvent
-        fields = ["title", "description"]
+        fields = ["title", "description", "event_at"]
 
 @api_view(['GET'])
 def get_chapterevents(request: Request) -> Response:
-    chapterevents = ChapterEvent.objects.all()
-    # TODO dont include based on sales_stop_at
+    now = timezone.now()
+    chapterevents = ChapterEvent.objects.filter(sales_stop_at__gt=now).order_by("event_at")
     s = ChapterEventSerializer(chapterevents, many=True)
     return Response(s.data)
