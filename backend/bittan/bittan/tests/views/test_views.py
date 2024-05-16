@@ -27,11 +27,13 @@ class GetChaptereventsTest(TestCase):
 		self.assertEqual(len(data), 2)
 		
 		ce1 = data[0]
+		self.assertEqual(type(ce1['id']), int)
 		self.assertEqual(ce1['title'], "Title2")
 		self.assertEqual(ce1['description'], "Description2")
 		self.assertEqual(type(ce1['event_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
 
 		ce2 = data[1]
+		self.assertEqual(type(ce2['id']), int)
 		self.assertEqual(ce2['title'], "Title1")
 		self.assertEqual(ce2['description'], "Description1")
 		self.assertEqual(type(ce2['event_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
