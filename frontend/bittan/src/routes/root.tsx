@@ -31,7 +31,7 @@ export default function Root() {
 	}, []);
 	
 	function chapterEventComponents(): any[] {
-		return chapterEvents.map(ce => <li>{ce.title}</li>);
+		return chapterEvents.map(ce => <li key={ce.id}>{ce.title}</li>);
 	}
 	return (
 		<div>
