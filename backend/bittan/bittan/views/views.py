@@ -6,22 +6,25 @@ from ..models import ChapterEvent, Ticket, TicketType, Payment
 
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.decorators import api_view
 import random
 
 from django.utils import timezone
 from django.db.utils import IntegrityError
+from django.db.models import Sum
 
 import logging
 
 
 @api_view(['POST'])
-def reserve_ticket(request):
+def reserve_ticket(request: Request) -> Response:
     response_data: dict = request.data
     reservation_count: int = sum(x["count"] for x in response_data["tickets"])
     chapter_event: ChapterEvent = ChapterEvent.objects.get(id=response_data["chapter_event"])
     if reservation_count > chapter_event.max_tickets - chapter_event.alive_ticket_count:
         return Response(
+            "outOfTickets", 
             status=status.HTTP_403_FORBIDDEN
         )
     payment = Payment.objects.create(
@@ -47,7 +50,7 @@ def reserve_ticket(request):
                     continue
                 break
             else: 
-                #TODO log a CRITICAL error.
+                logging.critical("Failed to generate a ticket external id. This should never happen.")
                 return Response(status=500) # Returns status internal server error. 
     request.session["reserved_payment"] = payment.pk
     return Response(status=status.HTTP_200_OK)
