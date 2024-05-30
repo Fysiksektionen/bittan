@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 export default function ChapterEventPage() {
-	let { chapterEventId } = useParams();
+	var { chapterEventId } = useParams();
 
 	return (
 		<div>
