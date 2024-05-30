@@ -65,24 +65,23 @@ def start_payment(request):
     chapter_event = tickets.first().ticket_type.chapterevent_set.first()
 
     # Kolla att biljetterna fortfarande är giltiga,
-    if payment.status != PaymentStatus.ALIVE:
-    #   Nej -->  Kolla om det går att skapa nya biljetter
-        if tickets.count() > chapter_event.ticket_count():
+    if payment.status != PaymentStatus.RESERVED:
+        # Nej -->  Kolla om det går att skapa nya biljetter
+        if tickets.count() > chapter_event.max_tickets - chapter_event.alive_ticket_count:
             # Nej --> Informera den stackars kunden om att den är alldeles för långsam.
             # Skriv något vettigt i responsen så att klient vet att biljetterna är slut. 
             return Response()
-        payment.expires_at = timezone.now()
-    # Ja --> Skapa biljetter (Lås?), uppdatera session och forsätt
+        # Ja --> Skapa biljetter (Lås?), uppdatera session och forsätt
+        payment.expires_at = timezone.now() + chapter_event.reservation_duration
+    # Ja --> Starta payment biljetterns och forstätt
     payment.payment_started = True
     payment.save(update_fields=["payment_started"])
-    # Ja --> Frys? Biljetterns och forstätt
-    pass
-    
 
-    # Hämta/beräkna den datan som Swish behöver (tel nummer, belopp, etc)
+    # Hämta/beräkna den datan som Swish behöver (belopp, etc)
+    total_price = tickets.aggregate(Sum("ticket_type__pri>ce"))["ticket_type__price__sum"]
 
     # Interagera med swish, skicka belopp och swish message. Få tillbaka swish_payment_request
  
     # Fråga efter token för swish_id
 
-    return Response(chapter_event.title)
+    return Response(total_price)
