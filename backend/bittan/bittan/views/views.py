@@ -26,7 +26,7 @@ def get_chapterevents(request: Request) -> Response:
 
 @api_view(['GET'])
 def get_chapterevent_by_id(request: Request) -> Response:
-    request_data = request.data
+    request_data = request.query_params
     now = timezone.now()
     try:
         chapterevent = ChapterEvent.objects.filter(sales_stop_at__gt=now).get(id=request_data["id"])
