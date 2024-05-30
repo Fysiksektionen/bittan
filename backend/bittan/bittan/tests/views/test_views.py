@@ -56,7 +56,5 @@ class GetChaptereventByIdTest(TestCase):
 
 	def test_empty(self):
 		c = Client()
-		response = c.get("/get_chapterevents/")
-		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		data = response.json()
-		self.assertEqual(data, [])
+		response = c.get("/get_chapterevent_by_id/", data={"id": 1})
+		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
