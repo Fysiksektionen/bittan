@@ -32,7 +32,7 @@ export default function Root() {
 	}, []);
 	
 	function chapterEventComponents(): React.JSX.Element[] {
-		return chapterEvents.map(ce => <li key={ce.id}><Link to={"events/" + ce.id}>{ce.title}</Link></li>);
+		return chapterEvents.map(ce => <li key={ce.id}><Link to={"events/" + ce.id} state={{chapterEvent: ce}}>{ce.title}</Link></li>);
 	}
 	return (
 		<div>
