@@ -20,6 +20,11 @@ import logging
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
     response_data: dict = request.data
+    if min(x["count"] for x in response_data["tickets"]) < 1: 
+        return Response(
+            "NegativeTikets",
+            status=status.HTTP_403_FORBIDDEN
+        )
     reservation_count: int = sum(x["count"] for x in response_data["tickets"])
     chapter_event: ChapterEvent = ChapterEvent.objects.get(id=response_data["chapter_event"])
     if reservation_count > chapter_event.max_tickets - chapter_event.alive_ticket_count:
