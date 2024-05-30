@@ -74,3 +74,12 @@ class GetChaptereventByIdTest(TestCase):
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		data = response.json()
 		self.assertEqual(data["id"], ce2_database.id)
+
+	def test_sales_stop_at_past(self):
+		now = timezone.now()
+		ChapterEvent.objects.create(title="t", description="d", max_tickets=10, sales_stop_at=now-datetime.timedelta(days=365), event_at=now-datetime.timedelta(days=365))
+		c = Client()
+		response = c.get("/get_chapterevent_by_id/", data={"id": 1})
+		self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+		
+	# TODO test sending invalid data
