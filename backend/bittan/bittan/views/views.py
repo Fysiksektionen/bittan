@@ -23,3 +23,14 @@ def get_chapterevents(request: Request) -> Response:
     chapterevents = ChapterEvent.objects.filter(sales_stop_at__gt=now).order_by("event_at")
     s = ChapterEventSerializer(chapterevents, many=True)
     return Response(s.data)
+
+@api_view(['GET'])
+def get_chapterevent_by_id(request: Request) -> Response:
+    request_data = request.data
+    now = timezone.now()
+    try:
+        chapterevent = ChapterEvent.objects.filter(sales_stop_at__gt=now).get(id=request_data["id"])
+    except ChapterEvent.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    s = ChapterEventSerializer(chapterevent)
+    return Response(s.data)
