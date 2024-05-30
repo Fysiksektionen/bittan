@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { getChapterEvents } from "../endpoints";
@@ -30,8 +31,8 @@ export default function Root() {
 		loadChapterEvents();
 	}, []);
 	
-	function chapterEventComponents(): any[] {
-		return chapterEvents.map(ce => <li key={ce.id}>{ce.title}</li>);
+	function chapterEventComponents(): React.JSX.Element[] {
+		return chapterEvents.map(ce => <li key={ce.id}><Link to={"events/" + ce.id}>{ce.title}</Link></li>);
 	}
 	return (
 		<div>
