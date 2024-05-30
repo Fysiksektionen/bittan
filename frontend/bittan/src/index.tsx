@@ -7,6 +7,7 @@ import {
 import './index.css';
 import Root from "./routes/root";
 import OtherPage from './routes/otherpage';
+import ChapterEventPage from './routes/chapterEventPage';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
     path: "otherpage",
     element: <OtherPage/>,
   },
+  {
+    path: "events/:chapterEventId",
+    element: <ChapterEventPage/>,
+  }
 ]);
 root.render(
   <React.StrictMode>
