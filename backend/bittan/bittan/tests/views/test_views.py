@@ -48,3 +48,15 @@ class GetChaptereventsTest(TestCase):
 		data = response.json()
 		self.assertEqual(len(data), 1)
 		self.assertEqual(data[0]['title'], "t")
+
+class GetChaptereventByIdTest(TestCase):
+
+	def setUp(self):
+		pass
+
+	def test_empty(self):
+		c = Client()
+		response = c.get("/get_chapterevents/")
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		data = response.json()
+		self.assertEqual(data, [])
