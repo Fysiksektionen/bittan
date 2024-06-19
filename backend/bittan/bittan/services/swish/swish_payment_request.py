@@ -9,12 +9,12 @@ This file contains all of the user-facing data structures
 class PaymentStatus(Enum):
 	PAID = 1,
 	CANCELLED = 2
-	WAITING = 3
+	# WAITING = 3
 
 	__SWISH_API_STATUS_MAPPINGS = {
 		# TODO Fill in the types when swish docs are updated
 		SwishApiStatus.CANCELLED: CANCELLED,
-		SwishApiStatus.WAITING: WAITING,
+		# SwishApiStatus.WAITING: WAITING,
 		SwishApiStatus.PAID: PAID,
 	}
 
