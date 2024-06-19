@@ -1,8 +1,11 @@
 import json
 
 from bittan.models.payment import PaymentStatus
+from bittan.services.swish.swish_payment_request import SwishPaymentRequest
 
 from ..models import ChapterEvent, Ticket, TicketType, Payment
+
+from bittan.services.swish import Swish
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -83,10 +86,15 @@ def start_payment(request):
     payment.save(update_fields=["payment_started"])
 
     # Hämta/beräkna den datan som Swish behöver (belopp, etc)
-    total_price = tickets.aggregate(Sum("ticket_type__pri>ce"))["ticket_type__price__sum"]
-
+    total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
+    
+    # TODO eventuell felhantering här. 
     # Interagera med swish, skicka belopp och swish message. Få tillbaka swish_payment_request
- 
+    swish = Swish.get_instance() # Detta hämtar swish instansen som är global över hela bittan. I den här kan saker anropas. 
+    
+    # Används swish-instansen för att skapa ett payment. metod create_swish_payment(self, amount: int, message="") 
+    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
+
     # Fråga efter token för swish_id
 
-    return Response(total_price)
+    return Response(payment_request.token)
