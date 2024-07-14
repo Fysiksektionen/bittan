@@ -70,3 +70,24 @@ class ReserveTicketTest(TestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_nonexisting_chapter_event(self):
+        event_id: int = 9999 if self.test_event.pk != 9999 else 1
+        response = self.client.post(
+               "/reserve-ticket/", 
+            {
+                "chapter_event": event_id,
+                "tickets": [
+                    {
+                        "ticket_type": "Test Ticket",
+                        "count": 1
+                    },
+                    {
+                        "ticket_type": "Test Ticket 2",
+                        "count": 1
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 404)
