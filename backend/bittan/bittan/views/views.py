@@ -24,42 +24,54 @@ import logging
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
     response_data: dict = request.data
-    if min(x["count"] for x in response_data["tickets"]) < 1: 
+    event_id: int = response_data["chapter_event"]
+    tickets: list = response_data["tickets"]
+
+
+    if min(x["count"] for x in tickets) < 1: 
         return Response(
             "NegativeTickets",
             status=status.HTTP_403_FORBIDDEN
         )
-    reservation_count: int = sum(x["count"] for x in response_data["tickets"])
+    
+    reservation_count: int = sum(x["count"] for x in tickets)
+    
     try:
-        chapter_event: ChapterEvent = ChapterEvent.objects.get(id=response_data["chapter_event"])
-    except ObjectDoesNotExist:
+        chapter_event: ChapterEvent = ChapterEvent.objects.get(id=event_id)
+    except (ObjectDoesNotExist, ValueError):
         return Response(
-            "DoesNotExist",
+            "EventDoesNotExist",
             status=status.HTTP_404_NOT_FOUND
         )
+    
     if reservation_count > chapter_event.max_tickets - chapter_event.alive_ticket_count:
         return Response(
             "OutOfTickets", 
             status=status.HTTP_403_FORBIDDEN
         )
+    
+
     payment = Payment.objects.create(
         expires_at = timezone.now() + chapter_event.reservation_duration,
         swish_id = None, 
         status = PaymentStatus.RESERVED,
         email = None, 
     )
-    tickets  = []
-    for ticket in response_data["tickets"]:
+
+    for ticket in tickets:
         for _ in range(ticket["count"]):
             for _ in range(1000):
-                try: 
-                    tickets.append(
-                        Ticket.objects.create(
+                try:
+                    Ticket.objects.create(
                             external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                             time_created=timezone.now(),
                             payment=payment,
-                            ticket_type=TicketType.objects.get(title=ticket["ticket_type"])
+                            ticket_type=TicketType.objects.get(title=ticket["ticket_type"], is_visible=True)
                         )
+                except ObjectDoesNotExist:
+                    return Response(
+                        "TicketTypeDoesNotExist",
+                        status=status.HTTP_404_NOT_FOUND
                     )
                 except IntegrityError as e:
                     continue
