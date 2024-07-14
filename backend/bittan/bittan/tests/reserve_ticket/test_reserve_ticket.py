@@ -15,6 +15,9 @@ class ReserveTicketTest(TestCase):
         test_ticket2 = TicketType.objects.create(price=100, title="Test Ticket 2", description="A ticket for testing number 2.")
         self.test_event.ticket_types.add(test_ticket2)
 
+        secret_ticket = TicketType.objects.create(price=0, title="Secret Ticket", description="A free ticket (very secret)", is_visible=False)
+        self.test_event.ticket_types.add(secret_ticket)
+
         self.client = Client()
     
     def test_reserve_ticket(self):
@@ -91,3 +94,47 @@ class ReserveTicketTest(TestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_nonexisting_ticket_type(self):
+        response = self.client.post(
+               "/reserve-ticket/", 
+            {
+                "chapter_event": self.test_event.pk,
+                "tickets": [
+                    {
+                        "ticket_type": "No Ticket",
+                        "count": 1
+                    },
+                    {
+                        "ticket_type": "Test Ticket 2",
+                        "count": 1
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 404, "/reserve-ticket did not return status 404 when reserving non-existent ticket. ")
+
+        response = self.client.post(
+               "/reserve-ticket/", 
+            {
+                "chapter_event": self.test_event.pk,
+                "tickets": [
+                    {
+                        "ticket_type": "Secret ticket",
+                        "count": 1
+                    },
+                    {
+                        "ticket_type": "Test Ticket 2",
+                        "count": 1
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 404, "/reserve-ticket did not return status 404 when reserving secret ticket. ")
+
+
+
+    # TODO Tests for
+    # Wrongly formatted JSON data.
