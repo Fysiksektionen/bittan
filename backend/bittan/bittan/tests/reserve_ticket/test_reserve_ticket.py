@@ -31,7 +31,7 @@ class ReserveTicketTest(TestCase):
             },
             content_type="application/json"
         )
-        self.assertEqual(response.status_code, 200, "/reserve_ticket/ did not return status code 200 correct. ")
+        self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 200 correctly. ")
         self.assertIsNotNone(response.cookies.get("sessionid", None), "/reserve_ticket/ did not give a session cookie. ")
 
     
