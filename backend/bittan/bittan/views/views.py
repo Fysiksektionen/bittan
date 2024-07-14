@@ -16,6 +16,7 @@ import random
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.db.models import Sum
+from django.core.exceptions import ObjectDoesNotExist
 
 import logging
 
@@ -29,7 +30,13 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_403_FORBIDDEN
         )
     reservation_count: int = sum(x["count"] for x in response_data["tickets"])
-    chapter_event: ChapterEvent = ChapterEvent.objects.get(id=response_data["chapter_event"])
+    try:
+        chapter_event: ChapterEvent = ChapterEvent.objects.get(id=response_data["chapter_event"])
+    except ObjectDoesNotExist:
+        return Response(
+            "DoesNotExist",
+            status=status.HTTP_404_NOT_FOUND
+        )
     if reservation_count > chapter_event.max_tickets - chapter_event.alive_ticket_count:
         return Response(
             "OutOfTickets", 
