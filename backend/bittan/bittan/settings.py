@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlparse
@@ -40,8 +41,8 @@ SECRET_KEY = 'django-insecure-s624n0s_!oexn6#=uas1qglb_1=jenz4k5641+ibfdajk48=xu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = [] if not True else ["*"]
+ALLOWED_HOSTS = [] if not (os.environ.get("DEBUG") == "True") else ["*"]
 
 # Application definition
 
@@ -55,7 +56,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 	'bittan',
-	'djmoney'
+	'djmoney',
 ]
 
 MIDDLEWARE = [
@@ -126,6 +127,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 
 # Internationalization

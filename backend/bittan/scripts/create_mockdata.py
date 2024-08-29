@@ -8,7 +8,8 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-from bittan.models import TicketType, ChapterEvent
+from bittan.models import TicketType, ChapterEvent, ticket_type, Payment, Ticket
+from bittan.models.payment import PaymentStatus
 import datetime
 
 User.objects.create_superuser("admin", None, "admin")
@@ -25,3 +26,18 @@ chapter_event1.ticket_types.add(standardbiljett, studentbiljett)
 
 chapter_event2 = ChapterEvent.objects.create(title="Fysikalen Dag 2", description="Andra dagen av Fysikalen.", max_tickets=10, sales_stop_at=NOW+datetime.timedelta(days=365), event_at=NOW+datetime.timedelta(days=366))
 chapter_event2.ticket_types.add(standardbiljett, studentbiljett)
+
+payment1 = Payment.objects.create(
+            expires_at = NOW + datetime.timedelta(hours=1),
+            swish_id = "Hej",
+            status = PaymentStatus.RESERVED,
+            email = "mail@mail.com",
+            sent_email = True
+        )
+
+ticket1 = Ticket.objects.create(
+            external_id = "1234",
+            time_created = NOW,
+            payment = payment1,
+            ticket_type = standardbiljett
+        )
