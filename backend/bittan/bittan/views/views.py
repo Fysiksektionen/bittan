@@ -1,5 +1,3 @@
-import json
-
 from bittan.models.payment import PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest
 
@@ -11,6 +9,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
+from rest_framework import serializers
+
 import random
 
 from django.utils import timezone
@@ -20,19 +20,36 @@ from django.core.exceptions import ObjectDoesNotExist
 
 import logging
 
+class ReserveTicketTicketsSerializer(serializers.Serializer):
+    ticket_type = serializers.CharField(required=True)
+    count = serializers.IntegerField(required=True, min_value=0)
+
+class ValidateReserveTicketSerializer(serializers.Serializer):
+    chapter_event = serializers.CharField(required = True)
+    tickets = serializers.ListField(child=ReserveTicketTicketsSerializer())
+
 
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
-    response_data: dict = request.data
+    response_data: dict
+
+    valid_ser = ValidateReserveTicketSerializer(data=request.data)
+    if valid_ser.is_valid():
+        response_data = valid_ser.validated_data
+    else:
+        return Response(
+                "InvalidRequestData",
+                status=status.HTTP_403_FORBIDDEN
+            )
+
     event_id: int = response_data["chapter_event"]
     tickets: list = response_data["tickets"]
 
-
-    if min(x["count"] for x in tickets) < 1: 
-        return Response(
-            "NegativeTickets",
-            status=status.HTTP_403_FORBIDDEN
-        )
+#   if min(x["count"] for x in tickets) < 1: 
+#       return Response(
+#           "NegativeTickets",
+#           status=status.HTTP_403_FORBIDDEN
+#       )
     
     reservation_count: int = sum(x["count"] for x in tickets)
     
