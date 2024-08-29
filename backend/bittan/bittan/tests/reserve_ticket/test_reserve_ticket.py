@@ -34,7 +34,7 @@ class ReserveTicketTest(TestCase):
             },
             content_type="application/json"
         )
-        self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 200 correctly. ")
+        self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 201 correctly. ")
         self.assertIsNotNone(response.cookies.get("sessionid", None), "/reserve_ticket/ did not give a session cookie. ")
 
     
@@ -134,7 +134,24 @@ class ReserveTicketTest(TestCase):
         )
         self.assertEqual(response.status_code, 404, "/reserve-ticket did not return status 404 when reserving secret ticket. ")
 
-
+    def test_invalid_json_format(self):
+        response = self.client.post(
+               "/reserve-ticket/", 
+            {
+                "chapter_event": self.test_event.pk,
+                "tickets": [
+                    {
+                        "ticket_type": "No Ticket",
+                        "count": 1
+                    },
+                    {
+                        "ticket_type": "Test Ticket 2",
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403)
 
     # TODO Tests for
     # Wrongly formatted JSON data.
