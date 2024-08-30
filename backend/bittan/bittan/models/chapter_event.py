@@ -11,6 +11,12 @@ class ChapterEvent(models.Model):
 	ticket_types = models.ManyToManyField('TicketType')
 	reservation_duration = models.DurationField(default=timezone.timedelta(hours=1))
 	event_at = models.DateTimeField()
+	swish_message = models.TextField(max_length=50)
+
+	def save(self, *args, **kwargs):
+		if not self.swish_message:
+			self.swish_message = self.title[:50]
+		super(ChapterEvent, self).save(*args, **kwargs)
 
 	@property
 	def alive_ticket_count(self) -> int:

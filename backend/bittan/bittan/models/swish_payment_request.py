@@ -53,7 +53,7 @@ class PaymentErrorCode(enum.Enum):
 class SwishPaymentRequestModel(models.Model):
 	# time_created = models.DateTimeField(auto_now_add=True)
 	id = models.TextField(primary_key=True)
-	status = enum.EnumField(PaymentStatus, default=PaymentStatus.WAITING)
+	status = enum.EnumField(PaymentStatus, default=PaymentStatus.CREATED)
 	error_code = enum.EnumField(PaymentErrorCode, null=True)
 
 	amount = models.IntegerField()
