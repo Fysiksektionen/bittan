@@ -100,14 +100,41 @@ def reserve_ticket(request: Request) -> Response:
     return Response(status=status.HTTP_201_CREATED)
 
 
+class ValidateStartPaymentSerializer(serializers.Serializer):
+    email_address = serializers.EmailField(max_length=255)
+
+
 @api_view(['POST'])
 def start_payment(request):
-    response_data: dict = request.data
-    payment_id = request.session["reserved_payment"]
+    response_data: dict
+
+    valid_ser = ValidateStartPaymentSerializer(data=request.data)
+    if valid_ser.is_valid():
+        response_data = valid_ser.validated_data
+        print(valid_ser.validated_data)
+        print("Response data:", response_data)
+    else:
+        return Response(
+                "InvalidRequestData",
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+    payment_id = request.session.get("reserved_payment")
+    if payment_id == None:
+        return Response(
+                "InvalidSession",
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     payment = Payment.objects.get(pk=payment_id)
 
-    # TODO Verify that the payment is not already started. IMPORTANT since someone might be able 
-    # to pay twice for the same tickets otherwise. 
+    if payment.payment_started:
+        return Response(
+                "AlreadyPayedpayment",
+                status=status.HTTP_403_FORBIDDEN
+            )
+
 
     tickets = payment.ticket_set
     chapter_event = tickets.first().ticket_type.chapterevent_set.first()
@@ -141,4 +168,5 @@ def start_payment(request):
     payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
 
     # Fråga efter token för swish_id och skicka tillbaka. 
+
     return Response(payment_request.token)

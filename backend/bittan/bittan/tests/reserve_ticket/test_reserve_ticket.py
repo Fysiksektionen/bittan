@@ -152,6 +152,3 @@ class ReserveTicketTest(TestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 403)
-
-    # TODO Tests for
-    # Wrongly formatted JSON data.
