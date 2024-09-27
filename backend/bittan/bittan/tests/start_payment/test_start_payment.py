@@ -1,6 +1,5 @@
 from bittan.models.payment import PaymentStatus
 from django.test import TestCase, Client
-from django.contrib.sessions.backends.db import SessionStore
 
 from django.utils import timezone
 
@@ -56,7 +55,7 @@ class ReserveTicketTest(TestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    def test_no_session(self):
+    def test_invalid_session_token(self):
         new_client = Client()
         response = new_client.post(
             "/start-payment/",
