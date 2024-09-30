@@ -7,6 +7,7 @@ import {
 import './index.css';
 import Root from "./routes/root";
 import OtherPage from './routes/otherpage';
+import TicketScan from './routes/ticketScan';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "otherpage",
     element: <OtherPage/>,
+  },
+  {
+    path: "ticketScan",
+    element: <TicketScan/>,
   },
 ]);
 root.render(

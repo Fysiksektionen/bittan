@@ -37,6 +37,7 @@ export default function Root() {
 		<div>
 		  Hello this is my homescreen.
 		  <Link to={`otherpage`}>Go to some other page</Link>
+		  <Link to={`ticketScan`}>hello</Link>
 		  {fetchingChapterEvents ? <>Hämtar data...</> : <>Datan är hämtad!</>}
 		  {fetchChapterEventsFailed ? <>Failade att hämta data.</> : <></>}
 		  {chapterEventComponents()}
