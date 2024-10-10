@@ -31,6 +31,7 @@ class SwishPaymentRequest:
 	token: str | None
 
 class SwishPaymentRequestResponse():
+    """ This is the response that the official swish api sends after we have sent a request """
 	status: SwishApiStatus
 	error_code: SwishApiErrorCode 
 	id: str 
@@ -63,7 +64,7 @@ class Swish():
 		model.error_code = payment_request_response.error_code
 		model.status = payment_request_response.status
 
-		model.swish_api_response = "" #json.dumps(payment_request_response)
+		model.swish_api_response = json.dumps(payment_request_response)
 
 		model.save()
 		return model
@@ -93,7 +94,6 @@ class Swish():
 		if payment_request.status != SwishApiStatus.WAITING:
 			return payment_request
 
-		print("Banan")
 		self.synchronize_payment_request(payment_request)
 		return SwishPaymentRequest(payment_request)
 

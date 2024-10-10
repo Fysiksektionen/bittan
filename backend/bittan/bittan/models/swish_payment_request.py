@@ -4,6 +4,7 @@ from django_enumfield import enum
 import logging
 
 class PaymentStatus(enum.Enum):
+	""" Swish-side status of a payment """
 	PAID = 1,
 	CANCELLED = 2,
 	CREATED = 3,
@@ -27,6 +28,7 @@ class PaymentStatus(enum.Enum):
 		return PaymentStatus[status]
 
 class PaymentErrorCode(enum.Enum):
+	""" Maybe not """
 	UNKNOWN = 0
 	FAILED_TO_INITIATE = 1
 	# TIMEOUT = 1
@@ -39,6 +41,7 @@ class PaymentErrorCode(enum.Enum):
 	# 	"FF10": ERROR,
 	# 	"TM01": TIMEOUT,
 
+	# TODO CHECK THIS!
 	# 	"DS24": ERROR,  # SE TILL ATT DETTA HANTERAS SPECIELLT
 
 	# 	"VR01": ERROR,
