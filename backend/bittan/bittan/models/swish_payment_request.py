@@ -5,11 +5,11 @@ import logging
 
 class PaymentStatus(enum.Enum):
 	""" Swish-side status of a payment """
-	PAID = 1,
-	CANCELLED = 2,
-	CREATED = 3,
-	DECLINED=4
-	ERROR=5
+	PAID = 1
+	CANCELLED = 2 
+	CREATED = 3
+	DECLINED = 4
+	ERROR = 5
 
 	__SWISH_API_STATUS_MAPPINGS = {
 		"PAID": PAID,
