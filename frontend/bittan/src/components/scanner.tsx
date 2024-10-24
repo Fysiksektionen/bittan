@@ -10,7 +10,6 @@ const TicketScanner = () => {
 
     const onSuccess = (result: QrScanner.ScanResult) => {
         console.log(result);
-        console.log('wazzup');
         setScannedResult(result?.data);
         scanner?.current?.stop();
         window.location.replace(result?.data);
