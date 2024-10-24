@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { getChapterEvents } from "../endpoints";
 import { ChapterEvent } from "../types";
 import { AxiosError } from "axios";
-import PageHeader from "../components/header"
+import Header from "../components/header"
 
 export default function Root() {
 	const [chapterEvents, setChapterEvents] = useState<ChapterEvent[]>([]);
@@ -37,7 +37,7 @@ export default function Root() {
 
 	return (
 		<div>
-		  <PageHeader />
+		  <Header title="Fysikalen"/>
 		  Hello this is my homescreen.
 		  <Link to={`otherpage`}>Go to some other page</Link>
 		  <Link to={`ticketScan`}>hello</Link>
