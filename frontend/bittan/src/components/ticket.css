@@ -1,0 +1,32 @@
+.ticket {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #8b9096;
+    padding: 10px;
+    margin-bottom: 10px;
+    color: white;
+  }
+  
+  .ticket-name {
+    font-size: 16px;
+  }
+  
+  .ticket-actions {
+    display: flex;
+    align-items: center;
+  }
+  
+  .ticket-actions button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 18px;
+    margin: 0 10px;
+    cursor: pointer;
+  }
+  
+  .ticket-actions span {
+    margin: 0 10px;
+  }
+  
