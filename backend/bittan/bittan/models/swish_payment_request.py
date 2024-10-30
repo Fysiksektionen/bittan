@@ -15,7 +15,7 @@ class PaymentStatus(enum.Enum):
 		"PAID": PAID,
 		"CANCELLED": CANCELLED,
 		"CREATED":CREATED,
-		"DECLINE": DECLINED,
+		"DECLINED": DECLINED,
 		"ERROR": ERROR,
 	}
 
@@ -31,29 +31,35 @@ class PaymentErrorCode(enum.Enum):
 	""" Maybe not """
 	UNKNOWN = 0
 	FAILED_TO_INITIATE = 1
-	# TIMEOUT = 1
-	# CANCELLED_BY_USER = 2
-	# CANCELLED_OTHER = 3
+
+	TIMEOUT = 2
+	CANCELLED = 3
+
+	SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING = 4
+
 	
-	# __SWISH_ERROR_CODE_MAPPINGS = {
-	# 	"RF07": CANCELLED_OTHER,
-	# 	"BANKIDCL": CANCELLED_BY_USER,
-	# 	"FF10": ERROR,
-	# 	"TM01": TIMEOUT,
+	__SWISH_ERROR_CODE_MAPPINGS = {
+		"RF07": CANCELLED,
+		"BANKIDCL": CANCELLED,
+		"TM01": TIMEOUT,
 
-	# TODO CHECK THIS!
-	# 	"DS24": ERROR,  # SE TILL ATT DETTA HANTERAS SPECIELLT
+		"DS24": SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING,  # SE TILL ATT DETTA HANTERAS SPECIELLT
 
-	# 	"VR01": ERROR,
-	# 	"VR02": ERROR,
-	# }
+		# "FF10": ERROR,
+		#TODO CHECK THIS!
+
+		# "VR01": ERROR,
+		# "VR02": ERROR,
+	}
 
 	@staticmethod
 	def from_swish_reponse_code(status: str|None):
-		if status == None:
+		if status is None:
 			return None
 
-		return PaymentErrorCode.UNKNOWN
+		if status not in PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS:
+			return PaymentErrorCode.UNKNOWN
+		return PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS[status]
 
 class SwishPaymentRequestModel(models.Model):
 	# time_created = models.DateTimeField(auto_now_add=True)
