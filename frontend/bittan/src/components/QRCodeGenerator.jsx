@@ -8,7 +8,7 @@ const QRCodeGenerator = ({ bookingReference, eventName, userEmail, time }) => {
   return (
     <div className="text-center">
       <h2>Your Booking is Confirmed!</h2>
-      <QRCode value={qrContent} />
+      <QRCode value={qrContent} size={256} />
       <p>Please present this QR code at the event entrance.</p>
     </div>
   );
