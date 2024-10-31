@@ -1,6 +1,6 @@
 {
-  "short_name": "Fysikalen | Biljetter",
-  "name": "Fysikalen | Biljetter",
+  "short_name": "React App",
+  "name": "Create React App Sample",
   "icons": [
     {
       "src": "favicon.ico",
