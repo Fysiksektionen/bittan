@@ -3,7 +3,7 @@ import requests
 import json
 
 from ...models.swish_payment_request import SwishPaymentRequestModel, PaymentErrorCode as SwishApiErrorCode, PaymentStatus as SwishApiPaymentStatus
-from .swish_payment_request import SwishPaymentRequest, PaymentErrorCode, PaymentStatus
+from .swish_payment_request import SwishPaymentRequest, PaymentStatus
 from enum import Enum
 from uuid import uuid4
 from datetime import datetime
@@ -150,7 +150,7 @@ class Swish():
 				# TODO LOG WARNING(/ERROR?). This should not happen unless there is a configuration error.
 				logging.error(f'Error creating Swish payment: {e}')
 
-				payment_request_db_object.fail(PaymentErrorCode.FAILED_TO_INITIATE)
+				payment_request_db_object.fail(SwishApiErrorCode.FAILED_TO_INITIATE)
 				payment_request_db_object.save()
 
 				self.callback_function(SwishPaymentRequest(payment_request_db_object))
@@ -171,9 +171,9 @@ class Swish():
 
 
 def example_callback_handler_function(paymentRequest: SwishPaymentRequest):
-	print("~~CALLBACK~~")
-	print(paymentRequest.status)
-	print(paymentRequest.errorCode)
+	print("~~EXAMPLE CALLBACK HANDLER~~")
+	print("mannen")
+	print("Payment status: ", paymentRequest.status)
 
 	if paymentRequest.is_payed():
 		print(f'Marking {paymentRequest.payment_id} as paid')
