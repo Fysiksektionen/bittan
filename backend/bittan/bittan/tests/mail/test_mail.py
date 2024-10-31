@@ -1,6 +1,12 @@
 from django.test import TestCase
 from bittan.mail import send_mail, make_qr_image
 from bittan.mail import MailError, InvalidRecieverAddressError
+from bittan.mail import mail_ticket
+
+class LeoTest(TestCase):
+
+	def leo_test(self):
+		mail_ticket("bittantest@gmail.com")
 
 class SendMailTest(TestCase):
 
