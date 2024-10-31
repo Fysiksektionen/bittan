@@ -1,41 +1,49 @@
-// src/components/EventGrid.js
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Row, Button } from 'react-bootstrap';
+import { Card, Col, Row, Button, Dropdown } from 'react-bootstrap';
 import axiosInstance from '../api/axiosConfig';
 
 const EventGrid = () => {
-  const [events, setEvents] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [pastEvents, setPastEvents] = useState([]);
+  const [showPast, setShowPast] = useState(false);
 
   useEffect(() => {
-    axiosInstance
-      .get('/get_chapterevents/')
-      .then((response) => {
-        setEvents(response.data);
-      })
-      .catch((error) => {
-        console.error('Error fetching events:', error);
-      });
+    // Fetch events from the backend
+    axiosInstance.get('/events/').then((response) => {
+      setUpcomingEvents(response.data.upcoming);
+      setPastEvents(response.data.past);
+    });
   }, []);
 
   return (
-    <Row>
-      {events.map((event) => (
-        <Col key={event.id} md={4}>
-          <Card className="mb-4">
-            <Card.Body>
-              <Card.Title>{event.title}</Card.Title>
-              <Card.Text>{event.description}</Card.Text>
-              <Card.Text>
-                {new Date(event.event_at).toLocaleString()}
-              </Card.Text>
-              <Button variant="primary" href={`/events/${event.id}`}>
-                View Details
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-      ))}
-    </Row>
+    <>
+      <Row>
+        {upcomingEvents.map((event) => (
+          <Col key={event.id} md={4}>
+            <Card>
+              <Card.Img variant="top" src={event.image} />
+              <Card.Body>
+                <Card.Title>{event.title}</Card.Title>
+                <Card.Text>{event.time}</Card.Text>
+                <Button href={`/events/${event.id}`}>View Details</Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+      <Dropdown>
+        <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+          {showPast ? 'Hide' : 'Show'} Past Events
+        </Dropdown.Toggle>
+        <Dropdown.Menu show={showPast}>
+          {pastEvents.map((event) => (
+            <Dropdown.Item key={event.id} href={`/events/${event.id}`}>
+              {event.title}
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Dropdown>
+    </>
   );
 };
 
