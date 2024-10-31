@@ -17,7 +17,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .api.swish import swish_callback, debug_make_request, debug_query, debug_synchronize_payment_request 
+from .api.swish import swish_callback, debug_make_request
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,13 +27,3 @@ urlpatterns = [
 
 if environ.get("DEBUG") == "True":
 	urlpatterns.append(path('swish/dummy/', debug_make_request))
-	urlpatterns.append(path('swish/<slug:id>', debug_query))
-
-# Initialize swish
-from bittan.services.swish import Swish, example_callback_handler_function
-url = f'https://mss.cpc.getswish.net/swish-cpcapi/'
-
-callback_url = "https://f450c2c5f95141.lhr.life/swish/callback/" #https://4a57cf3089a623cd042c99d6a8767a70.serveo.net/swish/callback/"
-# callback_url = "https://f450c2c5f95141.lhr.life https://jongaton.serveo.net/swish/callback/" #https://4a57cf3089a623cd042c99d6a8767a70.serveo.net/swish/callback/"
-cert_file_paths = ("./test_certificates/testcert.pem", "./test_certificates/testcert.key")
-swish = Swish(url, "1234679304", callback_url, cert_file_paths, example_callback_handler_function)

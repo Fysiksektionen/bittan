@@ -1,16 +1,14 @@
 from django.utils.log import logging
+from django.apps import apps
 import requests
 import json
 
 from ...models.swish_payment_request import SwishPaymentRequestModel, PaymentErrorCode as SwishApiErrorCode, PaymentStatus as SwishApiPaymentStatus
 from .swish_payment_request import SwishPaymentRequest, PaymentStatus
-from enum import Enum
 from uuid import uuid4
-from datetime import datetime
 
 
-instance = None
-class SwishPaymentRequestResponse(): 
+class SwishPaymentRequestResponse: 
 	""" This is the response that the official swish api sends after we have sent a request """ 
 	status: SwishApiPaymentStatus
 	error_code: SwishApiErrorCode 
@@ -21,7 +19,7 @@ class SwishPaymentRequestResponse():
 		self.status = SwishApiPaymentStatus.from_swish_api_status(response['status'])
 		self.error_code = SwishApiErrorCode.from_swish_reponse_code(response['errorCode'])
 
-class Swish():
+class Swish:
 	def __init__(self, swish_url, payee_alias, callback_url, cert_file_paths, callback_function):
 		self.swish_url = swish_url
 		self.payee_alias = payee_alias
@@ -38,7 +36,6 @@ class Swish():
 		""" Updates a payment according to a response (payment_request_response) from the Swish api """
 		response_raw = json.dumps(payment_request_response)
 		payment_request_response = SwishPaymentRequestResponse(payment_request_response)
-		print("UPDATING YO")
 		if model is None:
 			model = SwishPaymentRequestModel.objects.get(pk=payment_request_response.id)
 
@@ -145,7 +142,8 @@ class Swish():
 				
 				payment_request_external_uri = resp.headers["Location"]
 				payment_request_token = resp.headers["PaymentRequestToken"]
-
+				print("PAYMENT REQUEST URI")
+				print(payment_request_external_uri)
 			except requests.exceptions.RequestException as e:
 				# TODO LOG WARNING(/ERROR?). This should not happen unless there is a configuration error.
 				logging.error(f'Error creating Swish payment: {e}')
@@ -156,23 +154,19 @@ class Swish():
 				self.callback_function(SwishPaymentRequest(payment_request_db_object))
 
 			payment_request_db_object.token = payment_request_token
-			payment_request_db_object.payment_request_external_uri = payment_request_external_uri 
+			payment_request_db_object.external_uri = payment_request_external_uri 
 			payment_request_db_object.save()
 
 			return SwishPaymentRequest(payment_request_db_object)
 
 	@staticmethod
 	def get_instance():
-		global instance
-		if instance is None:
-			raise Exception("Swish singleton has not been initialized!")
-
-		return instance
+		instance = apps.get_app_config('bittan').swish
+		return instance 
 
 
 def example_callback_handler_function(paymentRequest: SwishPaymentRequest):
 	print("~~EXAMPLE CALLBACK HANDLER~~")
-	print("mannen")
 	print("Payment status: ", paymentRequest.status)
 
 	if paymentRequest.is_payed():
