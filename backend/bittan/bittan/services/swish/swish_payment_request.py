@@ -10,7 +10,7 @@ This file contains all of the user-facing data structures
 
 class PaymentStatus(Enum):
 	""" Status of a payment """
-	PAID = 1,
+	PAID = 1
 	CANCELLED = 2
 	CREATED = 3
 
