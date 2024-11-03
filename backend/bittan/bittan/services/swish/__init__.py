@@ -4,7 +4,8 @@ import requests
 import json
 
 from ...models.swish_payment_request import SwishPaymentRequestModel, PaymentErrorCode as SwishApiErrorCode, PaymentStatus as SwishApiPaymentStatus
-from .swish_payment_request import SwishPaymentRequest, PaymentStatus
+from .swish_payment_request import SwishPaymentRequest
+
 from uuid import uuid4
 
 
@@ -29,12 +30,12 @@ class Swish:
 
 		self.callback_function = callback_function
 
-		global instance
-		instance = self
-
 	def update_swish_payment_request(self, payment_request_response: dict, model: SwishPaymentRequestModel | None = None):
 		""" Updates a payment according to a response (payment_request_response) from the Swish api """
+		
+		# We are going to store the raw response data in our model, incase something bad happens and manual analysis
 		response_raw = json.dumps(payment_request_response)
+
 		payment_request_response = SwishPaymentRequestResponse(payment_request_response)
 		if model is None:
 			model = SwishPaymentRequestModel.objects.get(pk=payment_request_response.id)
@@ -43,15 +44,12 @@ class Swish:
 		# TODO Check that it makes sense to only call the callback on status change
 		# Only send a callback to the callback handler if the status has been changed
 		if model.status != payment_request_response.status:
-			# print("Should send callback")
 			send_callback = True
 
 		model.error_code = payment_request_response.error_code
 		model.status = payment_request_response.status
 
-
 		model.swish_api_response = response_raw
-
 		model.save()
 
 		if send_callback:
@@ -60,14 +58,14 @@ class Swish:
 
 		return model
 
-	def refresh_all_pending(self):
+	def synchronize_all_pending(self):
 		pending_payments = SwishPaymentRequestModel.objects.filter(status=SwishApiPaymentStatus.CREATED)
 
 		for pending in pending_payments:
 			self.synchronize_payment_request(pending)
 
 	def synchronize_payment_request(self, payment_request: SwishPaymentRequestModel | str):
-		""" Goes to the Swish Api and synchronizes the given payment """
+		""" This method is useful for when the callbacks are not working. It fetches the state of a payment via the swish api and updates our local info on the payment """
 
 		payment_request_id = None
 		if isinstance(payment_request, str):
@@ -89,6 +87,7 @@ class Swish:
 	def get_payment_request(self, id: str) -> SwishPaymentRequest:
 		payment_request = SwishPaymentRequestModel.objects.get(pk=id)
 
+		# TODO check that payment requests only can change state once	
 		# If the payment status is created, there is a chance that it's status has been changed
 		if payment_request.status == SwishApiPaymentStatus.CREATED:
 			self.synchronize_payment_request(payment_request)
@@ -102,50 +101,47 @@ class Swish:
 		return str(uuid4()).replace('-', '').upper()
 	
 	def handle_swish_callback(self, response):
-		payment_request_model = self.update_swish_payment_request(response)
+		self.update_swish_payment_request(response)
 
-
-
-	def send_to_swish(self, method, path: str, data = None, **kwargs):
+	def send_to_swish(self, method, path: str, **kwargs):
+		""" Convenience method for sending an HTTP to the SWISH api """
 		return requests.request(method, f'{self.swish_url}{path}', cert=self.cert_file_paths, **kwargs)
 
 
 	def create_swish_payment(self, amount: int, message="") -> SwishPaymentRequest:
 			"""
-			Tells Swish that we want to create a payment. Note: This function will call the callback efen if it directly returns a
-			SwishPaymentRequest which has a status of Cancelled.
+			Tells Swish that we want to create a payment. 
 
 			@param amount: The amount of the payment.
 			@param message: An optional message for the payment.
 			@return A representation of the paymentRequest
 			"""
 			payment_id = Swish.generate_swish_id()
-			print(f'Generarade id {payment_id}')
 			
-			json = {
-				"payeeAlias": self.payee_alias,
-				"callbackUrl": self.callback_url,
-				"amount": amount,
-				"message": message,
-				"currency": "SEK",
-			}
 
 			payment_request_db_object = SwishPaymentRequestModel(id=payment_id, amount=amount)
 			payment_request_db_object.save()
 
-			payment_request_external_uri = None
-			payment_request_token = None
-
 			try:
-				resp = requests.put(f'{self.swish_url}api/v2/paymentrequests/{payment_id}', json=json, cert=self.cert_file_paths)
+				json = {
+					"payeeAlias": self.payee_alias,
+					"callbackUrl": self.callback_url,
+					"amount": amount,
+					"message": message,
+					"currency": "SEK",
+				}
+				resp = self.send_to_swish('PUT', f'api/v2/paymentrequests/{payment_id}', json=json)
 				resp.raise_for_status()
 				
 				payment_request_external_uri = resp.headers["Location"]
 				payment_request_token = resp.headers["PaymentRequestToken"]
-				print("PAYMENT REQUEST URI")
-				print(payment_request_external_uri)
+
+				payment_request_db_object.token = payment_request_token
+				payment_request_db_object.external_uri = payment_request_external_uri 
+
+				payment_request_db_object.save()
 			except requests.exceptions.RequestException as e:
-				# TODO LOG WARNING(/ERROR?). This should not happen unless there is a configuration error.
+				# TODO LOG WARNING(/ERROR?). This should not happen unless there is a configuration error, or if we have connectivity problems 
 				logging.error(f'Error creating Swish payment: {e}')
 
 				payment_request_db_object.fail(SwishApiErrorCode.FAILED_TO_INITIATE)
@@ -153,27 +149,9 @@ class Swish:
 
 				self.callback_function(SwishPaymentRequest(payment_request_db_object))
 
-			payment_request_db_object.token = payment_request_token
-			payment_request_db_object.external_uri = payment_request_external_uri 
-			payment_request_db_object.save()
-
 			return SwishPaymentRequest(payment_request_db_object)
 
 	@staticmethod
 	def get_instance():
 		instance = apps.get_app_config('bittan').swish
 		return instance 
-
-
-def example_callback_handler_function(paymentRequest: SwishPaymentRequest):
-	print("~~EXAMPLE CALLBACK HANDLER~~")
-	print("Payment status: ", paymentRequest.status)
-
-	if paymentRequest.is_payed():
-		print(f'Marking {paymentRequest.id} as paid')
-	elif paymentRequest.status == PaymentStatus.CANCELLED.value:
-		print(f'Payment {paymentRequest.id} failed because: {paymentRequest.status}')
-	elif paymentRequest.status == PaymentStatus.CREATED.value:
-		print(f'Payment {paymentRequest.id} is waiting...')
-	elif paymentRequest.status == PaymentStatus.ROGUE.value:
-		print(f'AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH')

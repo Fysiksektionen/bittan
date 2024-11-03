@@ -66,6 +66,8 @@ class SwishPaymentRequest:
 	status: PaymentStatus 
 
 	# Used to start the swish app. Used by the frontent to make the payment
+	# See https://developer.swish.nu/documentation/guides/trigger-the-swish-app
+	# https://developer.swish.nu/documentation/guides/qr-codes-for-your-terminal#generating-the-qr-code
 	token: str | None
 
 	"""	A class that represents all the user of *this* api needs to know about a payment """
