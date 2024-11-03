@@ -171,9 +171,9 @@ def example_callback_handler_function(paymentRequest: SwishPaymentRequest):
 
 	if paymentRequest.is_payed():
 		print(f'Marking {paymentRequest.payment_id} as paid')
-	elif paymentRequest.status == PaymentStatus.CANCELLED:
+	elif paymentRequest.status == PaymentStatus.CANCELLED.value:
 		print(f'Payment {paymentRequest.payment_id} failed because: {paymentRequest.status.name}')
-	elif paymentRequest.status == PaymentStatus.CREATED:
+	elif paymentRequest.status == PaymentStatus.CREATED.value:
 		print(f'Payment {paymentRequest.payment_id} is waiting...')
-	elif paymentRequest.status == PaymentStatus.ROGUE:
+	elif paymentRequest.status == PaymentStatus.ROGUE.value:
 		print(f'AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH')

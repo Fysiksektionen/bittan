@@ -10,7 +10,7 @@ This file contains all of the user-facing data structures
 
 class PaymentStatus(Enum):
 	""" Status of a payment """
-	PAID = 1,
+	PAID = 1
 	CANCELLED = 2
 	CREATED = 3
 
@@ -81,8 +81,8 @@ class SwishPaymentRequest:
 		print(self.amount)
 		
 	def is_payed(self):
-		return self.status == PaymentStatus.PAID
+		return self.status == PaymentStatus.PAID.value
 
 	def is_failed(self):
-		return self.status != PaymentStatus.PAID and self.status != PaymentStatus.CREATED
+		return self.status != PaymentStatus.PAID.value and self.status != PaymentStatus.CREATED.value
 	
