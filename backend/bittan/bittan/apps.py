@@ -1,4 +1,9 @@
+import os
+
 from django.apps import AppConfig
+
+from bittan.settings import ENV_VAR_NAMES, EnvVars
+
 
 class BittanConfig(AppConfig):
     name = 'bittan'
@@ -6,9 +11,15 @@ class BittanConfig(AppConfig):
     def ready(self):
         from bittan.services.swish import Swish, example_callback_handler_function
 
-        url = "https://mss.cpc.getswish.net/swish-cpcapi/"
-        callback_url = "https://4c07b97a2f8007.lhr.life/swish/callback/"
-        cert_file_paths = ("./test_certificates/testcert.pem", "./test_certificates/testcert.key")
+        swish_url = EnvVars.get(ENV_VAR_NAMES.SWISH_API_URL)
+        callback_url = f'{EnvVars.get(ENV_VAR_NAMES.APPLICATION_URL)}swish/callback'
+
+        cert_file_paths = (
+                EnvVars.get(ENV_VAR_NAMES.SWISH_PEM_FILE_PATH),
+                EnvVars.get(ENV_VAR_NAMES.SWISH_KEY_FILE_PATH)
+        )
+
+        payee_alias = EnvVars.get(ENV_VAR_NAMES.SWISH_PAYEE_ALIAS)
 
         # Attach the Swish instance to a variable in the app's config for easy access
-        self.swish = Swish(url, "1234679304", callback_url, cert_file_paths, example_callback_handler_function)
+        self.swish = Swish(swish_url, payee_alias, callback_url, cert_file_paths, example_callback_handler_function)
