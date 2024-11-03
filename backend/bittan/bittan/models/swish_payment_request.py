@@ -28,7 +28,6 @@ class PaymentStatus(enum.Enum):
 		return PaymentStatus[status]
 
 class PaymentErrorCode(enum.Enum):
-	""" Maybe not """
 	UNKNOWN = 0
 	FAILED_TO_INITIATE = 1
 
@@ -44,12 +43,6 @@ class PaymentErrorCode(enum.Enum):
 		"TM01": TIMEOUT,
 
 		"DS24": SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING,  # SE TILL ATT DETTA HANTERAS SPECIELLT
-
-		# "FF10": ERROR,
-		#TODO CHECK THIS!
-
-		# "VR01": ERROR,
-		# "VR02": ERROR,
 	}
 
 	@staticmethod
@@ -62,7 +55,7 @@ class PaymentErrorCode(enum.Enum):
 		return PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS[status]
 
 class SwishPaymentRequestModel(models.Model):
-	# time_created = models.DateTimeField(auto_now_add=True)
+	time_created = models.DateTimeField(auto_now_add=True)
 	id = models.TextField(primary_key=True)
 	status = enum.EnumField(PaymentStatus, default=PaymentStatus.CREATED)
 	error_code = enum.EnumField(PaymentErrorCode, null=True)
