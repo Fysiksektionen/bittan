@@ -76,5 +76,5 @@ class SwishPaymentRequestModel(models.Model):
 	swish_api_response = models.TextField(null=True)
 	
 	def fail(self, fail_reason: PaymentErrorCode):
-			self.status = PaymentStatus.CANCELLED
+			self.status = PaymentStatus.ERROR
 			self.error_code = fail_reason
