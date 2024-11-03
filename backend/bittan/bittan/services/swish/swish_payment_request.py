@@ -74,11 +74,6 @@ class SwishPaymentRequest:
 		self.status = PaymentStatus.from_swish_api_status(paymentRequest.status, paymentRequest.error_code)
 		self.token = paymentRequest.token or None
 		self.amount = paymentRequest.amount
-
-		print(self.id)
-		print(self.status)
-		print(self.token)
-		print(self.amount)
 		
 	def is_payed(self):
 		return self.status == PaymentStatus.PAID.value

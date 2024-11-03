@@ -12,7 +12,7 @@ class BittanConfig(AppConfig):
         from bittan.services.swish import Swish, example_callback_handler_function
 
         swish_url = EnvVars.get(ENV_VAR_NAMES.SWISH_API_URL)
-        callback_url = f'{EnvVars.get(ENV_VAR_NAMES.APPLICATION_URL)}swish/callback'
+        callback_url = f'{EnvVars.get(ENV_VAR_NAMES.APPLICATION_URL)}swish/callback/'
 
         cert_file_paths = (
                 EnvVars.get(ENV_VAR_NAMES.SWISH_PEM_FILE_PATH),
