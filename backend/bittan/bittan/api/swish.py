@@ -9,7 +9,7 @@ def swish_callback(request: Request):
 	# TODO For somereason the swish callback is not working and not sending any data at all. So this is a "temporary" fix.
 	if request.data == {}:
 		# TODO Make this an async job and not execute like this... 
-		Swish.get_instance().refresh_all_pending()
+		Swish.get_instance().synchronize_all_pending()
 	else:
 		Swish.get_instance().handle_swish_callback(request.data)
 
