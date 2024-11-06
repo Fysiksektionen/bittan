@@ -77,7 +77,7 @@ class Swish:
 		response = self.send_to_swish('GET', f'api/v1/paymentrequests/{payment_request_id}')
 		if response.status_code != 200:
 			# TODO Handle errors more elegantly, this should NOT happen!
-			print("PaymentRequestDoes not exist:", payment_request_id)
+			logging.error("PaymentRequestDoes not exist:", payment_request_id)
 
 			raise Exception("There is no swish payment request with the id ", swish_payment_request)
 		
@@ -132,17 +132,20 @@ class Swish:
 				}
 				resp = self.send_to_swish('PUT', f'api/v2/paymentrequests/{payment_id}', json=json)
 				resp.raise_for_status()
-				
+
 				payment_request_external_uri = resp.headers["Location"]
 				payment_request_token = resp.headers["PaymentRequestToken"]
 
 				payment_request_db_object.token = payment_request_token
 				payment_request_db_object.external_uri = payment_request_external_uri 
+				payment_request_db_object.swish_api_response = resp.headers 
 
 				payment_request_db_object.save()
 			except requests.exceptions.RequestException as e:
-				# TODO LOG WARNING(/ERROR?). This should not happen unless there is a configuration error, or if we have connectivity problems 
+				# TODO This should not happen unless there is a configuration error, or if we have connectivity problems. Handle more gracefully? 
 				logging.error(f'Error creating Swish payment: {e}')
+
+				payment_request_db_object.swish_api_response = e.response.json()
 
 				payment_request_db_object.fail(SwishApiErrorCode.FAILED_TO_INITIATE)
 				payment_request_db_object.save()
