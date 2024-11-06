@@ -18,10 +18,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from .api.swish import swish_callback, debug_make_request
+from .views.views import get_chapterevents
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('swish/callback/', swish_callback),
+	path('admin/', admin.site.urls),
+	path('get_chapterevents/', get_chapterevents)
 ]
 
 

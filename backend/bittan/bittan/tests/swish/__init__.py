@@ -1,5 +1,7 @@
 from uuid import uuid4
-from bittan.services.swish import Swish, example_callback_handler_function
+from bittan.services.swish import Swish
+from bittan.services.swish.swish_payment_request.
+# from bittan.services.swish.example_swish_callback_handler import example_callback_handler_function 
 from django.test import TestCase
 import requests
 
