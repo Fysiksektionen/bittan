@@ -18,7 +18,13 @@ def swish_callback(request: Request):
 
 @api_view(['POST'])
 def debug_make_request(request: Request):
-	resp = Swish.get_instance().create_swish_payment(123, "RP03")
+	# In merchant simulator, specify the msg query param to make the merchant simulator return an error.
+	# eg. POST <BACEND_URI>/swish/dummy/?msg=RF07 ==> simulate that the user declined the transaction 
+	msg = ""
+	if 'msg' in request.query_params:
+		msg = request.query_params['msg']
+
+	resp = Swish.get_instance().create_swish_payment(123, msg)
 	print("Skapade betalning")
 	print(f'id: {resp.id}, token: {resp.token}')
 	return Response(f"{resp.id}", status=status.HTTP_201_CREATED)
