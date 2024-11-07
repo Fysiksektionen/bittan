@@ -4,6 +4,7 @@ from django_enumfield import enum
 import logging
 
 class PaymentStatus(enum.Enum):
+	# Seems to be duplicate of transaction declined, either here or in PaymentErrorCode. See https://github.com/Fysiksektionen/bittan/issues/13
 	""" Swish-side status of a payment """
 	PAID = 1
 	CANCELLED = 2 
