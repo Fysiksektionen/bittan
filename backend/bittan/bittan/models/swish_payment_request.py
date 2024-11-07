@@ -1,5 +1,4 @@
 from django.db import models
-from djmoney.models.fields import MoneyField
 from django_enumfield import enum
 import logging
 
@@ -43,7 +42,7 @@ class PaymentErrorCode(enum.Enum):
 		"BANKIDCL": CANCELLED,
 		"TM01": TIMEOUT,
 
-		"DS24": SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING,  # SE TILL ATT DETTA HANTERAS SPECIELLT
+		"DS24": SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING,  # Make sure that this is handled! 
 	}
 
 	@staticmethod

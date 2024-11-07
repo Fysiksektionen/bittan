@@ -104,7 +104,7 @@ class Swish:
 		self.update_swish_payment_request(response)
 
 	def send_to_swish(self, method, path: str, **kwargs):
-		""" Convenience method for sending an HTTP to the SWISH api """
+		""" Convenience method for sending an HTTP request to the SWISH api """
 		return requests.request(method, f'{self.swish_url}{path}', cert=self.cert_file_paths, **kwargs)
 
 
@@ -138,6 +138,8 @@ class Swish:
 
 				payment_request_db_object.token = payment_request_token
 				payment_request_db_object.external_uri = payment_request_external_uri 
+
+				# Yes, swish sends the data in the headers for this response, keep this in mind if debugging.
 				payment_request_db_object.swish_api_response = resp.headers 
 
 				payment_request_db_object.save()
@@ -145,6 +147,7 @@ class Swish:
 				# TODO This should not happen unless there is a configuration error, or if we have connectivity problems. Handle more gracefully? 
 				logging.error(f'Error creating Swish payment: {e}')
 
+				# The data is, unlike the "happy path", in the body as json if the request fails 
 				payment_request_db_object.swish_api_response = e.response.json()
 
 				payment_request_db_object.fail(SwishApiErrorCode.FAILED_TO_INITIATE)

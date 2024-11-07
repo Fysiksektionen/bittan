@@ -48,7 +48,8 @@ class PaymentStatus(Enum):
 
 	@staticmethod
 	def from_swish_api_status(status: SwishApiPaymentStatus, error_code: SwishApiPaymentErrorCode):
-		""" Converts the Swish API:s error and status into a user facing status """
+		""" Converts the Swish API:s error and status into a user facing status. 
+		Note we have combined both error and status into one larger enum to make it easier for the user of the module """
 		if status == SwishApiPaymentStatus.ERROR:
 			return PaymentStatus.from_swish_api_error(error_code)
 

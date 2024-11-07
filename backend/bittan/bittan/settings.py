@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from urllib.parse import urlparse
 from enum import Enum
 
 import requests
@@ -69,8 +68,8 @@ SECRET_KEY = 'django-insecure-s624n0s_!oexn6#=uas1qglb_1=jenz4k5641+ibfdajk48=xu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = [] if not True else ["*"]
 ALLOWED_HOSTS = [] if not (os.environ.get("DEBUG") == "True") else ["*"]
+
 
 # Application definition
 
@@ -178,6 +177,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Application Url
+APPLICATION_URL = urlparse(os.getenv(ENV_VAR_NAMES.APPLICATION_URL))
 
 LOGGING = {
     "version": 1,
