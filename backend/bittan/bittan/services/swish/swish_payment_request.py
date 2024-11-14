@@ -20,6 +20,7 @@ class PaymentStatus(Enum):
 	UNKNOWN_ERROR = 6
 
 	# We have no idea what is happening
+	# Make sure to handle this when using the Swish part of the api. E.g by mailing maintainers 
 	ROGUE = 7
 
 	__SWISH_API_STATUS_MAPPINGS = {

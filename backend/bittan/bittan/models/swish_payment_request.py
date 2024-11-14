@@ -42,7 +42,7 @@ class PaymentErrorCode(enum.Enum):
 		"BANKIDCL": CANCELLED,
 		"TM01": TIMEOUT,
 
-		"DS24": SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING,  # Make sure that this is handled! 
+		"DS24": SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING,
 	}
 
 	@staticmethod
