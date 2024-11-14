@@ -21,7 +21,7 @@ class PaymentStatus(enum.Enum):
 
 	@staticmethod
 	def from_swish_api_status(status: str):
-		# Try to get the status from the mapping otherwise log an error and None
+		""" Try to get the status from the mapping otherwise log an error and None """
 		if status not in PaymentStatus.__SWISH_API_STATUS_MAPPINGS:
 			logging.ERROR(f"Unknown Swish API status: {status}")
 			return None
