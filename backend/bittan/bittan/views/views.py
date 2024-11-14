@@ -24,13 +24,15 @@ def get_chapterevents(request: Request) -> Response:
     s = ChapterEventSerializer(chapterevents, many=True)
     return Response(s.data)
 
-class ValidateValidateTicketSerializer(serializers.Serializer):
+class ValidateTicketRequestSerializer(serializers.Serializer):
     external_id = serializers.CharField()
 
 @api_view(['PUT'])
 def validate_ticket(request: Request) -> Response:
-
-    valid_ser = ValidateValidateTicketSerializer(data=request.data)
+    ''' Gets a ticket by its (public) id and gets how many times it has 
+    been used. Increases its usage count. Returns how many times the ticket has been used
+    excluded from the current time. '''
+    valid_ser = ValidateTicketRequestSerializer(data=request.data)
     if valid_ser.is_valid():
         response_data = valid_ser.validated_data
     else:
@@ -50,9 +52,6 @@ def validate_ticket(request: Request) -> Response:
     
 
     return Response({"times_used": times_used, "status": ticket.payment.status})
-    # Gets a ticket by its (public) id and gets how many times it has 
-    # been used. Increases its usage count. Returns how many times the ticket has been used
-    # excluded from the current time. 
 
 
 
