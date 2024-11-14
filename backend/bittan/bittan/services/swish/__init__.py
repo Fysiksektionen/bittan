@@ -25,7 +25,6 @@ class Swish:
 		self.swish_url = swish_url
 		self.payee_alias = payee_alias
 		self.callback_url = callback_url
-		self.payeee_reference_id = ""
 		self.cert_file_paths = cert_file_paths
 
 		self.callback_function = callback_function
