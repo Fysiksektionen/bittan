@@ -1,6 +1,6 @@
 from enum import Enum
 
-from django.utils.log import logging
+import logging
 
 from bittan.models.swish_payment_request import SwishPaymentRequestModel, PaymentErrorCode as SwishApiPaymentErrorCode, PaymentStatus as SwishApiPaymentStatus 
 

@@ -1,4 +1,4 @@
-from django.utils.log import logging
+import logging
 from django.apps import apps
 import requests
 import json
