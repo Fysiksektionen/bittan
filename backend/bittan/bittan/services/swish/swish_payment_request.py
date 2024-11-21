@@ -63,6 +63,8 @@ class PaymentStatus(Enum):
 
 
 class SwishPaymentRequest:
+	"""	A class that represents all the user of *this* api needs to know about a payment """
+
 	id: str
 	amount: int
 	status: PaymentStatus 
@@ -72,14 +74,13 @@ class SwishPaymentRequest:
 	# https://developer.swish.nu/documentation/guides/qr-codes-for-your-terminal#generating-the-qr-code
 	token: str | None
 
-	"""	A class that represents all the user of *this* api needs to know about a payment """
 	def __init__(self, paymentRequest: SwishPaymentRequestModel):
 		self.id = paymentRequest.id
 		self.status = PaymentStatus.from_swish_api_status(paymentRequest.status, paymentRequest.error_code)
 		self.token = paymentRequest.token or None
 		self.amount = paymentRequest.amount
 		
-	def is_payed(self):
+	def is_paid(self):
 		return self.status == PaymentStatus.PAID.value
 
 	def is_failed(self):

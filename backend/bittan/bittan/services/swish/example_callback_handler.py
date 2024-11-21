@@ -10,7 +10,7 @@ def example_callback_handler_function(paymentRequest: SwishPaymentRequest):
 	print("~~EXAMPLE CALLBACK HANDLER~~")
 	print("Payment status: ", paymentRequest.status)
 
-	if paymentRequest.is_payed():
+	if paymentRequest.is_paid():
 		print(f'Marking {paymentRequest.id} as paid')
 	elif paymentRequest.status == PaymentStatus.CANCELLED.value:
 		print(f'Payment {paymentRequest.id} failed because: {paymentRequest.status}')
