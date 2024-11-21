@@ -121,27 +121,18 @@ class Swish:
 			payment_request_db_object = SwishPaymentRequestModel(id=payment_id, amount=amount)
 			payment_request_db_object.save()
 
+			json = {
+				"payeeAlias": self.payee_alias,
+				"callbackUrl": self.callback_url,
+				"amount": amount,
+				"message": message,
+				"currency": "SEK",
+			}
+			resp = self.send_to_swish('PUT', f'api/v2/paymentrequests/{payment_id}', json=json)
+
+
 			try:
-				json = {
-					"payeeAlias": self.payee_alias,
-					"callbackUrl": self.callback_url,
-					"amount": amount,
-					"message": message,
-					"currency": "SEK",
-				}
-				resp = self.send_to_swish('PUT', f'api/v2/paymentrequests/{payment_id}', json=json)
 				resp.raise_for_status()
-
-				payment_request_external_uri = resp.headers["Location"]
-				payment_request_token = resp.headers["PaymentRequestToken"]
-
-				payment_request_db_object.token = payment_request_token
-				payment_request_db_object.external_uri = payment_request_external_uri 
-
-				# Yes, swish sends the data in the headers for this response, keep this in mind if debugging.
-				payment_request_db_object.swish_api_response = resp.headers 
-
-				payment_request_db_object.save()
 			except requests.exceptions.RequestException as e:
 				# TODO This should not happen unless there is a configuration error, or if we have connectivity problems. Handle more gracefully? 
 				logging.error(f'Error creating Swish payment: {e}')
@@ -153,6 +144,17 @@ class Swish:
 				payment_request_db_object.save()
 
 				self.callback_function(SwishPaymentRequest(payment_request_db_object))
+
+			payment_request_external_uri = resp.headers["Location"]
+			payment_request_token = resp.headers["PaymentRequestToken"]
+
+			payment_request_db_object.token = payment_request_token
+			payment_request_db_object.external_uri = payment_request_external_uri 
+
+			# Yes, swish sends the data in the headers for this response, keep this in mind if debugging.
+			payment_request_db_object.swish_api_response = resp.headers 
+
+			payment_request_db_object.save()
 
 			return SwishPaymentRequest(payment_request_db_object)
 
