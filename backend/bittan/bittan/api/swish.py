@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
-from ..services.swish import Swish 
+from ..services.swish.swish import Swish 
 
 @api_view(['POST'])
 def swish_callback(request: Request):

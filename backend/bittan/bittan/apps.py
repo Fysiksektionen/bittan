@@ -9,7 +9,7 @@ class BittanConfig(AppConfig):
     name = 'bittan'
 
     def ready(self):
-        from bittan.services.swish import Swish 
+        from bittan.services.swish.swish import Swish 
         from bittan.services.swish.example_callback_handler import example_callback_handler_function
 
         swish_url = EnvVars.get(ENV_VAR_NAMES.SWISH_API_URL)
