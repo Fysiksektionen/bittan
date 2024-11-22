@@ -1,5 +1,6 @@
 __pycache__
 backend/postgres-data
 *.env
+backend/bittan/certificates
 *.log
 venv
