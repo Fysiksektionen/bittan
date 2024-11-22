@@ -93,7 +93,7 @@ class ReserveTicketTest(TestCase):
                 "email_address": "mail@mail.com"
             }
         )
-        self.assertEqual(response.status_code, 403) 
+        self.assertEqual(response.status_code, 408) 
 
     def test_expired_session_rebook_tickets(self):
         payment_id = self.client.session["reserved_payment"]
