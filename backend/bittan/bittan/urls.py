@@ -23,8 +23,8 @@ from .views import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("reserve-ticket/", views.reserve_ticket),
-    path("start-payment/", views.start_payment),
+    path("reserve_ticket/", views.reserve_ticket),
+    path("start_payment/", views.start_payment),
     path('swish/callback/', swish_callback),
 ]
 

@@ -20,20 +20,20 @@ from django.core.exceptions import ObjectDoesNotExist
 
 import logging
 
-class ReserveTicketTicketsSerializer(serializers.Serializer):
+class TicketsSerializer(serializers.Serializer):
     ticket_type = serializers.CharField(required=True)
     count = serializers.IntegerField(required=True, min_value=0)
 
-class ValidateReserveTicketSerializer(serializers.Serializer):
+class ReserveTicketRequestSerializer(serializers.Serializer):
     chapter_event = serializers.CharField(required = True)
-    tickets = serializers.ListField(child=ReserveTicketTicketsSerializer())
+    tickets = serializers.ListField(child=TicketsSerializer())
 
 
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
     response_data: dict
 
-    valid_ser = ValidateReserveTicketSerializer(data=request.data)
+    valid_ser = ReserveTicketRequestSerializer(data=request.data)
     if valid_ser.is_valid():
         response_data = valid_ser.validated_data
     else:
@@ -44,12 +44,6 @@ def reserve_ticket(request: Request) -> Response:
 
     event_id: int = response_data["chapter_event"]
     tickets: list = response_data["tickets"]
-
-#   if min(x["count"] for x in tickets) < 1: 
-#       return Response(
-#           "NegativeTickets",
-#           status=status.HTTP_403_FORBIDDEN
-#       )
     
     reservation_count: int = sum(x["count"] for x in tickets)
     
@@ -66,7 +60,6 @@ def reserve_ticket(request: Request) -> Response:
             "OutOfTickets", 
             status=status.HTTP_403_FORBIDDEN
         )
-    
 
     payment = Payment.objects.create(
         expires_at = timezone.now() + chapter_event.reservation_duration,
@@ -77,6 +70,7 @@ def reserve_ticket(request: Request) -> Response:
 
     for ticket in tickets:
         for _ in range(ticket["count"]):
+            # Attempts to create a ticket a maximum of 1000 times. This is to ensure that the external_id of the ticket is guaranteed to be unique. 
             for _ in range(1000):
                 try:
                     Ticket.objects.create(
@@ -100,7 +94,7 @@ def reserve_ticket(request: Request) -> Response:
     return Response(status=status.HTTP_201_CREATED)
 
 
-class ValidateStartPaymentSerializer(serializers.Serializer):
+class StartPaymentRequestSerializer(serializers.Serializer):
     email_address = serializers.EmailField(max_length=255)
 
 
@@ -108,17 +102,14 @@ class ValidateStartPaymentSerializer(serializers.Serializer):
 def start_payment(request):
     response_data: dict
 
-    valid_ser = ValidateStartPaymentSerializer(data=request.data)
+    valid_ser = StartPaymentRequestSerializer(data=request.data)
     if valid_ser.is_valid():
         response_data = valid_ser.validated_data
-        print(valid_ser.validated_data)
-        print("Response data:", response_data)
     else:
         return Response(
                 "InvalidRequestData",
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
     payment_id = request.session.get("reserved_payment")
     if payment_id == None:
@@ -131,33 +122,28 @@ def start_payment(request):
 
     if payment.payment_started:
         return Response(
-                "AlreadyPayedpayment",
+                "AlreadyPaidPayment",
                 status=status.HTTP_403_FORBIDDEN
             )
-
 
     tickets = payment.ticket_set
+
+    # Gets the chapter event from the users ticket.
     chapter_event = tickets.first().ticket_type.chapterevent_set.first()
 
-    # Kolla att biljetterna fortfarande är giltiga,
     if payment.status != PaymentStatus.RESERVED:
-        # Nej -->  Kolla om det går att skapa nya biljetter
         if tickets.count() > chapter_event.max_tickets - chapter_event.alive_ticket_count:
-            # Nej --> Informera den stackars kunden om att den är alldeles för långsam.
-            # Skriv något vettigt i responsen så att klient vet att biljetterna är slut. 
             return Response(
                 "SessionExpired", 
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_408_REQUEST_TIMEOUT
             )
-        # Ja --> Skapa biljetter (Lås?), uppdatera session och forsätt
         payment.expires_at = timezone.now() + chapter_event.reservation_duration
-    # Ja --> Starta payment biljetterns och forstätt
+
     payment.payment_started = True
-    # TODO Verifiera att mailaddressen är en riktig mailaddress.
+
     payment.email = response_data["email_address"]
     payment.save()
 
-    # Hämta/beräkna den datan som Swish behöver (belopp, etc)
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
     
     # TODO eventuell felhantering inför snack med swish här. Även felhantering efter.
