@@ -28,3 +28,4 @@ class ChapterEvent(models.Model):
 		for ticket_type in ticket_types:
 			count += ticket_type.ticket_set.filter(payment__status__in=[PaymentStatus.PAID, PaymentStatus.RESERVED]).count()				
 		return count
+	event_at = models.DateTimeField()
