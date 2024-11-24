@@ -11,6 +11,7 @@ class ChapterEvent(models.Model):
 	ticket_types = models.ManyToManyField('TicketType')
 	reservation_duration = models.DurationField(default=timezone.timedelta(hours=1))
 	swish_message = models.TextField(max_length=50)
+	event_at = models.DateTimeField()
 
 	def save(self, *args, **kwargs):
 		if not self.swish_message:
@@ -28,4 +29,3 @@ class ChapterEvent(models.Model):
 		for ticket_type in ticket_types:
 			count += ticket_type.ticket_set.filter(payment__status__in=[PaymentStatus.PAID, PaymentStatus.RESERVED]).count()				
 		return count
-	event_at = models.DateTimeField()

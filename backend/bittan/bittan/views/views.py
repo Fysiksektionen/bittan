@@ -156,19 +156,6 @@ def start_payment(request):
     # Fråga efter token för swish_id och skicka tillbaka. 
 
     return Response(payment_request.token)
-import json
-
-from bittan.models.payment import PaymentStatus
-
-from ..models import ChapterEvent, Ticket, TicketType, Payment
-
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.request import Request
-from rest_framework.decorators import api_view
-from rest_framework import serializers
-
-from django.utils import timezone
 
 class ChapterEventSerializer(serializers.ModelSerializer):
     class Meta:
@@ -181,3 +168,4 @@ def get_chapterevents(request: Request) -> Response:
     chapterevents = ChapterEvent.objects.filter(sales_stop_at__gt=now).order_by("event_at")
     s = ChapterEventSerializer(chapterevents, many=True)
     return Response(s.data)
+

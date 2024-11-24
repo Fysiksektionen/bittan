@@ -11,3 +11,4 @@ google-auth-oauthlib==1.2.0
 qrcode[pil]==7.4.2
 djangorestframework==3.14.0
 django-cors-headers==4.3.1
+
