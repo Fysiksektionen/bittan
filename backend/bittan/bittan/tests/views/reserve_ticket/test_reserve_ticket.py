@@ -7,7 +7,7 @@ from bittan.models import TicketType, ChapterEvent
 class ReserveTicketTest(TestCase):
     def setUp(self):
         NOW = timezone.now()
-        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", max_tickets=10, sales_stop_at=NOW+timezone.timedelta(days=365))
+        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", max_tickets=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366))
         
         test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
         self.test_event.ticket_types.add(test_ticket)
@@ -22,7 +22,7 @@ class ReserveTicketTest(TestCase):
     
     def test_reserve_ticket(self):
         response = self.client.post(
-            "/reserve-ticket/", 
+            "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
@@ -40,7 +40,7 @@ class ReserveTicketTest(TestCase):
     
     def test_out_of_tickets(self):
         response = self.client.post(
-            "/reserve-ticket/", 
+            "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
@@ -56,7 +56,7 @@ class ReserveTicketTest(TestCase):
         
     def test_negative_tickets(self):
         response = self.client.post(
-            "/reserve-ticket/", 
+            "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
@@ -77,7 +77,7 @@ class ReserveTicketTest(TestCase):
     def test_nonexisting_chapter_event(self):
         event_id: int = 9999 if self.test_event.pk != 9999 else 1
         response = self.client.post(
-               "/reserve-ticket/", 
+               "/reserve_ticket/", 
             {
                 "chapter_event": event_id,
                 "tickets": [
@@ -97,7 +97,7 @@ class ReserveTicketTest(TestCase):
 
     def test_nonexisting_ticket_type(self):
         response = self.client.post(
-               "/reserve-ticket/", 
+               "/reserve_ticket/", 
             {
                 "chapter_event": self.test_event.pk,
                 "tickets": [
@@ -113,10 +113,10 @@ class ReserveTicketTest(TestCase):
             },
             content_type="application/json"
         )
-        self.assertEqual(response.status_code, 404, "/reserve-ticket did not return status 404 when reserving non-existent ticket. ")
+        self.assertEqual(response.status_code, 404, "/reserve_ticket did not return status 404 when reserving non-existent ticket. ")
 
         response = self.client.post(
-               "/reserve-ticket/", 
+               "/reserve_ticket/", 
             {
                 "chapter_event": self.test_event.pk,
                 "tickets": [
@@ -132,11 +132,11 @@ class ReserveTicketTest(TestCase):
             },
             content_type="application/json"
         )
-        self.assertEqual(response.status_code, 404, "/reserve-ticket did not return status 404 when reserving secret ticket. ")
+        self.assertEqual(response.status_code, 404, "/reserve_ticket did not return status 404 when reserving secret ticket. ")
 
     def test_invalid_json_format(self):
         response = self.client.post(
-               "/reserve-ticket/", 
+               "/reserve_ticket/", 
             {
                 "chapter_event": self.test_event.pk,
                 "tickets": [

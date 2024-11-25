@@ -25,8 +25,8 @@ from .views.views import get_chapterevents, reserve_ticket, start_payment, valid
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('swish/callback/', swish_callback),
-	path('get_chapterevents/', get_chapterevents)
-    path('validate_ticket/', validate_ticket)
+	path('get_chapterevents/', get_chapterevents),
+    path('validate_ticket/', validate_ticket),
     path("reserve_ticket/", reserve_ticket),
     path("start_payment/", start_payment),
 ]

@@ -3,7 +3,7 @@ from bittan.services.swish.swish_payment_request import SwishPaymentRequest
 
 from ..models import ChapterEvent, Ticket, TicketType, Payment
 
-from bittan.services.swish import Swish
+from bittan.services.swish.swish import Swish
 
 from rest_framework import status
 from rest_framework.response import Response

@@ -5,10 +5,10 @@ from django.utils import timezone
 
 from bittan.models import TicketType, ChapterEvent, Payment
 
-class ReserveTicketTest(TestCase):
+class StartPaymentTest(TestCase):
     def setUp(self):
         NOW = timezone.now()
-        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", max_tickets=10, sales_stop_at=NOW+timezone.timedelta(days=365))
+        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", max_tickets=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366))
         
         test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
         self.test_event.ticket_types.add(test_ticket)
@@ -22,7 +22,7 @@ class ReserveTicketTest(TestCase):
         self.client = Client()
 
         self.reservation_response = self.client.post(
-            "/reserve-ticket/", 
+            "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
@@ -37,7 +37,7 @@ class ReserveTicketTest(TestCase):
 
     def test_start_payment(self):
         response = self.client.post(
-            "/start-payment/",
+            "/start_payment/",
             {
                 "email_address": "mail@mail.com"
             }
@@ -47,7 +47,7 @@ class ReserveTicketTest(TestCase):
     
     def test_invalid_mail(self):
         response = self.client.post(
-            "/start-payment/",
+            "/start_payment/",
             {
                 "email_address": "dsjklasdfljka"
             }
@@ -58,7 +58,7 @@ class ReserveTicketTest(TestCase):
     def test_invalid_session_token(self):
         new_client = Client()
         response = new_client.post(
-            "/start-payment/",
+            "/start_payment/",
             {
                 "email_address": "mail@mail.com"
             }
@@ -74,7 +74,7 @@ class ReserveTicketTest(TestCase):
 
         client2 = Client()
         _ = client2.post(
-            "/reserve-ticket/", 
+            "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
@@ -88,7 +88,7 @@ class ReserveTicketTest(TestCase):
         )
 
         response = self.client.post(
-            "/start-payment/",
+            "/start_payment/",
             {
                 "email_address": "mail@mail.com"
             }
@@ -101,7 +101,7 @@ class ReserveTicketTest(TestCase):
         payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
 
         response = self.client.post(
-            "/start-payment/",
+            "/start_payment/",
             {
                 "email_address": "mail@mail.com"
             }
@@ -110,14 +110,14 @@ class ReserveTicketTest(TestCase):
 
     def test_double_payment(self):
         response = self.client.post(
-            "/start-payment/",
+            "/start_payment/",
             {
                 "email_address": "mail@mail.com"
             }
         )
 
         response = self.client.post(
-            "/start-payment/",
+            "/start_payment/",
             {
                 "email_address": "mail@mail.com"
             }
