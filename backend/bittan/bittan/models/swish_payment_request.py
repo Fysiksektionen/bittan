@@ -1,57 +1,61 @@
 from django.db import models
-from djmoney.models.fields import MoneyField
 from django_enumfield import enum
+import logging
 
 class PaymentStatus(enum.Enum):
-	PAID = 1,
-	CANCELLED = 2,
-	CREATED = 3,
-	DECLINED=4
-	ERROR=5
+	# Seems to be duplicate of transaction declined, either here or in PaymentErrorCode. See https://github.com/Fysiksektionen/bittan/issues/13
+	""" Swish-side status of a payment """
+	PAID = 1
+	CANCELLED = 2 
+	CREATED = 3
+	DECLINED = 4
+	ERROR = 5
 
-	# __SWISH_API_STATUS_MAPPINGS = {
-	# 	# TODO Fill in the types when swish docs are updated
-	# 	"CANCELLED": CANCELLED,
-	# 	"WAITING": WAITING, # I have no idea if this is a response we can have 
-	# 	"PAID": PAID,
-	# }
+	__SWISH_API_STATUS_MAPPINGS = {
+		"PAID": PAID,
+		"CANCELLED": CANCELLED,
+		"CREATED":CREATED,
+		"DECLINED": DECLINED,
+		"ERROR": ERROR,
+	}
 
 	@staticmethod
 	def from_swish_api_status(status: str):
-		# TODO Fix when docs are updated
-		print("GOT status: " + status)
+		""" Try to get the status from the mapping otherwise log an error and None """
+		if status not in PaymentStatus.__SWISH_API_STATUS_MAPPINGS:
+			logging.ERROR(f"Unknown Swish API status: {status}")
+			return None
 		return PaymentStatus[status]
 
 class PaymentErrorCode(enum.Enum):
 	UNKNOWN = 0
 	FAILED_TO_INITIATE = 1
-	# TIMEOUT = 1
-	# CANCELLED_BY_USER = 2
-	# CANCELLED_OTHER = 3
+
+	TIMEOUT = 2
+	CANCELLED = 3
+
+	SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING = 4
+
 	
-	# __SWISH_ERROR_CODE_MAPPINGS = {
-	# 	"RF07": CANCELLED_OTHER,
-	# 	"BANKIDCL": CANCELLED_BY_USER,
-	# 	"FF10": ERROR,
-	# 	"TM01": TIMEOUT,
+	__SWISH_ERROR_CODE_MAPPINGS = {
+		"RF07": CANCELLED,
+		"BANKIDCL": CANCELLED,
+		"TM01": TIMEOUT,
 
-	# 	"DS24": ERROR,  # SE TILL ATT DETTA HANTERAS SPECIELLT
-
-	# 	"VR01": ERROR,
-	# 	"VR02": ERROR,
-	# }
+		"DS24": SWISH_HAS_NO_IDEA_WHAT_IS_HAPPENING,
+	}
 
 	@staticmethod
 	def from_swish_reponse_code(status: str|None):
-		if status == None:
+		if status is None:
 			return None
 
-		return PaymentErrorCode.UNKNOWN
-		# return PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS[status]
-
+		if status not in PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS:
+			return PaymentErrorCode.UNKNOWN
+		return PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS[status]
 
 class SwishPaymentRequestModel(models.Model):
-	# time_created = models.DateTimeField(auto_now_add=True)
+	time_created = models.DateTimeField(auto_now_add=True)
 	id = models.TextField(primary_key=True)
 	status = enum.EnumField(PaymentStatus, default=PaymentStatus.CREATED)
 	error_code = enum.EnumField(PaymentErrorCode, null=True)
@@ -65,5 +69,5 @@ class SwishPaymentRequestModel(models.Model):
 	swish_api_response = models.TextField(null=True)
 	
 	def fail(self, fail_reason: PaymentErrorCode):
-			self.status = PaymentStatus.CANCELLED
+			self.status = PaymentStatus.ERROR
 			self.error_code = fail_reason

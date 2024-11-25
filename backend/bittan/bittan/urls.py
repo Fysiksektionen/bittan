@@ -18,29 +18,19 @@ from os import environ
 from django.contrib import admin
 from django.urls import path
 
-from .api.swish import swish_callback, debug_make_request, debug_query 
-from bittan.services.swish import Swish, example_callback_handler_function
+from .api.swish import swish_callback, debug_make_request 
 
-from .views.views import get_chapterevents, reserve_ticket, start_payment
-from .views import views
+from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("reserve_ticket/", reserve_ticket),
-    path("start_payment/", start_payment),
     path('swish/callback/', swish_callback),
 	path('get_chapterevents/', get_chapterevents)
+    path('validate_ticket/', validate_ticket)
+    path("reserve_ticket/", reserve_ticket),
+    path("start_payment/", start_payment),
 ]
 
 
 if environ.get("DEBUG") == "True":
 	urlpatterns.append(path('swish/dummy/', debug_make_request))
-	urlpatterns.append(path('swish/<slug:id>', debug_query))
-
-
-# Initialize swish
-url = f'https://mss.cpc.getswish.net/swish-cpcapi/'
-
-callback_url = "https://bb89-2001-6b0-1-1041-9825-49e0-597b-5858.ngrok-free.app/swish/callback/"
-cert_file_paths = ("./test_certificates/testcert.pem", "./test_certificates/testcert.key")
-swish = Swish(url, "1234679304", callback_url, cert_file_paths, example_callback_handler_function)

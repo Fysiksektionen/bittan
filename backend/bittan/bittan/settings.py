@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from urllib.parse import urlparse
+from enum import Enum
 
 import requests
 import os 
@@ -21,11 +21,38 @@ import os
 # Loading environment variables 
 load_dotenv()
 
-class ENV_VAR_NAMES:
+
+class ENV_VAR_NAMES(Enum):
     # A URI from where the application is reachable from the web. Should end with a '/'. 
     # E.g https://bittan.com/
-    APPLICATION_URL= "APPLICATION_URL" 
+    APPLICATION_URL="APPLICATION_URL"
 
+    SWISH_API_URL="SWISH_API_URL"
+
+    SWISH_PEM_FILE_PATH="SWISH_PEM_FILE_PATH"
+    SWISH_KEY_FILE_PATH="SWISH_KEY_FILE_PATH"
+
+    # The phone number to which the money should go to 
+    SWISH_PAYEE_ALIAS="SWISH_PAYEE_ALIAS"
+
+class EnvVars:
+    __DEFAULTS = {
+            ENV_VAR_NAMES.SWISH_API_URL.value: "https://mss.cpc.getswish.net/swish-cpcapi/",
+            ENV_VAR_NAMES.SWISH_PEM_FILE_PATH.value:  "./test_certificates/testcert.pem",
+            ENV_VAR_NAMES.SWISH_KEY_FILE_PATH.value:  "./test_certificates/testcert.key",
+            ENV_VAR_NAMES.SWISH_PAYEE_ALIAS.value:  "1234679304",
+    }
+
+    @staticmethod
+    def get(var: ENV_VAR_NAMES):
+        var_name = var.value
+        if var_name in os.environ:
+            return os.environ[var_name]
+
+        if var_name in EnvVars.__DEFAULTS:
+            return EnvVars.__DEFAULTS[var_name]
+
+        raise Exception("The environment variable "+var_name+" was not set and has no default.")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,8 +68,8 @@ SECRET_KEY = 'django-insecure-s624n0s_!oexn6#=uas1qglb_1=jenz4k5641+ibfdajk48=xu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = [] if not True else ["*"]
 ALLOWED_HOSTS = [] if not (os.environ.get("DEBUG") == "True") else ["*"]
+
 
 # Application definition
 
@@ -150,8 +177,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# Application Url
-APPLICATION_URL = urlparse(os.getenv(ENV_VAR_NAMES.APPLICATION_URL))
 
 LOGGING = {
     "version": 1,
