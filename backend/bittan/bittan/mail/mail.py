@@ -37,7 +37,7 @@ def make_qr_image(content: str) -> bytes:
 	img.save(b, format="PNG")
 	return b.getvalue()
 
-def send_mail(reciever_address: str, subject: str, message_content: str, image: bytes | None = None, image_filename: str = "Biljett"):
+def send_mail(reciever_address: str, subject: str, message_content: str, image: bytes | None = None, image_filename: str = "Biljett", format_as_html: bool = True):
 	"""
 	Sends an email message.
 
@@ -56,7 +56,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 	service = build("gmail", "v1", credentials=creds)
 	message = EmailMessage()
 
-	message.set_content(message_content)
+	message.set_content(message_content, ("html" if format_as_html else "plain"))
 	if image is not None:
 		message.add_attachment(image, maintype="image", subtype="png", filename=image_filename)
 	message["To"] = reciever_address
