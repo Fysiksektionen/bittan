@@ -8,7 +8,7 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-from bittan.models import TicketType, ChapterEvent, ticket_type, Payment, Ticket
+from bittan.models import TicketType, ChapterEvent, Payment, Ticket
 from bittan.models.payment import PaymentStatus
 import datetime
 
