@@ -2,7 +2,6 @@ import os
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 import base64
-from email.message import EmailMessage
 from google.auth.transport.requests import Request
 from google.auth.exceptions import RefreshError
 from google.oauth2.credentials import Credentials
@@ -11,6 +10,11 @@ from googleapiclient.errors import HttpError
 import qrcode
 import io
 import logging
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email import encoders
 
 class MailError(Exception):
 	"""Base class for all Exceptions raised by mail."""
@@ -54,13 +58,20 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 	"""
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
-	message = EmailMessage()
-
-	message.set_content(message_content, ("html" if format_as_html else "plain"))
-	if image is not None:
-		message.add_attachment(image, maintype="image", subtype="png", filename=image_filename)
-	message["To"] = reciever_address
+	message = MIMEMultipart("related")
 	message["Subject"] = subject
+	message["To"] = reciever_address
+
+	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain"))) # TODO check if "plain" actually works
+	if image is not None:
+		message_image_for_embed = MIMEImage(image, filename=image_filename+".png")
+		message_image_for_embed.add_header("Content-ID", image_filename)  # Content-ID should be unique
+		message_image_for_embed.add_header("Content-Disposition", "inline", filename=image_filename)
+		message.attach(message_image_for_embed)
+		message_image_for_attach = MIMEImage(image, filename=image_filename+".png")
+		message_image_for_embed.add_header("Content-Disposition", "attachment", filename=image_filename)
+		message.attach(message_image_for_attach)
+	
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 	create_message = {"raw": encoded_message}
 
