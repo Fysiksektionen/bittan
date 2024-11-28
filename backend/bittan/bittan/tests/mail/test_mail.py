@@ -5,7 +5,7 @@ from bittan.mail import mail_ticket
 
 class LeoTest(TestCase):
 
-	def leo_test(self):
+	def test_leo(self):
 		mail_ticket("bittantest@gmail.com")
 
 class SendMailTest(TestCase):
