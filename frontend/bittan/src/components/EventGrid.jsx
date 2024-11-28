@@ -18,6 +18,20 @@ const EventGrid = () => {
 		});
 	}, []);
 
+	const EventTime = ({ datetime }) => {
+		const localTime = new Date(datetime).toLocaleString("en-US", {
+			weekday: "long",
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+			hour: "numeric",
+			minute: "2-digit",
+			hour12: false, // Change to false for 24-hour format
+		});
+
+		return <p className="event-time">{localTime}</p>;
+	};
+
 	return (
 		<>
 			<Row className="row">
@@ -32,12 +46,9 @@ const EventGrid = () => {
 							/>
 							<Card.Body className="card-body">
 								<Card.Title className="card-title">{event.title}</Card.Title>
-								<Card.Text className="card-text">
-									{new Date(event.event_at).toLocaleDateString()} -{" "}
-									{event.event_at || "N/A"}
-								</Card.Text>
+								<EventTime datetime={event.event_at} />
 								<Button href={`/events/${event.id}`} className="button">
-									View Details
+									Book tickets
 								</Button>
 							</Card.Body>
 						</Card>
