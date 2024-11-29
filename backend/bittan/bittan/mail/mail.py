@@ -90,7 +90,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, images_
 	message = MIMEMultipart("related")
 	message["Subject"] = subject
 	message["To"] = reciever_address
-	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain"))) # TODO check if "plain" actually works
+	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
 
 	for image_to_embed in images_to_embed:
 		img = MIMEImage(image_to_embed.imagebytes, name=f"{image_to_embed.filename}.png")
