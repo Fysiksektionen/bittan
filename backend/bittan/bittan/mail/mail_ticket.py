@@ -24,7 +24,7 @@ Om de inte fungerar, använd följande koder:</p>
 <img src="cid:biljett_ABCDEF" alt="Biljettkod ABCDEF">
 
 <p><u>Kvitto</u>:</p>
-<p>[KVITTO...]</p>
+<p>[KVITTO... DETTA MAIL ÄR ETT TESTUTSKICK, EJ RIKTIG BILJETT]</p>
 
 <i>Har du frågor angående ditt köp, eller vill begära återbetalning? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
 </html>
