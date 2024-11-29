@@ -8,6 +8,8 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import qrcode
+from PIL import Image, ImageDraw, ImageFont
+import aggdraw
 import io
 import logging
 from email.mime.multipart import MIMEMultipart
@@ -36,7 +38,27 @@ def make_qr_image(content: str) -> bytes:
 	Returns:
 		bytes: A bytes representation of the image, encoded as png.
 	"""
-	img = qrcode.make(content)
+	text_top = "Studentbiljett 1/1"
+	text_bottom = "ABCDEF"
+	text_qr = "ABCDEF"
+
+	TEXT_TOP_OFFSET = 10 # Offset relative to top of image
+	TEXT_BOTTOM_OFFSET = 10 # Offset relative to bottom of image
+
+	img = qrcode.make(text_qr)
+	img = img.convert("RGBA")
+	img_width, img_height = img.size 
+
+	draw = aggdraw.Draw(img)
+	font = aggdraw.Font("black", "/bittan/bittan/mail/OpenSans-Regular.ttf", 20)
+
+	text_top_width = draw.textsize(text_top, font)[0]
+	draw.text((((img_width-text_top_width)/2, TEXT_TOP_OFFSET)), text_top, font)
+
+	text_bottom_width, text_bottom_height = draw.textsize(text_bottom, font)
+	draw.text((((img_width-text_bottom_width)/2, img_height-text_bottom_height-TEXT_BOTTOM_OFFSET)), text_bottom, font)
+
+	draw.flush()
 	b = io.BytesIO()
 	img.save(b, format="PNG")
 	return b.getvalue()
