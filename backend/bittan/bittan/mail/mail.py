@@ -25,7 +25,7 @@ class MailError(Exception):
 class InvalidRecieverAddressError(MailError):
 	pass
 
-def make_qr_image(content: str) -> bytes:
+def make_qr_image(text_qr: str, title: str) -> bytes:
 	"""
 	Creates a QR image. Meant to be used together with `send_mail`, such as:
 	```
@@ -33,16 +33,14 @@ def make_qr_image(content: str) -> bytes:
 	```
 
 	Args:
-		content (str): The text to be encoded.
+		text_qr (str): Text to be encoded in the QR code.
+		title (str): Text to be displayed above the QR code.
 
 	Returns:
 		bytes: A bytes representation of the image, encoded as png.
 	"""
-	text_top = "Studentbiljett 1/1"
-	text_bottom = "ABCDEF"
-	text_qr = "ABCDEF"
 
-	TEXT_TOP_OFFSET = 10 # Offset relative to top of image
+	TITLE_OFFSET = 10 # Offset relative to top of image
 	TEXT_BOTTOM_OFFSET = 10 # Offset relative to bottom of image
 
 	img = qrcode.make(text_qr)
@@ -52,11 +50,11 @@ def make_qr_image(content: str) -> bytes:
 	draw = aggdraw.Draw(img)
 	font = aggdraw.Font("black", "/bittan/bittan/mail/OpenSans-Regular.ttf", 20)
 
-	text_top_width = draw.textsize(text_top, font)[0]
-	draw.text((((img_width-text_top_width)/2, TEXT_TOP_OFFSET)), text_top, font)
+	title_width = draw.textsize(title, font)[0]
+	draw.text((((img_width-title_width)/2, TITLE_OFFSET)), title, font)
 
-	text_bottom_width, text_bottom_height = draw.textsize(text_bottom, font)
-	draw.text((((img_width-text_bottom_width)/2, img_height-text_bottom_height-TEXT_BOTTOM_OFFSET)), text_bottom, font)
+	text_bottom_width, text_bottom_height = draw.textsize(text_qr, font)
+	draw.text((((img_width-text_bottom_width)/2, img_height-text_bottom_height-TEXT_BOTTOM_OFFSET)), text_qr, font)
 
 	draw.flush()
 	b = io.BytesIO()

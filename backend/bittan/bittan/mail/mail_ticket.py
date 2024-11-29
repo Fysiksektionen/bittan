@@ -29,5 +29,5 @@ Om de inte fungerar, använd följande koder:</p>
 <i>Har du frågor angående ditt köp, eller vill begära återbetalning? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
 </html>
 """
-    attachment1 = make_qr_image(content="ABCDEF")
+    attachment1 = make_qr_image(text_qr="ABCDEF", title="Studentbiljett 1/1")
     send_mail(reciever_address=reciever_address, subject="Biljett, Fysikalen 1/1 2024", image=attachment1, image_filename="biljett_ABCDEF", message_content=message)
