@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 import base64
@@ -8,7 +9,6 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import qrcode
-from PIL import Image, ImageDraw, ImageFont
 import aggdraw
 import io
 import logging
@@ -24,6 +24,13 @@ class MailError(Exception):
 
 class InvalidRecieverAddressError(MailError):
 	pass
+
+@dataclass
+class MailImage:
+	"""An image to be attached or embedded in a mail."""
+	imagebytes: bytes
+	filename: str
+	"The desired filename without any extension (no .png)"
 
 def make_qr_image(text_qr: str, title: str) -> bytes:
 	"""
@@ -61,7 +68,7 @@ def make_qr_image(text_qr: str, title: str) -> bytes:
 	img.save(b, format="PNG")
 	return b.getvalue()
 
-def send_mail(reciever_address: str, subject: str, message_content: str, image: bytes | None = None, image_filename: str = "Biljett", format_as_html: bool = True):
+def send_mail(reciever_address: str, subject: str, message_content: str, images_to_attach: list[MailImage] = [], images_to_embed: list[MailImage] = [], format_as_html: bool = True):
 	"""
 	Sends an email message.
 
@@ -69,8 +76,9 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 		reciever_address (str): The email address that should recieve the email.
 		subject (str): The subject of the email.
 		message_content (str): The text sent in the email.
-		image (bytes | None, optional): A png image to attach. Defaults to None.
-		image_filename (str, optional): The filename of the image attachment, without file extension (no ".png"). Only applied if image is not None. Defaults to "Biljett".
+		images_to_attach (list[MailImage]): A list of `MailImage`s to attach. Assumes png formatting. Defaults to an empty list.
+		images_to_embed (list[MailImage]): A list of `MailImage`s to embed. Their `Content-Id` will be set to the `filename` attributes. Assumes png formatting. Defaults to an empty list.
+		format_as_html (bool): Whether the `message_content` should be interpreted as html. Defaults to `True`.
 
 	Raises:
 		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
@@ -78,19 +86,21 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 	"""
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
+
 	message = MIMEMultipart("related")
 	message["Subject"] = subject
 	message["To"] = reciever_address
-
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain"))) # TODO check if "plain" actually works
-	if image is not None:
-		message_image_for_embed = MIMEImage(image, name="biljett_ABCDEF_embed.png")
-		message_image_for_embed.add_header("Content-ID", "<biljett_ABCDEF>")  # Content-ID should be unique
-		message_image_for_embed.add_header("Content-Disposition", "inline", filename="biljett_ABCDEF_embed.png")
-		message.attach(message_image_for_embed)
-		message_image_for_attach = MIMEImage(image, name="biljett_ABCDEF.png")
-		message_image_for_embed.add_header("Content-Disposition", "attachment", filename="biljett_ABCDEF.png")
-		message.attach(message_image_for_attach)
+
+	for image_to_embed in images_to_embed:
+		img = MIMEImage(image_to_embed.imagebytes, name=f"{image_to_embed.filename}.png")
+		img.add_header("Content-ID", f"<{image_to_embed.filename}>")
+		img.add_header("Content-Disposition", "inline", filename=f"{image_to_embed.filename}.png")
+		message.attach(img)
+	for image_to_attach in images_to_attach:
+		img = MIMEImage(image_to_attach.imagebytes, name=f"{image_to_attach.filename}.png")
+		img.add_header("Content-Disposition", "attachment", filename=f"{image_to_attach.filename}.png")
+		message.attach(img)
 	
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 	create_message = {"raw": encoded_message}
