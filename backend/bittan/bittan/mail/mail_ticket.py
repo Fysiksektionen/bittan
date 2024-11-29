@@ -1,7 +1,7 @@
 from .mail import send_mail, make_qr_image, MailImage
 
 def mail_ticket(reciever_address: str):
-    """"Wrapper function to handle everything involved in sending an email containing a ticket."""
+    """Wrapper function to handle everything involved in sending an email containing a ticket."""
     message = \
 """
 <html>
