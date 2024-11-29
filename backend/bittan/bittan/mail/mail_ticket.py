@@ -21,13 +21,13 @@ Om de inte fungerar, använd följande koder:</p>
     <li>Biljett 2: <code>GHIJKL</code> (Standardbiljett)</li>
     <li>Biljett 3: <code>MNOPQR</code> (Standardbiljett)</li>
 </ul>
-<img src="cid:biljett_ABCDEF.png" alt="Biljettkod ABCDEF">
+<img src="cid:biljett_ABCDEF" alt="Biljettkod ABCDEF">
 
-<p><u>Kvitto</u></p>:
+<p><u>Kvitto</u>:</p>
 <p>[KVITTO...]</p>
 
 <i>Har du frågor angående ditt köp, eller vill begära återbetalning? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
 </html>
 """
     attachment1 = make_qr_image(content="ABCDEF")
-    send_mail(reciever_address=reciever_address, subject="Biljett, Fysikalen 1/1 2024", image=attachment1, image_filename="biljett_ABCDEF.png", message_content=message)
+    send_mail(reciever_address=reciever_address, subject="Biljett, Fysikalen 1/1 2024", image=attachment1, image_filename="biljett_ABCDEF", message_content=message)

@@ -50,7 +50,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 		subject (str): The subject of the email.
 		message_content (str): The text sent in the email.
 		image (bytes | None, optional): A png image to attach. Defaults to None.
-		image_filename (str, optional): The filename of the image attachment. Only applied if image is not None. Defaults to "Biljett".
+		image_filename (str, optional): The filename of the image attachment, without file extension (no ".png"). Only applied if image is not None. Defaults to "Biljett".
 
 	Raises:
 		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
@@ -64,12 +64,12 @@ def send_mail(reciever_address: str, subject: str, message_content: str, image: 
 
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain"))) # TODO check if "plain" actually works
 	if image is not None:
-		message_image_for_embed = MIMEImage(image, filename=image_filename+".png")
-		message_image_for_embed.add_header("Content-ID", image_filename)  # Content-ID should be unique
-		message_image_for_embed.add_header("Content-Disposition", "inline", filename=image_filename)
+		message_image_for_embed = MIMEImage(image, name="biljett_ABCDEF_embed.png")
+		message_image_for_embed.add_header("Content-ID", "<biljett_ABCDEF>")  # Content-ID should be unique
+		message_image_for_embed.add_header("Content-Disposition", "inline", filename="biljett_ABCDEF_embed.png")
 		message.attach(message_image_for_embed)
-		message_image_for_attach = MIMEImage(image, filename=image_filename+".png")
-		message_image_for_embed.add_header("Content-Disposition", "attachment", filename=image_filename)
+		message_image_for_attach = MIMEImage(image, name="biljett_ABCDEF.png")
+		message_image_for_embed.add_header("Content-Disposition", "attachment", filename="biljett_ABCDEF.png")
 		message.attach(message_image_for_attach)
 	
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
