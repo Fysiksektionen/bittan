@@ -11,11 +11,12 @@ const EventDetails = () => {
 
   useEffect(() => {
     // Fetch event details
-    axiosInstance.get(`/events/${id}/`).then((response) => {
-      setEvent(response.data);
+    axiosInstance.get(`/get_chapterevents`).then((response) => {
+      const event = response.data.find((event) => event.id == id)
+      setEvent(event);
       // Initialize tickets selection
       setTickets(
-        response.data.ticket_types.map((type) => ({
+        event.map((type) => ({
           ticket_type: type.name,
           count: 0,
         }))
@@ -35,21 +36,16 @@ const EventDetails = () => {
   };
 
   if (!event) return <p>Loading...</p>;
-
+  console.log(event)
   return (
     <div>
       <h2>{event.title}</h2>
       <p>{event.description}</p>
-      <p>{event.time}</p>
+      <p>{event.event_at}</p>
       {event.ticket_types.map((type, index) => (
-        <div key={type.name}>
-          <label>{type.name} - {type.price} USD</label>
-          <input
-            type="number"
-            min="0"
-            value={tickets[index].count}
-            onChange={(e) => handleTicketChange(index, parseInt(e.target.value))}
-          />
+        <div>
+          <label></label>
+          <input/>
         </div>
       ))}
       <button onClick={handleReserve}>Reserve Tickets</button>
