@@ -15,7 +15,7 @@ from django.utils import timezone
 class ChapterEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChapterEvent
-        fields = ["id", "title", "description", "event_at"]
+        fields = ["id", "title", "description", "event_at", "max_tickets_per_payment", "sales_stop_at", "ticket_types"]
 
 @api_view(['GET'])
 def get_chapterevents(request: Request) -> Response:
