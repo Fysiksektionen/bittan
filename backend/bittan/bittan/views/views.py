@@ -1,5 +1,5 @@
 from bittan.models.payment import PaymentStatus
-from bittan.services.swish.swish_payment_request import SwishPaymentRequest
+from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
 from ..models import ChapterEvent, Ticket, TicketType, Payment
 
@@ -134,28 +134,31 @@ def start_payment(request):
 
     if payment.status != PaymentStatus.RESERVED:
         if tickets.count() > chapter_event.max_tickets - chapter_event.alive_ticket_count:
+            payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
             return Response(
                 "SessionExpired", 
                 status=status.HTTP_408_REQUEST_TIMEOUT
             )
         payment.expires_at = timezone.now() + chapter_event.reservation_duration
+        payment.status = PaymentStatus.RESERVED
 
     payment.payment_started = True
-
-    payment.email = response_data["email_address"]
     payment.save()
+    payment.email = response_data["email_address"]
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
     
-    # TODO eventuell felhantering inför snack med swish här. Även felhantering efter.
-    # Interagera med swish, skicka belopp och swish message. Få tillbaka swish_payment_request
     swish = Swish.get_instance() # Detta hämtar swish instansen som är global över hela bittan. I den här kan saker anropas. 
     
-    # Används swish-instansen för att skapa ett payment. metod create_swish_payment(self, amount: int, message="") 
     payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
 
-    # Fråga efter token för swish_id och skicka tillbaka. 
-
+    if payment_request.is_failed():
+        payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
+        return Response("PaymentStartFailed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    payment.swish_id = payment_request.id
+    payment.save()
+     
     return Response(payment_request.token)
 
 class ChapterEventSerializer(serializers.ModelSerializer):
