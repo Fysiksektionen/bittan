@@ -12,7 +12,13 @@ from rest_framework import serializers
 
 from django.utils import timezone
 
+class TicketTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketType
+        fields = ["id", "price", "title", "description"]
+
 class ChapterEventSerializer(serializers.ModelSerializer):
+    ticket_types = TicketTypeSerializer(many=True, read_only=True)
     class Meta:
         model = ChapterEvent
         fields = ["id", "title", "description", "event_at", "max_tickets_per_payment", "sales_stop_at", "ticket_types"]
