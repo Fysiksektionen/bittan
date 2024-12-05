@@ -14,7 +14,7 @@ class GetChaptereventsTest(TestCase):
 		response = c.get("/get_chapterevents/")
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		data = response.json()
-		self.assertEqual(data, [])
+		self.assertEqual(data, {"chapter_events": [], "ticket_types": []})
 	
 	def test_filled(self):
 		now = timezone.now()
