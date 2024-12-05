@@ -47,11 +47,17 @@ class GetChaptereventsTest(TestCase):
 			self.assertEqual(ce['ticket_types'], [ticket_type.id for ticket_type in corresponding_ce_db.ticket_types.all()])
 
 		ticket_types = data["ticket_types"]
+		ticket_types_db = [self.ticket_type1, self.ticket_type2]
 		self.assertEqual(len(ticket_types), 2)
-		for tt, tt_db in zip(ticket_types, [self.ticket_type1, self.ticket_type2]):
-			self.assertEqual(tt['id'], tt_db.id)
-			self.assertEqual(tt['title'], tt_db.title)
-			self.assertEqual(tt['description'], tt_db.description)
+		for tt in ticket_types:
+			for tt_db in ticket_types_db:
+				if tt["id"] == tt_db.id:
+					corresponding_tt_db = tt_db
+					break
+			else:
+				raise Exception("No corresponding ticket_type found")
+			self.assertEqual(tt['title'], corresponding_tt_db.title)
+			self.assertEqual(tt['description'], corresponding_tt_db.description)
 			self.assertEqual(type(tt['price']), str) # We don't bother checking Money too closely because we're gonna change it anyway
 
 	def test_sales_stop_at_past(self):
