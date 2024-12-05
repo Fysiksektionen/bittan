@@ -62,5 +62,7 @@ class GetChaptereventsTest(TestCase):
 		response = c.get("/get_chapterevents/")
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		data = response.json()
-		self.assertEqual(len(data), 1)
-		self.assertEqual(data[0]['title'], "t")
+		chapter_events = data["chapter_events"]
+		ticket_types = data["ticket_types"]
+		self.assertEqual(len(chapter_events), 1)
+		self.assertEqual(chapter_events[0]["title"], "t")
