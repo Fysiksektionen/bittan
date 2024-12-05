@@ -133,6 +133,12 @@ class Swish:
 
 			try:
 				resp.raise_for_status()
+
+				payment_request_external_uri = resp.headers["Location"]
+				payment_request_token = resp.headers["PaymentRequestToken"]
+
+				payment_request_db_object.token = payment_request_token
+				payment_request_db_object.external_uri = payment_request_external_uri 
 			except requests.exceptions.RequestException as e:
 				# TODO This should not happen unless there is a configuration error, or if we have connectivity problems. Handle more gracefully? 
 				logging.error(f'Error creating Swish payment: {e}')
@@ -145,11 +151,7 @@ class Swish:
 
 				self.callback_function(SwishPaymentRequest(payment_request_db_object))
 
-			payment_request_external_uri = resp.headers["Location"]
-			payment_request_token = resp.headers["PaymentRequestToken"]
 
-			payment_request_db_object.token = payment_request_token
-			payment_request_db_object.external_uri = payment_request_external_uri 
 
 			# Yes, swish sends the data in the headers for this response, keep this in mind if debugging.
 			payment_request_db_object.swish_api_response = resp.headers 
