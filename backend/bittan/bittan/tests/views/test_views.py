@@ -2,12 +2,14 @@ from django.test import TestCase, Client
 from rest_framework import status
 from django.utils import timezone
 import datetime
-from bittan.models import ChapterEvent
+from bittan.models import ChapterEvent, TicketType
 
 class GetChaptereventsTest(TestCase):
 
 	def setUp(self):
-		pass
+		self.ticket_type1 = TicketType.objects.create(title="ticket_type1", description="tt1", price=10)
+		self.ticket_type2 = TicketType.objects.create(title="ticket_type2", description="tt2", price=20)
+		self.ticket_type3 = TicketType.objects.create(title="ticket_type3", description="tt3", price=30)
 
 	def test_empty(self):
 		c = Client()
@@ -19,24 +21,38 @@ class GetChaptereventsTest(TestCase):
 	def test_filled(self):
 		now = timezone.now()
 		ce1_database = ChapterEvent.objects.create(title="Title1", description="Description1", total_seats=10, sales_stop_at=now+datetime.timedelta(days=365), event_at=now+datetime.timedelta(days=2))
+		ce1_database.ticket_types.add(self.ticket_type1)
 		ce2_database = ChapterEvent.objects.create(title="Title2", description="Description2", total_seats=10, sales_stop_at=now+datetime.timedelta(days=365), event_at=now+datetime.timedelta(days=1))
+		ce2_database.ticket_types.add(self.ticket_type1, self.ticket_type2)
+		ce_dbs = [ce1_database, ce2_database]
 		c = Client()
 		response = c.get("/get_chapterevents/")
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		data = response.json()
-		self.assertEqual(len(data), 2)
-		
-		ce1 = data[0]
-		self.assertEqual(ce1['id'], ce2_database.id)
-		self.assertEqual(ce1['title'], "Title2")
-		self.assertEqual(ce1['description'], "Description2")
-		self.assertEqual(type(ce1['event_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
 
-		ce2 = data[1]
-		self.assertEqual(ce2['id'], ce1_database.id)
-		self.assertEqual(ce2['title'], "Title1")
-		self.assertEqual(ce2['description'], "Description1")
-		self.assertEqual(type(ce2['event_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
+		chapter_events = data["chapter_events"]
+		self.assertEqual(len(chapter_events), 2)
+		for ce in chapter_events:
+			for ce_db in ce_dbs:
+				if ce["id"] == ce_db.id:
+					corresponding_ce_db = ce_db
+					break
+			else:
+				raise Exception("No corresponding chapter_event found")
+			self.assertEqual(ce['title'], corresponding_ce_db.title)
+			self.assertEqual(ce['description'], corresponding_ce_db.description)
+			self.assertEqual(ce['max_tickets_per_payment'], corresponding_ce_db.max_tickets_per_payment)
+			self.assertEqual(type(ce['event_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
+			self.assertEqual(type(ce['sales_stop_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
+			self.assertEqual(ce['ticket_types'], [ticket_type.id for ticket_type in corresponding_ce_db.ticket_types.all()])
+
+		ticket_types = data["ticket_types"]
+		self.assertEqual(len(ticket_types), 2)
+		for tt, tt_db in zip(ticket_types, [self.ticket_type1, self.ticket_type2]):
+			self.assertEqual(tt['id'], tt_db.id)
+			self.assertEqual(tt['title'], tt_db.title)
+			self.assertEqual(tt['description'], tt_db.description)
+			self.assertEqual(type(tt['price']), str) # We don't bother checking Money too closely because we're gonna change it anyway
 
 	def test_sales_stop_at_past(self):
 		now = timezone.now()
