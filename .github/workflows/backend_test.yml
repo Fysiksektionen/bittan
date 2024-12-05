@@ -1,0 +1,56 @@
+name: Backend Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: bittan_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=30
+
+    steps:
+      - name: Setup postgres etc/hosts
+        run: |
+          echo "127.0.0.1 postgres" | sudo tee -a /etc/hosts
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.13
+
+      - name: Install dependencies
+        working-directory: ./backend/bittan
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: ./backend/bittan
+        env:
+          APPLICATION_URL: "http://no-swish"
+        run: |
+          python3 manage.py test bittan.tests.test_first
+          python3 manage.py test bittan.tests.views
+          : # python3 manage.py test bittan.tests.mail # cannot run mail tests without gmail_token.json
