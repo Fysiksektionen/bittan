@@ -40,7 +40,7 @@ def reserve_ticket(request: Request) -> Response:
     else:
         return Response(
                 "InvalidRequestData",
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_400_BAD_REQUEST
             )
 
     event_id: int = response_data["chapter_event"]

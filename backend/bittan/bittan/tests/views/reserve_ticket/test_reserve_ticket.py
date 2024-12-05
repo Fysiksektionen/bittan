@@ -72,7 +72,7 @@ class ReserveTicketTest(TestCase):
             },
             content_type="application/json"
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
 
     def test_nonexisting_chapter_event(self):
         event_id: int = 9999 if self.test_event.pk != 9999 else 1
@@ -151,4 +151,4 @@ class ReserveTicketTest(TestCase):
             },
             content_type="application/json"
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
