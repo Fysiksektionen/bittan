@@ -6,7 +6,8 @@ services:
     volumes: 
       - ./bittan:/bittan
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       PYTHONUNBUFFERED: 1
       DEBUG: "True" 
@@ -22,3 +23,8 @@ services:
     ports:
       - '5432:5432'
     container_name: bittan_postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
