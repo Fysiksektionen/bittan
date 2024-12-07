@@ -4,5 +4,3 @@ backend/postgres-data
 *.env
 backend/bittan/certificates
 *.log
-backend/bittan/certificates
-venv
