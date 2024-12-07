@@ -8,7 +8,7 @@ from bittan.models.payment import PaymentStatus
 class ValidateTicketTest(TestCase):
     def setUp(self):
         NOW = timezone.now()
-        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", max_tickets=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW)
+        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", total_seats=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW)
         
         test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
         self.test_event.ticket_types.add(test_ticket)

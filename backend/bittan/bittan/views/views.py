@@ -161,17 +161,25 @@ def start_payment(request):
      
     return Response(payment_request.token)
 
+class TicketTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TicketType
+        fields = ["id", "price", "title", "description"]
+
 class ChapterEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChapterEvent
-        fields = ["id", "title", "description", "event_at"]
+        fields = ["id", "title", "description", "event_at", "max_tickets_per_payment", "sales_stop_at", "ticket_types"]
 
 @api_view(['GET'])
 def get_chapterevents(request: Request) -> Response:
     now = timezone.now()
-    chapterevents = ChapterEvent.objects.filter(sales_stop_at__gt=now).order_by("event_at")
-    s = ChapterEventSerializer(chapterevents, many=True)
-    return Response(s.data)
+    chapter_events = ChapterEvent.objects.filter(sales_stop_at__gt=now).order_by("event_at")
+    chapter_events_serialized = ChapterEventSerializer(chapter_events, many=True)
+    ticket_types = {ticket_type for chapter_event in chapter_events for ticket_type in chapter_event.ticket_types.all()}
+    ticket_types_serialized = TicketTypeSerializer(ticket_types, many=True)
+    data = {"chapter_events": chapter_events_serialized.data, "ticket_types": ticket_types_serialized.data}
+    return Response(data)
 
 class ValidateTicketRequestSerializer(serializers.Serializer):
     external_id = serializers.CharField()
@@ -201,4 +209,3 @@ def validate_ticket(request: Request) -> Response:
     
 
     return Response({"times_used": times_used, "status": ticket.payment.status})
-
