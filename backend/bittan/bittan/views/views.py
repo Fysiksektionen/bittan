@@ -209,3 +209,4 @@ def validate_ticket(request: Request) -> Response:
     
 
     return Response({"times_used": times_used, "status": ticket.payment.status})
+
