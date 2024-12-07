@@ -10,7 +10,7 @@ from bittan.models import TicketType, ChapterEvent, Payment
 class StartPaymentTest(TestCase):
     def setUp(self):
         NOW = timezone.now()
-        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", max_tickets=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366))
+        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", total_seats=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366))
         
         test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
         self.test_event.ticket_types.add(test_ticket)
@@ -30,7 +30,7 @@ class StartPaymentTest(TestCase):
                 "tickets": [
                     {
                         "ticket_type": "Test Ticket",
-                        "count": 1
+                        "count": 4
                         }
                     ]
             },
@@ -88,7 +88,7 @@ class StartPaymentTest(TestCase):
                 "tickets": [
                     {
                         "ticket_type": "Test Ticket",
-                        "count": 10
+                        "count": 8
                         }
                     ]
             },

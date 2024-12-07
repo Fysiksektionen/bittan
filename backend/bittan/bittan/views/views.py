@@ -56,7 +56,7 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_404_NOT_FOUND
         )
     
-    if reservation_count > chapter_event.max_tickets - chapter_event.alive_ticket_count:
+    if reservation_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
         return Response(
             "OutOfTickets", 
             status=status.HTTP_403_FORBIDDEN
@@ -133,7 +133,7 @@ def start_payment(request):
     chapter_event = tickets.first().ticket_type.chapterevent_set.first()
 
     if payment.status != PaymentStatus.RESERVED:
-        if tickets.count() > chapter_event.max_tickets - chapter_event.alive_ticket_count:
+        if tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
             payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
             return Response(
                 "SessionExpired", 
