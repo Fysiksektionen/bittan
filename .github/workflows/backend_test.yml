@@ -48,9 +48,21 @@ jobs:
 
       - name: Run tests
         working-directory: ./backend/bittan
-        env:
-          APPLICATION_URL: "http://no-swish"
         run: |
-          python3 manage.py test bittan.tests.test_first
-          python3 manage.py test bittan.tests.views
-          : # python3 manage.py test bittan.tests.mail # cannot run mail tests without gmail_token.json
+          yes | ssh -R 80:localhost:8000 serveo.net > serveo.log 2>&1 &
+          PID=$!
+
+          while true; do
+            sleep 1
+            echo "Checking if Serveo is up..."
+            if grep -q 'HTTP' "serveo.log"; then
+              break
+            fi
+          done
+
+          url=$(ggrep -oP 'https://[a-f0-9]+\.serveo\.net' "serveo.log")
+          export APPLICATION_URL=$url
+
+          python3 manage.py test ./tests/bittan --exclude-tag=no_ci
+
+          kill $PID
