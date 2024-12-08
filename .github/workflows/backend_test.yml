@@ -49,7 +49,7 @@ jobs:
       - name: Run tests
         working-directory: ./backend/bittan
         run: |
-          yes | ssh -R 80:localhost:8000 serveo.net > serveo.log 2>&1 &
+          ssh -o "StrictHostKeyChecking no" -R 80:localhost:8000 serveo.net > serveo.log 2>&1 &
           PID=$!
 
           while true; do
@@ -60,7 +60,7 @@ jobs:
             fi
           done
 
-          url=$(ggrep -oP 'https://[a-f0-9]+\.serveo\.net' "serveo.log")
+          url=$(grep -oP 'https://[a-f0-9]+\.serveo\.net' "serveo.log")
           export APPLICATION_URL=$url
 
           python3 manage.py test ./tests/bittan --exclude-tag=no_ci
