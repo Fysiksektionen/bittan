@@ -1,4 +1,3 @@
-from os import environ
 """
 URL configuration for bittan project.
 
@@ -15,17 +14,21 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from os import environ
 from django.contrib import admin
 from django.urls import path
-from .api.swish import swish_callback, debug_make_request
-from .views.views import get_chapterevents, validate_ticket 
+
+from .api.swish import swish_callback, debug_make_request 
+
+from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('swish/callback/', swish_callback),
-	path('admin/', admin.site.urls),
 	path('get_chapterevents/', get_chapterevents),
     path('validate_ticket/', validate_ticket),
+    path("reserve_ticket/", reserve_ticket),
+    path("start_payment/", start_payment),
 ]
 
 
