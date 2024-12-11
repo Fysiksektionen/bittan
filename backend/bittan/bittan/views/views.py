@@ -23,7 +23,7 @@ import logging
 
 class TicketsSerializer(serializers.Serializer):
     ticket_type = serializers.CharField(required=True)
-    count = serializers.IntegerField(required=True, min_value=0)
+    count = serializers.IntegerField(required=True, min_value=1)
 
 class ReserveTicketRequestSerializer(serializers.Serializer):
     chapter_event = serializers.CharField(required = True)
@@ -70,6 +70,13 @@ def reserve_ticket(request: Request) -> Response:
     )
 
     for ticket in tickets:
+        try:
+            ticket_type = TicketType.objects.get(title=ticket["ticket_type"], is_visible=True)
+        except ObjectDoesNotExist:
+            return Response(
+                "TicketTypeDoesNotExist",
+                status=status.HTTP_404_NOT_FOUND
+            )
         for _ in range(ticket["count"]):
             # Attempts to create a ticket a maximum of 1000 times. This is to ensure that the external_id of the ticket is guaranteed to be unique. 
             for _ in range(1000):
@@ -78,13 +85,8 @@ def reserve_ticket(request: Request) -> Response:
                             external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                             time_created=timezone.now(),
                             payment=payment,
-                            ticket_type=TicketType.objects.get(title=ticket["ticket_type"], is_visible=True)
+                            ticket_type=ticket_type
                         )
-                except ObjectDoesNotExist:
-                    return Response(
-                        "TicketTypeDoesNotExist",
-                        status=status.HTTP_404_NOT_FOUND
-                    )
                 except IntegrityError as e:
                     continue
                 break
@@ -145,6 +147,7 @@ def start_payment(request):
     payment.payment_started = True
     payment.save()
     payment.email = response_data["email_address"]
+    payment.save()
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
     

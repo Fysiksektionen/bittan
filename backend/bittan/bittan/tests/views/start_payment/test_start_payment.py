@@ -81,7 +81,7 @@ class StartPaymentTest(TestCase):
         payment.save()
 
         client2 = Client()
-        _ = client2.post(
+        prep_res = client2.post(
             "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
@@ -94,6 +94,9 @@ class StartPaymentTest(TestCase):
             },
             content_type="application/json"
         )
+
+        if prep_res.status_code != 201:
+            raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
 
         response = self.client.post(
             "/start_payment/",

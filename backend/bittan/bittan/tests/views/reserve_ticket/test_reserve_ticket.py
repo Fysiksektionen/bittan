@@ -39,6 +39,23 @@ class ReserveTicketTest(TestCase):
 
     
     def test_out_of_tickets(self):
+        prep_res = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.test_event.pk),
+                "tickets": [
+                    {
+                        "ticket_type": "Test Ticket",
+                        "count": 5
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+       
+        if prep_res.status_code != 201:
+            raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
+
         response = self.client.post(
             "/reserve_ticket/", 
             {
@@ -46,7 +63,7 @@ class ReserveTicketTest(TestCase):
                 "tickets": [
                     {
                         "ticket_type": "Test Ticket",
-                        "count": 11
+                        "count": 6
                     }
                 ]
             },
@@ -64,6 +81,18 @@ class ReserveTicketTest(TestCase):
                         "ticket_type": "Test Ticket",
                         "count": -1
                     },
+                ]
+            },
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_zero_tickets(self):
+        response = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.test_event.pk),
+                "tickets": [
                     {
                         "ticket_type": "Test Ticket 2",
                         "count": 0
