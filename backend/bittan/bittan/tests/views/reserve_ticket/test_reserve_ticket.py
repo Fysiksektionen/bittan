@@ -37,6 +37,21 @@ class ReserveTicketTest(TestCase):
         self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 201 correctly. ")
         self.assertIsNotNone(response.cookies.get("sessionid", None), "/reserve_ticket/ did not give a session cookie. ")
 
+    def test_too_many_tickets(self):
+        response = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.test_event.pk),
+                "tickets": [
+                    {
+                        "ticket_type": "Test Ticket",
+                        "count": 9
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 403)
     
     def test_out_of_tickets(self):
         prep_res = self.client.post(

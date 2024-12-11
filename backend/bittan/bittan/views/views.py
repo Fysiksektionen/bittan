@@ -56,6 +56,12 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_404_NOT_FOUND
         )
     
+    if reservation_count > chapter_event.max_tickets_per_payment:
+        return Response(
+            "TooManyTickets",
+            status=status.HTTP_403_FORBIDDEN
+        )
+
     if reservation_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
         return Response(
             "OutOfTickets", 
