@@ -1,7 +1,9 @@
+import datetime
 from django.test import TestCase, tag
 from bittan.mail import send_mail
 from bittan.mail import MailError, InvalidRecieverAddressError
 from bittan.mail import mail_ticket
+from bittan.models.chapter_event import ChapterEvent
 from bittan.models.payment import Payment, PaymentStatus
 from bittan.models.ticket import Ticket
 from bittan.models.ticket_type import TicketType
