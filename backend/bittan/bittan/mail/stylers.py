@@ -14,12 +14,12 @@ def mail_ticket(payment: Payment):
 		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
 		MailError: Raised if some miscellaneous error occured while sending the email.
     """
-    tickets = list(payment.ticket_set.all())
+    tickets = list(payment.ticket_set.all()) # TODO order tickets by ticket_type for niceness
     if len(tickets) == 0:
         raise MailError("No tickets found associated with payment.")
     
     ## Generate message ##
-    plural = len(tickets > 1)
+    plural = len(tickets) > 1
     ticket_types = [ticket.ticket_type for ticket in tickets]
     date_string = "1/1 2024"
     date_string_no_year = "1/1"
@@ -32,7 +32,7 @@ f"""
     <img src="https://fysikalen.se/wordpress/wp-content/uploads/2024/07/LOGGA.png" alt="" width=300>
 </div>
 
-<p><b>Datum</b>: 1/1 2024</p>
+<p><b>Datum</b>: {date_string}</p>
 <p><b>Dörrarna öppnas</b>: 18:00</p>
 <p><b>Föreställningen börjar</b>: 19:00</p>
 <p><b>Plats</b>: Kulturhuset Dieselverkstaden, Marcusplatsen 17, 131 54 Nacka. <i>Fri placering under föreställningen!</i></p>
@@ -54,18 +54,17 @@ f"""
 <i>Har du frågor angående ditt köp? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
 </html>
 """
+
     ## Generate qr codes ##
-    qr_codes = ["ABCDEF", "GHIJKL", "MNOPQR"]
-    titles = ["Studentbiljett 1/1", "Standardbiljett 1/1", "Seniorbiljett 1/1"]
     images_to_attach = []
     images_to_embed = []
-    for qr_code, title in zip(qr_codes, titles):
-        imagebytes = make_qr_image(text_qr=qr_code, title=title)
-        images_to_attach.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}"))
-        images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}_embed"))
+    for ticket, ticket_type in zip(tickets, ticket_types):
+        imagebytes = make_qr_image(text_qr=ticket.external_id, title=f"{ticket_type.title} {date_string_no_year}")
+        images_to_attach.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{ticket.external_id}"))
+        images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{ticket.external_id}_embed"))
 
     ## Send mail ##
-    send_mail(reciever_address=payment.email, subject="Biljett, Fysikalen 1/1 2024", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+    send_mail(reciever_address=payment.email, subject=f"Biljett, Fysikalen {date_string}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
     payment.sent_email = True
     payment.save()
 
