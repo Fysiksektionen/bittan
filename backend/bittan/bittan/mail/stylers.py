@@ -1,4 +1,8 @@
 from .mail import send_mail, make_qr_image, MailImage
+import qrcode
+import aggdraw
+import io
+import logging
 
 def mail_ticket(reciever_address: str):
     """Wrapper function to handle everything involved in sending an email containing a ticket."""
@@ -34,3 +38,40 @@ def mail_ticket(reciever_address: str):
         images_to_attach.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}"))
         images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}_embed"))
     send_mail(reciever_address=reciever_address, subject="Biljett, Fysikalen 1/1 2024", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+
+def make_qr_image(text_qr: str, title: str) -> bytes:
+	"""
+	Creates a QR image. Meant to be used together with `send_mail`, such as:
+	```
+	send_mail(..., image=make_qr_image("abc"), ...)
+	```
+
+	Args:
+		text_qr (str): Text to be encoded in the QR code.
+		title (str): Text to be displayed above the QR code.
+
+	Returns:
+		bytes: A bytes representation of the image, encoded as png.
+	"""
+
+	TITLE_OFFSET = 10 # Offset relative to top of image
+	TEXT_BOTTOM_OFFSET = 10 # Offset relative to bottom of image
+
+	img = qrcode.make(text_qr)
+	img = img.convert("RGBA")
+	img_width, img_height = img.size 
+
+	draw = aggdraw.Draw(img)
+	font = aggdraw.Font("black", "/bittan/bittan/mail/OpenSans-Regular.ttf", 20)
+
+	title_width = draw.textsize(title, font)[0]
+	draw.text((((img_width-title_width)/2, TITLE_OFFSET)), title, font)
+
+	text_bottom_width, text_bottom_height = draw.textsize(text_qr, font)
+	draw.text((((img_width-text_bottom_width)/2, img_height-text_bottom_height-TEXT_BOTTOM_OFFSET)), text_qr, font)
+
+	draw.flush()
+	b = io.BytesIO()
+	img.save(b, format="PNG")
+	return b.getvalue()
+ 

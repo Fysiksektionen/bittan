@@ -8,10 +8,6 @@ from google.auth.exceptions import RefreshError
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import qrcode
-import aggdraw
-import io
-import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -31,42 +27,6 @@ class MailImage:
 	imagebytes: bytes
 	filename: str
 	"The desired filename without any extension (no .png)"
-
-def make_qr_image(text_qr: str, title: str) -> bytes:
-	"""
-	Creates a QR image. Meant to be used together with `send_mail`, such as:
-	```
-	send_mail(..., image=make_qr_image("abc"), ...)
-	```
-
-	Args:
-		text_qr (str): Text to be encoded in the QR code.
-		title (str): Text to be displayed above the QR code.
-
-	Returns:
-		bytes: A bytes representation of the image, encoded as png.
-	"""
-
-	TITLE_OFFSET = 10 # Offset relative to top of image
-	TEXT_BOTTOM_OFFSET = 10 # Offset relative to bottom of image
-
-	img = qrcode.make(text_qr)
-	img = img.convert("RGBA")
-	img_width, img_height = img.size 
-
-	draw = aggdraw.Draw(img)
-	font = aggdraw.Font("black", "/bittan/bittan/mail/OpenSans-Regular.ttf", 20)
-
-	title_width = draw.textsize(title, font)[0]
-	draw.text((((img_width-title_width)/2, TITLE_OFFSET)), title, font)
-
-	text_bottom_width, text_bottom_height = draw.textsize(text_qr, font)
-	draw.text((((img_width-text_bottom_width)/2, img_height-text_bottom_height-TEXT_BOTTOM_OFFSET)), text_qr, font)
-
-	draw.flush()
-	b = io.BytesIO()
-	img.save(b, format="PNG")
-	return b.getvalue()
 
 def send_mail(reciever_address: str, subject: str, message_content: str, images_to_attach: list[MailImage] = [], images_to_embed: list[MailImage] = [], format_as_html: bool = True):
 	"""
