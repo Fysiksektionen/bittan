@@ -1,4 +1,4 @@
-from .mail import send_mail, make_qr_image, MailImage
+from .mail import send_mail, MailImage
 import qrcode
 import aggdraw
 import io
