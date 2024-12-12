@@ -24,9 +24,5 @@ class ChapterEvent(models.Model):
 		"""
 		Returns the total count of alive tickets for the chapter event. 
 		"""
-		ticket_types = self.ticket_types.all()
-		
-		count = 0
-		for ticket_type in ticket_types:
-			count += ticket_type.ticket_set.filter(payment__status__in=[PaymentStatus.PAID, PaymentStatus.RESERVED]).count()				
+		count = self.ticket_set.prefetch_related("payment").filter(payment__status__in=[PaymentStatus.PAID, PaymentStatus.RESERVED]).count()
 		return count
