@@ -1,5 +1,5 @@
 from django.test import TestCase, tag
-from bittan.mail import send_mail, make_qr_image
+from bittan.mail import send_mail
 from bittan.mail import MailError, InvalidRecieverAddressError
 from bittan.mail import mail_ticket
 
@@ -28,6 +28,7 @@ class SendMailTest(TestCase):
 		)
 
 class QRCodeTest(TestCase):
+	# TODO refactor this with the new qr code creation
 
 	def setUp(self):
 		pass
