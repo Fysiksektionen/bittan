@@ -38,7 +38,7 @@ class LeoTest(TestCase):
 					external_id = "GHIJKL",
 					time_created = NOW,
 					payment = payment1,
-					ticket_type = standardbiljett
+					ticket_type = studentbiljett
 				)
 		ticket3 = Ticket.objects.create(
 					external_id = "MNOPQR",
