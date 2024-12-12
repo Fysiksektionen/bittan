@@ -9,14 +9,14 @@ class ReserveTicketTest(TestCase):
         NOW = timezone.now()
         self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", total_seats=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366))
         
-        test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
-        self.test_event.ticket_types.add(test_ticket)
+        self.test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
+        self.test_event.ticket_types.add(self.test_ticket)
         
-        test_ticket2 = TicketType.objects.create(price=100, title="Test Ticket 2", description="A ticket for testing number 2.")
-        self.test_event.ticket_types.add(test_ticket2)
+        self.test_ticket2 = TicketType.objects.create(price=100, title="Test Ticket 2", description="A ticket for testing number 2.")
+        self.test_event.ticket_types.add(self.test_ticket2)
 
-        secret_ticket = TicketType.objects.create(price=0, title="Secret Ticket", description="A free ticket (very secret)", is_visible=False)
-        self.test_event.ticket_types.add(secret_ticket)
+        self.secret_ticket = TicketType.objects.create(price=0, title="Secret Ticket", description="A free ticket (very secret)", is_visible=False)
+        self.test_event.ticket_types.add(self.secret_ticket)
 
         self.client = Client()
     
@@ -27,7 +27,7 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
                     {
-                        "ticket_type": "Test Ticket",
+                        "ticket_type": self.test_ticket.pk,
                         "count": 1
                     }
                 ]
@@ -44,7 +44,7 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
                     {
-                        "ticket_type": "Test Ticket",
+                        "ticket_type": self.test_ticket.pk,
                         "count": 9
                     }
                 ]
@@ -60,7 +60,7 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
                     {
-                        "ticket_type": "Test Ticket",
+                        "ticket_type": self.test_ticket.pk,
                         "count": 5
                     }
                 ]
@@ -77,7 +77,7 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
                     {
-                        "ticket_type": "Test Ticket",
+                        "ticket_type": self.test_ticket.pk,
                         "count": 6
                     }
                 ]
@@ -93,7 +93,7 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
                     {
-                        "ticket_type": "Test Ticket",
+                        "ticket_type": self.test_ticket.pk,
                         "count": -1
                     },
                 ]
@@ -109,7 +109,7 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": str(self.test_event.pk),
                 "tickets": [
                     {
-                        "ticket_type": "Test Ticket 2",
+                        "ticket_type": self.test_ticket2.pk,
                         "count": 0
                     }
                 ]
@@ -126,11 +126,11 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": event_id,
                 "tickets": [
                     {
-                        "ticket_type": "Test Ticket",
+                        "ticket_type": self.test_ticket.pk,
                         "count": 1
                     },
                     {
-                        "ticket_type": "Test Ticket 2",
+                        "ticket_type": self.test_ticket2.pk,
                         "count": 1
                     }
                 ]
@@ -146,11 +146,11 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": self.test_event.pk,
                 "tickets": [
                     {
-                        "ticket_type": "No Ticket",
+                        "ticket_type": max(self.test_ticket.pk, self.test_ticket2.pk, self.secret_ticket.pk) + 1,
                         "count": 1
                     },
                     {
-                        "ticket_type": "Test Ticket 2",
+                        "ticket_type": self.test_ticket2.pk,
                         "count": 1
                     }
                 ]
@@ -165,11 +165,11 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": self.test_event.pk,
                 "tickets": [
                     {
-                        "ticket_type": "Secret ticket",
+                        "ticket_type": self.secret_ticket.pk,
                         "count": 1
                     },
                     {
-                        "ticket_type": "Test Ticket 2",
+                        "ticket_type": self.test_ticket2.pk,
                         "count": 1
                     }
                 ]
@@ -185,11 +185,11 @@ class ReserveTicketTest(TestCase):
                 "chapter_event": self.test_event.pk,
                 "tickets": [
                     {
-                        "ticket_type": "No Ticket",
+                        "ticket_type": self.test_ticket.pk,
                         "count": 1
                     },
                     {
-                        "ticket_type": "Test Ticket 2",
+                        "ticket_type": self.test_ticket2.pk,
                     }
                 ]
             },
