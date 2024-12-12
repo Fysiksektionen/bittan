@@ -1,5 +1,6 @@
-from .mail import send_mail, MailImage
+from .mail import send_mail, MailImage, MailError
 from ..models.payment import Payment
+from ..models.chapter_event import ChapterEvent
 import qrcode
 import aggdraw
 import io
@@ -13,6 +14,15 @@ def mail_ticket(payment: Payment):
 		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
 		MailError: Raised if some miscellaneous error occured while sending the email.
     """
+    tickets = list(payment.ticket_set.all())
+    if len(tickets) == 0:
+        raise MailError("No tickets found associated with payment.")
+    
+    ## Generate message ##
+    plural = len(tickets > 1)
+    ticket_types = [ticket.ticket_type for ticket in tickets]
+    date_string = "1/1 2024"
+    date_string_no_year = "1/1"
     message = \
 f"""
 <html>
@@ -26,19 +36,25 @@ f"""
 <p><b>Dörrarna öppnas</b>: 18:00</p>
 <p><b>Föreställningen börjar</b>: 19:00</p>
 <p><b>Plats</b>: Kulturhuset Dieselverkstaden, Marcusplatsen 17, 131 54 Nacka. <i>Fri placering under föreställningen!</i></p>
-
-<p>Du har köpt följande 3 biljetter. Dessa finns även bifogade i detta mail.</p>
-<img src="cid:biljett_ABCDEF_embed" alt="Studentbiljett 1/1: ABCDEF">
-<img src="cid:biljett_GHIJKL_embed" alt="Standardbiljett 1/1: GHIJKL">
-<img src="cid:biljett_MNOPQR_embed" alt="Seniorbiljett 1/1: MNOPQR">
+"""
+    if plural:
+        message += f"<p>Du har köpt följande {len(tickets)} biljetter. Dessa finns även bifogade i detta mail.</p>"
+    else:
+        message += "<p>Du har köpt följande biljett. Denna finns även bifogad i detta mail.</p>"
+    for ticket, ticket_type in zip(tickets, ticket_types):
+        message += f'<img src="cid:biljett_{ticket.external_id}_embed" alt="{ticket_type.title} {date_string_no_year}: {ticket.external_id}">'
+    
+    message += \
+"""
 <p>Varmt välkommen!</p>
 
 <p><u>Kvitto</u>:</p>
 <p>[KVITTO... DETTA MAIL ÄR ETT TESTUTSKICK, EJ RIKTIG BILJETT]</p>
 
-<i>Har du frågor angående ditt köp, eller vill begära återbetalning? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
+<i>Har du frågor angående ditt köp? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
 </html>
 """
+    ## Generate qr codes ##
     qr_codes = ["ABCDEF", "GHIJKL", "MNOPQR"]
     titles = ["Studentbiljett 1/1", "Standardbiljett 1/1", "Seniorbiljett 1/1"]
     images_to_attach = []
@@ -47,6 +63,8 @@ f"""
         imagebytes = make_qr_image(text_qr=qr_code, title=title)
         images_to_attach.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}"))
         images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}_embed"))
+
+    ## Send mail ##
     send_mail(reciever_address=payment.email, subject="Biljett, Fysikalen 1/1 2024", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
     payment.sent_email = True
     payment.save()
