@@ -1,13 +1,20 @@
 from .mail import send_mail, MailImage
+from ..models.payment import Payment
 import qrcode
 import aggdraw
 import io
 import logging
 
-def mail_ticket(reciever_address: str):
-    """Wrapper function to handle everything involved in sending an email containing a ticket."""
+def mail_ticket(payment: Payment):
+    """
+    Wrapper function to handle everything involved in sending an email containing the tickets in a payment.
+
+	Raises:
+		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
+		MailError: Raised if some miscellaneous error occured while sending the email.
+    """
     message = \
-"""
+f"""
 <html>
 <h1>Din Fysikalenbiljett är här!</h1>
 
@@ -40,7 +47,9 @@ def mail_ticket(reciever_address: str):
         imagebytes = make_qr_image(text_qr=qr_code, title=title)
         images_to_attach.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}"))
         images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{qr_code}_embed"))
-    send_mail(reciever_address=reciever_address, subject="Biljett, Fysikalen 1/1 2024", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+    send_mail(reciever_address=payment.email, subject="Biljett, Fysikalen 1/1 2024", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+    payment.sent_email = True
+    payment.save()
 
 def make_qr_image(text_qr: str, title: str) -> bytes:
 	"""
