@@ -9,7 +9,7 @@ import aggdraw
 import io
 import logging
 
-def mail_ticket(payment: Payment):
+def mail_payment(payment: Payment):
     """
     Wrapper function to handle everything involved in sending an email containing the tickets in a payment.
     All tickets related to this payment must be from the same ChapterEvent.

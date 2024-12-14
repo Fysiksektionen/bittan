@@ -1,6 +1,6 @@
 import datetime
 from django.test import TestCase, tag
-from bittan.mail import send_mail, mail_ticket
+from bittan.mail import send_mail, mail_payment
 from bittan.mail import MailError, InvalidRecieverAddressError
 from bittan.mail.stylers import make_qr_image
 from bittan.mail.mail import MailImage
@@ -48,7 +48,7 @@ class LeoTest(TestCase):
 					ticket_type = seniorbiljett
 				)
 
-		mail_ticket(payment1)
+		mail_payment(payment1)
 
 @tag("no_ci")
 class SendMailTest(TestCase):
