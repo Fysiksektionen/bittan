@@ -66,19 +66,22 @@ class StylersTest(TestCase):
 					external_id = "ABCDEF",
 					time_created = NOW,
 					payment = payment1,
-					ticket_type = standardbiljett
+					ticket_type = standardbiljett,
+					chapter_event=chapter_event1
 				)
 		ticket2 = Ticket.objects.create(
 					external_id = "GHIJKL",
 					time_created = NOW,
 					payment = payment1,
-					ticket_type = studentbiljett
+					ticket_type = studentbiljett,
+					chapter_event=chapter_event1
 				)
 		ticket3 = Ticket.objects.create(
 					external_id = "MNOPQR",
 					time_created = NOW,
 					payment = payment1,
-					ticket_type = seniorbiljett
+					ticket_type = seniorbiljett,
+					chapter_event=chapter_event1
 				)
 
 		mail_payment(payment1)
