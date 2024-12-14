@@ -1,6 +1,9 @@
+from datetime import datetime
 from .mail import send_mail, MailImage, MailError
 from ..models.payment import Payment
 from ..models.chapter_event import ChapterEvent
+from ..models.ticket import Ticket
+from ..models.ticket_type import TicketType
 import qrcode
 import aggdraw
 import io
@@ -9,20 +12,25 @@ import logging
 def mail_ticket(payment: Payment):
     """
     Wrapper function to handle everything involved in sending an email containing the tickets in a payment.
+    All tickets related to this payment must be from the same ChapterEvent.
 
 	Raises:
 		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
 		MailError: Raised if some miscellaneous error occured while sending the email.
     """
-    tickets = list(payment.ticket_set.all()) # TODO order tickets by ticket_type for niceness
+    ## Grab data ##
+    tickets: list[Ticket] = list(payment.ticket_set.all()) # TODO order tickets by ticket_type for niceness
     if len(tickets) == 0:
         raise MailError("No tickets found associated with payment.")
     
-    ## Generate message ##
     plural = len(tickets) > 1
-    ticket_types = [ticket.ticket_type for ticket in tickets]
-    date_string = "1/1 2024"
-    date_string_no_year = "1/1"
+    ticket_types: list[TicketType] = [ticket.ticket_type for ticket in tickets]
+    chapter_event: ChapterEvent = tickets[0].chapter_event # We assume that all tickets are from the same ChapterEvent
+    event_at: datetime = chapter_event.event_at
+    date_string = f"{event_at.day}/{event_at.month} {event_at.year}"
+    date_string_no_year = f"{event_at.day}/{event_at.month}"
+
+    ## Generate message ##
     message = \
 f"""
 <html>
