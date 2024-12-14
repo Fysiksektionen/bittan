@@ -42,7 +42,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, images_
 
 	Raises:
 		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
-		MailError: Raised if some miscellaneous error occured while sending the email.
+		MailError: Raised if some miscellaneous error occurred while sending the email.
 	"""
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
