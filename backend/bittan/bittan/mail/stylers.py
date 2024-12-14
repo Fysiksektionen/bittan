@@ -91,7 +91,7 @@ def mail_bittan_developers(message_content: str, subject: str = ""):
     if subject:
         full_subject += f": {subject}" 
 
-    NOW = timezone.localtime(timezone.now().)
+    NOW = timezone.localtime(timezone.now())
     full_message = f"This is an automated mail sent by BitTan because an error has occurred at {NOW}. The following information has been attached:\n\n" + message_content
     send_mail(reciever_address="biljettsupport@f.kth.se", subject=full_subject, message_content=full_message, format_as_html=False)
 
