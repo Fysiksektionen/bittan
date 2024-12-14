@@ -76,10 +76,7 @@ f"""
 
 def make_qr_image(text_qr: str, title: str) -> bytes:
 	"""
-	Creates a QR image. Meant to be used together with `send_mail`, such as:
-	```
-	send_mail(..., image=make_qr_image("abc"), ...)
-	```
+	Creates a QR image. Meant to be used in a `MailImage` as `MailImage(make_qr_image(...), ...)`.
 
 	Args:
 		text_qr (str): Text to be encoded in the QR code.
@@ -87,7 +84,7 @@ def make_qr_image(text_qr: str, title: str) -> bytes:
 
 	Returns:
 		bytes: A bytes representation of the image, encoded as png.
-	""" # TODO rework this docstring
+	"""
 
 	TITLE_OFFSET = 10 # Offset relative to top of image
 	TEXT_BOTTOM_OFFSET = 10 # Offset relative to bottom of image
