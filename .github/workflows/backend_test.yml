@@ -52,13 +52,13 @@ jobs:
           timeout=30
           start_time=$SECONDS
 
-          ssh -o "StrictHostKeyChecking no" -R 80:localhost:8000 serveo.net > serveo.log 2>&1 &
+          ssh -o "StrictHostKeyChecking no" -R 80:localhost:8000 nokey@localhost.run > localhost.log 2>&1 &
           PID=$!
 
           while true; do
             sleep 1
-            echo "Checking if Serveo is up..."
-            if grep -q 'HTTP' "serveo.log"; then
+            echo "Checking if localhost is up..."
+            if grep -qP 'https://[a-f0-9]+\.lhr\.life' "localhost.log"; then
               break
             fi
             if (( SECONDS - start_time >= timeout )); then
@@ -67,7 +67,7 @@ jobs:
             fi
           done
 
-          url=$(grep -oP 'https://[a-f0-9]+\.serveo\.net' "serveo.log")
+          url=$(grep -oP 'https://[a-f0-9]+\.lhr\.life' "localhost.log")
           export APPLICATION_URL=$url
 
           python3 manage.py test ./bittan/tests --exclude-tag=no_ci

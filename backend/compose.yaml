@@ -15,7 +15,7 @@ services:
   postgres:
     image: postgres
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: bittan_db 
       POSTGRES_USER: postgres
@@ -28,3 +28,6 @@ services:
       interval: 1s
       timeout: 5s
       retries: 10
+
+volumes:
+  postgres_data:

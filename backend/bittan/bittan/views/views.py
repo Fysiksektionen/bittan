@@ -22,7 +22,7 @@ from django.core.exceptions import ObjectDoesNotExist
 import logging
 
 class TicketsSerializer(serializers.Serializer):
-    ticket_type = serializers.CharField(required=True)
+    ticket_type = serializers.IntegerField(required=True)
     count = serializers.IntegerField(required=True, min_value=1)
 
 class ReserveTicketRequestSerializer(serializers.Serializer):
@@ -77,7 +77,7 @@ def reserve_ticket(request: Request) -> Response:
 
     for ticket in tickets:
         try:
-            ticket_type = TicketType.objects.get(title=ticket["ticket_type"], is_visible=True)
+            ticket_type = TicketType.objects.get(pk=ticket["ticket_type"], is_visible=True)
         except ObjectDoesNotExist:
             return Response(
                 "TicketTypeDoesNotExist",
