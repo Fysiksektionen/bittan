@@ -4,6 +4,7 @@ from ..models.payment import Payment
 from ..models.chapter_event import ChapterEvent
 from ..models.ticket import Ticket
 from ..models.ticket_type import TicketType
+from django.utils import timezone
 import qrcode
 import aggdraw
 import io
@@ -73,6 +74,26 @@ f"""
     send_mail(reciever_address=payment.email, subject=f"Biljett, Fysikalen {date_string}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
     payment.sent_email = True
     payment.save()
+
+def mail_bittan_developers(message_content: str, subject: str = ""):
+    """
+    Sends a mail to the developers of bittan. Use in case of unexpected errors!
+
+	Args:
+		message_content (str): The text sent in the email. Should contain details of the error.
+		subject (str): A short summary of the error to be appended to the subject of the email (optional).
+
+	Raises:
+		MailError: Raised if some miscellaneous error occurred while sending the email.
+    """
+
+    full_subject = "BACKEND ERROR"
+    if subject:
+        full_subject += f": {subject}" 
+
+    NOW = timezone.now()
+    full_message = f"This is an automated mail sent by BitTan because an error has occurred at {NOW}. The following information has been attached:\n\n" + message_content
+    send_mail(reciever_address="biljettsupport@f.kth.se", subject=full_subject, message_content=full_message, format_as_html=False)
 
 def make_qr_image(text_qr: str, title: str) -> bytes:
 	"""
