@@ -1,8 +1,9 @@
 import datetime
 from django.test import TestCase, tag
-from bittan.mail import send_mail
+from bittan.mail import send_mail, mail_ticket
 from bittan.mail import MailError, InvalidRecieverAddressError
-from bittan.mail import mail_ticket
+from bittan.mail.stylers import make_qr_image
+from bittan.mail.mail import MailImage
 from bittan.models.chapter_event import ChapterEvent
 from bittan.models.payment import Payment, PaymentStatus
 from bittan.models.ticket import Ticket
@@ -56,30 +57,32 @@ class SendMailTest(TestCase):
 		pass
 
 	def test_send_mail(self):
-		send_mail("bittantest@gmail.com", "Test", "This is sent by a test.")
+		send_mail("bittantest@gmail.com", "Test", "This is sent by a test.", format_as_html=False)
 
 	def test_invalid_address(self):
 		self.assertRaises(
 			InvalidRecieverAddressError,
-			lambda : send_mail("some invalid address", "Test", "This is sent by a test.")
+			lambda : send_mail("some invalid address", "Test", "This is sent by a test.", format_as_html=False)
 		)
 		self.assertRaises(
 			MailError,
-			lambda : send_mail("some invalid address", "Test", "This is sent by a test.")
+			lambda : send_mail("some invalid address", "Test", "This is sent by a test.", format_as_html=False)
 		)
 
 class QRCodeTest(TestCase):
-	# TODO refactor this with the new qr code creation
 
 	def setUp(self):
 		pass
 
 	def test_make_qr_image(self):
-		qr = make_qr_image("This is some content!")
+		qr = make_qr_image("Cool content", "Cool title")
 		self.assertEqual(type(qr), bytes)
 		self.assertGreater(len(qr), 1)
 
 	@tag("no_ci")
 	def test_send_qr_in_mail(self):
-		qr = make_qr_image("This is some content!")
-		send_mail("bittantest@gmail.com", "QR Test", "This test mail contains a QR code.", qr)
+		imagebytes = make_qr_image("Cool content", "Cool title")
+		images_to_attach = [MailImage(imagebytes=imagebytes, filename="qr")]
+		images_to_embed = [MailImage(imagebytes=imagebytes, filename=f"qr_embed")]
+		message = """<html>This test mail contains a QR code. <img src="cid:qr_embed"></html>"""
+		send_mail("bittantest@gmail.com", "QR Test", message, images_to_attach, images_to_embed)
