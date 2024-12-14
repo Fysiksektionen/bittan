@@ -1,5 +1,6 @@
 import datetime
 from django.test import TestCase, tag
+from django.utils import timezone
 from bittan.mail import send_mail, mail_payment
 from bittan.mail import MailError, InvalidRecieverAddressError
 from bittan.mail.stylers import make_qr_image
@@ -45,7 +46,7 @@ class StylersTest(TestCase):
 
 	@tag("no_ci")
 	def test_mail_payment(self):
-		NOW = datetime.datetime.now()
+		NOW = timezone.now()
 
 		standardbiljett = TicketType.objects.create(price=200, title="Standardbiljett", description="En vanlig biljett.")
 		studentbiljett = TicketType.objects.create(price=100, title="Studentbiljett", description="En billigare biljett.")
