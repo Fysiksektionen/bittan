@@ -27,7 +27,7 @@ def mail_payment(payment: Payment):
     plural = len(tickets) > 1
     ticket_types: list[TicketType] = [ticket.ticket_type for ticket in tickets]
     chapter_event: ChapterEvent = tickets[0].chapter_event # We assume that all tickets are from the same ChapterEvent
-    event_at: datetime = chapter_event.event_at
+    event_at: datetime = timezone.localtime(chapter_event.event_at)
     date_string = f"{event_at.day}/{event_at.month} {event_at.year}"
     date_string_no_year = f"{event_at.day}/{event_at.month}"
 
@@ -91,7 +91,7 @@ def mail_bittan_developers(message_content: str, subject: str = ""):
     if subject:
         full_subject += f": {subject}" 
 
-    NOW = timezone.now()
+    NOW = timezone.localtime(timezone.now().)
     full_message = f"This is an automated mail sent by BitTan because an error has occurred at {NOW}. The following information has been attached:\n\n" + message_content
     send_mail(reciever_address="biljettsupport@f.kth.se", subject=full_subject, message_content=full_message, format_as_html=False)
 
