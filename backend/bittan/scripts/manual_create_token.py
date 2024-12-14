@@ -10,8 +10,8 @@ def main():
 		"../gmail_secret.json", SCOPES
 	)
 	creds = flow.run_local_server(port=0)
-	with open("../gmail_token.json", "w") as token:
-		token.write(creds.to_json())
+	with open("../gmail_token.json", "w") as f:
+		f.write(creds.to_json())
 
 if __name__ == "__main__":
 	main()
