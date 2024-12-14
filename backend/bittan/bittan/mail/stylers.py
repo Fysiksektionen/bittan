@@ -36,9 +36,7 @@ f"""
 <html>
 <h1>Din Fysikalenbiljett är här!</h1>
 
-<div class="center">
-    <img src="https://fysikalen.se/wordpress/wp-content/uploads/2024/07/LOGGA.png" alt="" width=300>
-</div>
+<img src="https://fysikalen.se/wordpress/wp-content/uploads/2024/07/LOGGA.png" alt="" width=300>
 
 <p><b>Datum</b>: {date_string}</p>
 <p><b>Dörrarna öppnas</b>: 18:00</p>
