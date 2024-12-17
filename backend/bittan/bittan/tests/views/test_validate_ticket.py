@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 
 from django.utils import timezone
 
-from bittan.models import ChapterEvent, TicketType, Ticket, Payment, ticket_type
+from bittan.models import ChapterEvent, TicketType, Ticket, Payment, chapter_event
 from bittan.models.payment import PaymentStatus
 
 class ValidateTicketTest(TestCase):
@@ -35,14 +35,16 @@ class ValidateTicketTest(TestCase):
                 external_id="AAAAAA", 
                 time_created=NOW,
                 payment=self.valid_payment,
-                ticket_type=test_ticket
+                ticket_type=test_ticket,
+                chapter_event=self.test_event
         )
         
         self.invalid_ticket = Ticket.objects.create(
                 external_id="BBBBBB", 
                 time_created=NOW,
                 payment=self.invalid_payment,
-                ticket_type=test_ticket
+                ticket_type=test_ticket,
+                chapter_event=self.test_event
         )
 
         self.client = Client()
