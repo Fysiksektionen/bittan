@@ -5,12 +5,13 @@ from django.test import TestCase, Client
 from datetime import datetime
 from django.utils import timezone
 
-from bittan.models import TicketType, ChapterEvent, Payment
+from bittan.models import TicketType, ChapterEvent, Ticket, Payment
 
 class StartPaymentTest(TestCase):
     def setUp(self):
         NOW = timezone.now()
-        self.test_event = ChapterEvent.objects.create(title="Test Event", description="An event for testing. ", total_seats=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366))
+        self.test_event = ChapterEvent.objects.create(title="Test Event1", description="An event for testing. ", total_seats=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366))
+        self.test_event2 = ChapterEvent.objects.create(title="Test Event2", description="An event for testing. ", total_seats=10, sales_stop_at=NOW+timezone.timedelta(days=365), event_at=NOW+timezone.timedelta(days=366), reservation_duration=timezone.timedelta(minutes=30))
         
         self.test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
         self.test_event.ticket_types.add(self.test_ticket)
@@ -36,6 +37,26 @@ class StartPaymentTest(TestCase):
             },
             content_type="application/json"
         )
+
+        # Temporary setup as the reserve_ticket view does not support reserving tickets for several different ChapterEvents at once. 
+        payment_id = self.client.session["reserved_payment"]
+        payment = Payment.objects.get(pk=payment_id)
+        second_event_ticket1 =  Ticket.objects.create(
+            external_id = "1234",
+            time_created = NOW,
+            payment = payment,
+            ticket_type = self.test_ticket,
+            chapter_event = self.test_event2
+        )
+        second_event_ticket2 =  Ticket.objects.create(
+            external_id = "1111",
+            time_created = NOW,
+            payment = payment,
+            ticket_type = self.test_ticket2,
+            chapter_event = self.test_event2
+        )
+
+
 
     def test_start_payment(self):
         mail_address = "mail@mail.com"
@@ -134,7 +155,7 @@ class StartPaymentTest(TestCase):
         self.assertEqual(payment.payment_started, True)
         self.assertEqual(payment.email, mail_address)
         self.assertEqual(payment.status, PaymentStatus.RESERVED)
-        self.assertEqual(payment.expires_at, now + self.test_event.reservation_duration)
+        self.assertEqual(payment.expires_at, now + self.test_event2.reservation_duration)
 
     def test_double_payment(self):
         mail_address = "mail@mail.com"

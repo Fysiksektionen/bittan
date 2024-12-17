@@ -1,7 +1,7 @@
 from bittan.models.payment import PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
-from ..models import ChapterEvent, Ticket, TicketType, Payment
+from bittan.models import ChapterEvent, Ticket, TicketType, Payment
 
 from bittan.services.swish.swish import Swish
 
@@ -13,7 +13,7 @@ from rest_framework import serializers
 
 import random
 
-from django.db import models
+from django.db.models import Count, Min
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.db.models import Sum
@@ -91,7 +91,8 @@ def reserve_ticket(request: Request) -> Response:
                             external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                             time_created=timezone.now(),
                             payment=payment,
-                            ticket_type=ticket_type
+                            ticket_type=ticket_type,
+                            chapter_event=chapter_event
                         )
                 except IntegrityError as e:
                     continue
@@ -110,6 +111,7 @@ class StartPaymentRequestSerializer(serializers.Serializer):
 @api_view(['POST'])
 def start_payment(request):
     response_data: dict
+    
 
     valid_ser = StartPaymentRequestSerializer(data=request.data)
     if valid_ser.is_valid():
@@ -135,20 +137,24 @@ def start_payment(request):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-    tickets = payment.ticket_set
 
-    # Gets the chapter event from the users ticket.
-    chapter_event = tickets.first().ticket_type.chapterevent_set.first()
+    tickets = payment.ticket_set.all()
 
+    # This handles if session expires before payment starts and should be compatible with 
+    # functionality that allows for buying tickets to several different ChapterEvents at once. 
+    grouped_tickets = tickets.values_list("chapter_event", "chapter_event__total_seats").annotate(count=Count("chapter_event__pk"))
     if payment.status != PaymentStatus.RESERVED:
-        if tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
-            payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-            return Response(
-                "SessionExpired", 
-                status=status.HTTP_408_REQUEST_TIMEOUT
-            )
-        payment.expires_at = timezone.now() + chapter_event.reservation_duration
+        for chapter_event, total_seats, count in grouped_tickets:
+            chapter_event = ChapterEvent.objects.get(pk=chapter_event)
+            if count > total_seats - chapter_event.alive_ticket_count:
+                payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+                return Response(
+                    "SessionExpired", 
+                    status=status.HTTP_408_REQUEST_TIMEOUT
+                )
+        payment.expires_at = timezone.now() + grouped_tickets.aggregate(Min("chapter_event__reservation_duration"))["chapter_event__reservation_duration__min"]
         payment.status = PaymentStatus.RESERVED
+        payment.save()
 
     payment.payment_started = True
     payment.save()
@@ -159,7 +165,8 @@ def start_payment(request):
     
     swish = Swish.get_instance() # Detta hämtar swish instansen som är global över hela bittan. I den här kan saker anropas. 
     
-    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
+    #payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
+    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, "Test message")
 
     if payment_request.is_failed():
         payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
