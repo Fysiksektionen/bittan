@@ -13,7 +13,6 @@ from rest_framework import serializers
 
 import random
 
-from django.db.models import Count, Min
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.db.models import Sum
@@ -140,20 +139,17 @@ def start_payment(request):
 
     tickets = payment.ticket_set.all()
 
-    # This handles if session expires before payment starts and should be compatible with 
-    # functionality that allows for buying tickets to several different ChapterEvents at once. 
-    grouped_tickets = tickets.values_list("chapter_event", "chapter_event__total_seats").annotate(count=Count("chapter_event__pk"))
+    chapter_event = tickets.first().chapter_event
+
     if payment.status != PaymentStatus.RESERVED:
-        for chapter_event, total_seats, count in grouped_tickets:
-            chapter_event = ChapterEvent.objects.get(pk=chapter_event)
-            if count > total_seats - chapter_event.alive_ticket_count:
-                payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-                payment.save()
-                return Response(
-                    "SessionExpired", 
-                    status=status.HTTP_408_REQUEST_TIMEOUT
-                )
-        payment.expires_at = timezone.now() + grouped_tickets.aggregate(Min("chapter_event__reservation_duration"))["chapter_event__reservation_duration__min"]
+        if tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
+             payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+             payment.save()
+             return Response(
+                 "SessionExpired", 
+                 status=status.HTTP_408_REQUEST_TIMEOUT
+             )
+        payment.expires_at = timezone.now() + chapter_event.reservation_duration
         payment.status = PaymentStatus.RESERVED
         payment.save()
 
@@ -163,10 +159,9 @@ def start_payment(request):
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
     
-    swish = Swish.get_instance() # Detta hämtar swish instansen som är global över hela bittan. I den här kan saker anropas. 
+    swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
     
-    #payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
-    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, "Test message")
+    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
 
     if payment_request.is_failed():
         payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
