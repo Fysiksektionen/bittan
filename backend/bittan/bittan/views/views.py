@@ -148,6 +148,7 @@ def start_payment(request):
             chapter_event = ChapterEvent.objects.get(pk=chapter_event)
             if count > total_seats - chapter_event.alive_ticket_count:
                 payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+                payment.save()
                 return Response(
                     "SessionExpired", 
                     status=status.HTTP_408_REQUEST_TIMEOUT
@@ -157,7 +158,6 @@ def start_payment(request):
         payment.save()
 
     payment.payment_started = True
-    payment.save()
     payment.email = response_data["email_address"]
     payment.save()
 
