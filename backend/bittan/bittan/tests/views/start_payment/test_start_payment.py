@@ -2,10 +2,12 @@ from bittan.models.payment import PaymentStatus
 from unittest.mock import patch
 from django.test import TestCase, Client
 
+
 from datetime import datetime
 from django.utils import timezone
 
 from bittan.models import TicketType, ChapterEvent, Payment
+from bittan.services.swish.swish import Swish
 
 class StartPaymentTest(TestCase):
     def setUp(self):
@@ -37,6 +39,8 @@ class StartPaymentTest(TestCase):
             content_type="application/json"
         )
 
+        self.swish = Swish.get_instance()
+
     def test_start_payment(self):
         mail_address = "mail@mail.com"
         response = self.client.post(
@@ -47,11 +51,15 @@ class StartPaymentTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+
         payment_id = self.client.session["reserved_payment"]
         payment = Payment.objects.get(pk=payment_id)
+        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
+
         self.assertEqual(payment.payment_started, True)
         self.assertEqual(payment.email, mail_address)
         self.assertEqual(payment.status, PaymentStatus.RESERVED)
+        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
     
     def test_invalid_mail(self):
         response = self.client.post(
@@ -128,13 +136,17 @@ class StartPaymentTest(TestCase):
             }
         )
 
+        self.assertEqual(response.status_code, 200)
+
         payment_id = self.client.session["reserved_payment"]
         payment = Payment.objects.get(pk=payment_id)
-        self.assertEqual(response.status_code, 200)
+        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
+
         self.assertEqual(payment.payment_started, True)
         self.assertEqual(payment.email, mail_address)
         self.assertEqual(payment.status, PaymentStatus.RESERVED)
         self.assertEqual(payment.expires_at, now + self.test_event.reservation_duration)
+        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
 
     def test_double_payment(self):
         mail_address = "mail@mail.com"
@@ -152,10 +164,13 @@ class StartPaymentTest(TestCase):
             }
         )
 
+        self.assertEqual(response.status_code, 403)
+
         payment_id = self.client.session["reserved_payment"]
         payment = Payment.objects.get(pk=payment_id)
-        self.assertEqual(response.status_code, 403)
+        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
+
         self.assertEqual(payment.payment_started, True)
         self.assertEqual(payment.email, mail_address)
         self.assertEqual(payment.status, PaymentStatus.RESERVED)
-
+        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
