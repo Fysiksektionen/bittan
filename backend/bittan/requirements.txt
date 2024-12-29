@@ -1,6 +1,7 @@
 django==5.0
 psycopg==3.2.3
-django-money==3.4.1
+djangorestframework==3.14.0
+django-enumfield==3.1
 python-dotenv==1.0.1
 requests==2.31.0
 google-api-python-client==2.116.0

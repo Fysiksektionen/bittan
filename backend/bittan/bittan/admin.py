@@ -3,7 +3,10 @@ from .models import TicketType, ChapterEvent, Payment, Ticket, SwishPaymentReque
 
 
 admin.site.register(TicketType)
-admin.site.register(ChapterEvent)
 admin.site.register(SwishPaymentRequestModel)
 admin.site.register(Payment)
 admin.site.register(Ticket)
+
+@admin.register(ChapterEvent)
+class ChapterEventAdmin(admin.ModelAdmin):
+    readonly_fields = ["alive_ticket_count"]

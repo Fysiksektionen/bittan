@@ -58,7 +58,7 @@ class GetChaptereventsTest(TestCase):
 				raise Exception("No corresponding ticket_type found")
 			self.assertEqual(tt['title'], corresponding_tt_db.title)
 			self.assertEqual(tt['description'], corresponding_tt_db.description)
-			self.assertEqual(type(tt['price']), str) # We don't bother checking Money too closely because we're gonna change it anyway
+			self.assertEqual(tt['price'], corresponding_tt_db.price) 
 
 	def test_sales_stop_at_past(self):
 		now = timezone.now()

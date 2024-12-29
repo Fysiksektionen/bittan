@@ -83,7 +83,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 	'bittan',
-	'djmoney',
 ]
 
 MIDDLEWARE = [
@@ -155,6 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
