@@ -9,6 +9,7 @@ import qrcode
 import aggdraw
 import io
 import logging
+import os
 
 def mail_payment(payment: Payment):
     """
@@ -115,7 +116,7 @@ def make_qr_image(text_qr: str, title: str) -> bytes:
 	img_width, img_height = img.size 
 
 	draw = aggdraw.Draw(img)
-	font = aggdraw.Font("black", "/bittan/bittan/mail/OpenSans-Regular.ttf", 20)
+	font = aggdraw.Font("black", os.path.join(os.path.dirname(__file__), "OpenSans-Regular.ttf"), 20)
 
 	title_width = draw.textsize(title, font)[0]
 	draw.text((((img_width-title_width)/2, TITLE_OFFSET)), title, font)
