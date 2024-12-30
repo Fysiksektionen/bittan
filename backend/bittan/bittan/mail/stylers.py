@@ -20,7 +20,7 @@ def mail_payment(payment: Payment):
 		MailError: Raised if some miscellaneous error occured while sending the email.
     """
     ## Grab data ##
-    tickets: list[Ticket] = list(payment.ticket_set.all()) # TODO order tickets by ticket_type for niceness
+    tickets: list[Ticket] = list(payment.ticket_set.order_by("ticket_type__title"))
     if len(tickets) == 0:
         raise MailError("No tickets found associated with payment.")
     
