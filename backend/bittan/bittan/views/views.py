@@ -1,7 +1,7 @@
 from bittan.models.payment import PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
-from ..models import ChapterEvent, Ticket, TicketType, Payment
+from bittan.models import ChapterEvent, Ticket, TicketType, Payment
 
 from bittan.services.swish.swish import Swish
 
@@ -13,7 +13,6 @@ from rest_framework import serializers
 
 import random
 
-from django.db import models
 from django.utils import timezone
 from django.db.utils import IntegrityError
 from django.db.models import Sum
@@ -91,7 +90,8 @@ def reserve_ticket(request: Request) -> Response:
                             external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                             time_created=timezone.now(),
                             payment=payment,
-                            ticket_type=ticket_type
+                            ticket_type=ticket_type,
+                            chapter_event=chapter_event
                         )
                 except IntegrityError as e:
                     continue
@@ -110,6 +110,7 @@ class StartPaymentRequestSerializer(serializers.Serializer):
 @api_view(['POST'])
 def start_payment(request):
     response_data: dict
+    
 
     valid_ser = StartPaymentRequestSerializer(data=request.data)
     if valid_ser.is_valid():
@@ -135,29 +136,30 @@ def start_payment(request):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-    tickets = payment.ticket_set
 
-    # Gets the chapter event from the users ticket.
-    chapter_event = tickets.first().ticket_type.chapterevent_set.first()
+    tickets = payment.ticket_set.all()
+
+    chapter_event = tickets.first().chapter_event
 
     if payment.status != PaymentStatus.RESERVED:
         if tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
-            payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-            return Response(
-                "SessionExpired", 
-                status=status.HTTP_408_REQUEST_TIMEOUT
-            )
+             payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+             payment.save()
+             return Response(
+                 "SessionExpired", 
+                 status=status.HTTP_408_REQUEST_TIMEOUT
+             )
         payment.expires_at = timezone.now() + chapter_event.reservation_duration
         payment.status = PaymentStatus.RESERVED
+        payment.save()
 
     payment.payment_started = True
-    payment.save()
     payment.email = response_data["email_address"]
     payment.save()
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
     
-    swish = Swish.get_instance() # Detta hämtar swish instansen som är global över hela bittan. I den här kan saker anropas. 
+    swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
     
     payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
 
