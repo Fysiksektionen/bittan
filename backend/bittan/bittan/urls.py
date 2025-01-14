@@ -16,11 +16,13 @@ Including another URLconf
 """
 from os import environ
 from django.contrib import admin
-from django.urls import path
+from django.contrib.auth import views as django_views
+from django.urls import path, include
 
 from .api.swish import swish_callback, debug_make_request 
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
+from bittan.views.staffpage_views import staff_dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +31,11 @@ urlpatterns = [
     path('validate_ticket/', validate_ticket),
     path("reserve_ticket/", reserve_ticket),
     path("start_payment/", start_payment),
+    path("staff/", staff_dashboard), 
+    # path('accounts/', include('django.contrib.auth.urls')),
+    path("accounts/login/", django_views.LoginView.as_view(), name="login"),
+    path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
+
 ]
 
 
