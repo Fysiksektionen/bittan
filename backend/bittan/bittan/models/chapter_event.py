@@ -26,3 +26,6 @@ class ChapterEvent(models.Model):
 		"""
 		count = self.ticket_set.prefetch_related("payment").filter(payment__status__in=[PaymentStatus.PAID, PaymentStatus.RESERVED]).count()
 		return count
+
+	def __str__(self):
+		return self.title

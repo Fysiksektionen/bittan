@@ -1,10 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Specific Page</title>
+    <title>Staff page</title>
 </head>
 <body>
-    <h1>Welcome to the Specific Page, {{ user.username }}!</h1>
+    <h1>Welcome to the staff page, {{ user.username }}!</h1>
     <p>This is a page that is only accessible to logged-in users.</p>
+
+    <form method="get">
+        {{ form.as_p }}
+        <button type="submit">Filter</button>
+    </form>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Ticket Type</th>
+                <th>Sold count</th>
+                <th>Total price</th>
+                <!-- Add more headers as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket_type in ticket_types %}
+            <tr>
+                <td>{{ ticket_type.ticket_type__title }}</td>
+                <td>{{ ticket_type.ticket_count }}</td>
+                <td>{{ ticket_type.total_price }}</td>
+                <!-- Add more fields as needed -->
+            </tr>
+            {% endfor %}
+            <tr>
+                <td>Total</td>
+                <td>{{total_values.total_ticket_count}}</td>
+                <td>{{total_values.all_ticket_price}}</td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>
