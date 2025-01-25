@@ -17,6 +17,11 @@ def swish_callback(request: Request):
 	return Response("", status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
+def debug_synchronize_request(request: Request):
+	Swish.get_instance().synchronize_all_pending()
+
+	return Response("Wow")
+@api_view(['POST'])
 def debug_make_request(request: Request):
 	# In merchant simulator, specify the msg query param to make the merchant simulator return an error.
 	# eg. POST <BACEND_URI>/swish/dummy/?msg=RF07 ==> simulate that the user declined the transaction 
