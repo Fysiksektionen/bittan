@@ -108,7 +108,10 @@ class Swish:
 
 	def send_to_swish(self, method, path: str, **kwargs):
 		""" Convenience method for sending an HTTP request to the SWISH api """
-		return requests.request(method, f'{self.swish_url}{path}', cert=self.cert_file_paths, **kwargs)
+
+		# TODO handle if headers is passed in kwargs?
+		headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+		return requests.request(method, f'{self.swish_url}{path}', cert=self.cert_file_paths, headers=headers, **kwargs)
 
 
 	def create_swish_payment(self, amount: int, message="") -> SwishPaymentRequest:
@@ -126,6 +129,7 @@ class Swish:
 			payment_request_db_object.save()
 
 			json = {
+				"payeePaymentReference": self.payee_alias,
 				"payeeAlias": self.payee_alias,
 				"callbackUrl": self.callback_url,
 				"amount": amount,
@@ -148,7 +152,7 @@ class Swish:
 				logging.error(f'Error creating Swish payment: {e}')
 
 				# The data is, unlike the "happy path", in the body as json if the request fails 
-				payment_request_db_object.swish_api_response = e.response.json()
+				payment_request_db_object.swish_api_response = e.response.text
 
 				payment_request_db_object.fail(SwishApiErrorCode.FAILED_TO_INITIATE)
 				payment_request_db_object.save()

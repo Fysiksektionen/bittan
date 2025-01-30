@@ -32,7 +32,7 @@ def debug_make_request(request: Request):
 	resp = Swish.get_instance().create_swish_payment(123, msg)
 	print("Skapade betalning")
 	print(f'id: {resp.id}, token: {resp.token}')
-	return Response(f"{resp.id}", status=status.HTTP_201_CREATED)
+	return Response(f"{resp.token}", status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 def debug_query(request: Request, id):
