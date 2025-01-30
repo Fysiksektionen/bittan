@@ -34,6 +34,7 @@ class ENV_VAR_NAMES(Enum):
 
     # The phone number to which the money should go to 
     SWISH_PAYEE_ALIAS="SWISH_PAYEE_ALIAS"
+    SWISH_QR_GENERATOR_ENDPOINT="SWISH_QR_ENDPOINT" 
 
 class EnvVars:
     __DEFAULTS = {
@@ -41,6 +42,7 @@ class EnvVars:
             ENV_VAR_NAMES.SWISH_PEM_FILE_PATH.value:  "./test_certificates/testcert.pem",
             ENV_VAR_NAMES.SWISH_KEY_FILE_PATH.value:  "./test_certificates/testcert.key",
             ENV_VAR_NAMES.SWISH_PAYEE_ALIAS.value:  "1234679304",
+            ENV_VAR_NAMES.SWISH_QR_GENERATOR_ENDPOINT.value: "https://mpc.getswish.net/qrg-swish/api/v1/commerce",
     }
 
     @staticmethod
