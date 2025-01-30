@@ -10,7 +10,6 @@ class BittanConfig(AppConfig):
 
     def ready(self):
         from bittan.services.swish.swish import Swish 
-        from bittan.services.swish.example_callback_handler import example_callback_handler_function
 
         swish_url = EnvVars.get(ENV_VAR_NAMES.SWISH_API_URL)
         callback_url = f'{EnvVars.get(ENV_VAR_NAMES.APPLICATION_URL)}swish/callback/'
@@ -23,4 +22,8 @@ class BittanConfig(AppConfig):
         payee_alias = EnvVars.get(ENV_VAR_NAMES.SWISH_PAYEE_ALIAS)
 
         # Attach the Swish instance to a variable in the app's config for easy access
-        self.swish = Swish(swish_url, payee_alias, callback_url, cert_file_paths, example_callback_handler_function)
+        self.swish = Swish(swish_url, payee_alias, callback_url, cert_file_paths)
+
+        from bittan.services.swish.swish import payment_signal
+        from bittan.services.swish.example_callback_handler import example_callback_handler_function
+        payment_signal.connect(example_callback_handler_function)
