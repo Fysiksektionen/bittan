@@ -17,7 +17,7 @@ Including another URLconf
 from os import environ
 from django.contrib import admin
 from django.contrib.auth import views as django_views
-from django.urls import path, include
+from django.urls import path
 
 from .api.swish import swish_callback, debug_make_request 
 
@@ -31,8 +31,7 @@ urlpatterns = [
     path('validate_ticket/', validate_ticket),
     path("reserve_ticket/", reserve_ticket),
     path("start_payment/", start_payment),
-    path("staff/", staff_dashboard), 
-    # path('accounts/', include('django.contrib.auth.urls')),
+    path("staff/", staff_dashboard, name="staff_dashboard"), 
     path("accounts/login/", django_views.LoginView.as_view(), name="login"),
     path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
 
