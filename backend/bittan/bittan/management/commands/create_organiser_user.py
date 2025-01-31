@@ -10,6 +10,7 @@ class Command(BaseCommand):
         organiser_user = User.objects.create_user("organiser", None, "organiser")
 
         organiser_group = Group.objects.create(name="organisers") 
-        organiser_group.user_set.add(organiser_user)
+        organiser_group.user_set.add(organiser_user, User.objects.get(is_superuser=True))
+        
 
 
