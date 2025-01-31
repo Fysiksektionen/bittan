@@ -22,7 +22,7 @@ from django.urls import path
 from .api.swish import swish_callback, debug_make_request 
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
-from bittan.views.staffpage_views import staff_dashboard
+from bittan.views.staffpage_views import staff_dashboard, update_ticket, update_payment
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,7 +34,8 @@ urlpatterns = [
     path("staff/", staff_dashboard, name="staff_dashboard"), 
     path("accounts/login/", django_views.LoginView.as_view(), name="login"),
     path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
-
+    path('update_payment/<int:payment_id>/', update_payment, name='update_payment'),
+    path('update_ticket/<int:ticket_id>/', update_ticket, name='update_ticket')
 ]
 
 

@@ -3,6 +3,7 @@
 <head>
     <title>Staff page</title>
 </head>
+{% load custom_filters %}
 <body>
     <h1>Welcome to the staff page, {{ user.username }}!</h1>
      
@@ -11,8 +12,10 @@
         <button type="submit">Log Out</button>
     </form>
 
+    <div>
+    <h2>Overview</h2>
     <form method="get">
-        {{ form.as_p }}
+        {{ dropDownMenu.as_p }}
         <button type="submit">Filter</button>
     </form>
     <table border="1">
@@ -21,7 +24,6 @@
                 <th>Ticket Type</th>
                 <th>Sold count</th>
                 <th>Total price</th>
-                <!-- Add more headers as needed -->
             </tr>
         </thead>
         <tbody>
@@ -30,7 +32,6 @@
                 <td>{{ ticket_type.ticket_type__title }}</td>
                 <td>{{ ticket_type.ticket_count }}</td>
                 <td>{{ ticket_type.total_price }}</td>
-                <!-- Add more fields as needed -->
             </tr>
             {% endfor %}
             <tr>
@@ -40,5 +41,75 @@
             </tr>
         </tbody>
     </table>
+    </div>
+
+    <form method="get">
+        {{searchBar.as_p}}
+        <button type="submit">Search</button>
+    </form>
+
+    {% for payment in search_res%}
+    <h4>Payment information</h4>
+    <form id="payment-form-{{ payment.id }}" method="post" action="{% url 'update_payment' payment.id %}">
+        {% csrf_token %}
+        {% with payment_form=payment_forms|get_item:payment.id %}
+        {{ form.non_field_errors }}
+        <table border=1>
+            <tbody>
+                <tr>
+                    <td>Email: </td>
+                    <td>{{ payment_form.email }}{{ payment_form.email.errors }}</td>
+                </tr>
+                <tr>
+                    <td>Status: </td>
+                    <td>{{ payment_form.status }}{{ payment_form.errors }}</td>
+                </tr>
+                <tr>
+                    <td>Payment reference:</td>
+                    <td>{{ payment.swish_id }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% endwith %}
+        {% if request.GET.query %}
+        <input type="hidden" name="query" value="{{ payment.swish_id }}">
+        {% endif %}
+        <button type="submit" id="save-btn-{{ payment.id }}">Save</button>
+    </form>
+        <button>Resend Email</button>
+        <h5>Ticket information</h5>
+        <table border=1>
+            <thead>
+            <tr>
+                <th>Ticket Type</th>
+                <th>Chapter Event</th>
+                <th>Ticket identifer</th>
+                <th>Delete Ticket</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for ticket in payment.ticket_set.all %}
+                <tr>
+                    <form id="ticket-form-{{ ticket.id }}" method="post" action="{% url 'update_ticket' ticket.id %}">
+                        {% csrf_token %}
+                        {% with ticket_form=ticket_forms|get_item:ticket.id %}
+                        {{ ticket_form.non_field_errors }}
+                        <td>{{ ticket_form.ticket_type }}{{ ticket_form.ticket_type.errors }}</td>
+                        <td>{{ ticket_form.chapter_event }}{{ ticket_form.chapter_event.errors }}</td>
+                        <td>{{ ticket.external_id }}</td>
+                        <td><input type="checkbox" name="delete_ticket_{{ ticket.id }}" value="{{ ticket.id }}"></td>
+                        <td><button type="button" onclick="editTicket('{{ ticket.id }}')">Edit</button></td>
+                        <td><button type="submit"  id="save-btn-ticket-{{ ticket.id }}">Save</button></td>
+                        {% if request.GET.query %}
+                        <input type="hidden" name="query" value="{{ payment.swish_id }}">
+                        {% endif %}
+                        {% endwith %}
+                    </form>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
 </body>
 </html>
+

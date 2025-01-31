@@ -1,5 +1,5 @@
 from django import forms
-from bittan.models import ChapterEvent
+from bittan.models import ChapterEvent, Payment, Ticket
 
 class ChapterEventForm(forms.Form):
     chapter_event = forms.ModelChoiceField(
@@ -9,3 +9,24 @@ class ChapterEventForm(forms.Form):
         to_field_name="title"
     )
 
+class SearchForm(forms.Form):
+    query = forms.CharField(label="Search ticket or payment", max_length=100)
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = ["email", "status"] 
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["status"].widget.attrs.update({"class": "form-control"})
+
+class TicketForm(forms.ModelForm):
+    class Meta:
+        model = Ticket
+        fields = ["ticket_type", "chapter_event"]
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields["ticket_type"].widget.attrs.update({"class": "form-control"})
+        self.fields["chapter_event"].widget.attrs.update({"class": "form-control"})
