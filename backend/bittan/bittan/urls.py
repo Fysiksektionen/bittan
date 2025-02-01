@@ -22,20 +22,22 @@ from django.urls import path
 from .api.swish import swish_callback, debug_make_request 
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
-from bittan.views.staffpage_views import staff_dashboard, update_ticket, update_payment
+from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, staff_dashboard, update_ticket, update_payment
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('swish/callback/', swish_callback),
-	path('get_chapterevents/', get_chapterevents),
-    path('validate_ticket/', validate_ticket),
+    path("admin/", admin.site.urls),
+    path("swish/callback/", swish_callback),
+	path("get_chapterevents/", get_chapterevents),
+    path("validate_ticket/", validate_ticket),
     path("reserve_ticket/", reserve_ticket),
     path("start_payment/", start_payment),
     path("staff/", staff_dashboard, name="staff_dashboard"), 
     path("accounts/login/", django_views.LoginView.as_view(), name="login"),
     path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
-    path('update_payment/<int:payment_id>/', update_payment, name='update_payment'),
-    path('update_ticket/<int:ticket_id>/', update_ticket, name='update_ticket')
+    path("update_payment/<int:payment_id>/", update_payment, name="update_payment"),
+    path("update_ticket/<int:ticket_id>/", update_ticket, name="update_ticket"),
+    path("create_tickets", create_tickets , name="create_tickets"),
+    path("filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event)
 ]
 
 

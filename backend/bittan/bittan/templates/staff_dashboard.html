@@ -4,7 +4,10 @@
     <title>Staff page</title>
 </head>
 {% load custom_filters %}
+{% load static %}
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{% static "staffpage.js" %}"></script>
     <h1>Welcome to the staff page, {{ user.username }}!</h1>
      
     <form action="{% url 'logout' %}" method="post">
@@ -43,6 +46,8 @@
     </table>
     </div>
 
+    <div>
+        <h2>Edit tickets and payments</h2>
     <form method="get">
         {{searchBar.as_p}}
         <button type="submit">Search</button>
@@ -50,7 +55,7 @@
 
     {% for payment in search_res%}
     <h4>Payment information</h4>
-    <form id="payment-form-{{ payment.id }}" method="post" action="{% url 'update_payment' payment.id %}">
+    <form method="post" action="{% url 'update_payment' payment.id %}">
         {% csrf_token %}
         {% with payment_form=payment_forms|get_item:payment.id %}
         {{ form.non_field_errors }}
@@ -90,7 +95,7 @@
             <tbody>
                 {% for ticket in payment.ticket_set.all %}
                 <tr>
-                    <form id="ticket-form-{{ ticket.id }}" method="post" action="{% url 'update_ticket' ticket.id %}">
+                    <form method="post" action="{% url 'update_ticket' ticket.id %}">
                         {% csrf_token %}
                         {% with ticket_form=ticket_forms|get_item:ticket.id %}
                         {{ ticket_form.non_field_errors }}
@@ -110,6 +115,20 @@
             </tbody>
         </table>
     {% endfor %}
+    </div>
+
+    <div>
+        <h2>Create new tickets</h2>
+        <form id="ticket-creation-chapter-event-form">
+            {% csrf_token %}
+            {{ createTicketDropdown.as_p }}
+        </form>
+        <div id="ticket-form-container">
+            <form id="ticket-form">
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
 </body>
 </html>
 

@@ -1,15 +1,15 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST, require_GET
 from django.db.models import Count, F, Sum
-from bittan.forms.forms import ChapterEventForm, SearchForm, PaymentForm, TicketForm
+from bittan.forms.forms import ChapterEventDropdownTicketCreation, ChapterEventForm, SearchForm, PaymentForm, TicketCreationForm, TicketForm
 from bittan.models import ChapterEvent, Ticket, Payment
 from bittan.models.payment import PaymentStatus
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def staff_dashboard(request):
-    print("Dashboard")
     dropdown = ChapterEventForm(request.GET or None)
     chapter_events = ChapterEvent.objects.all()
     ticket_type_infos = None
@@ -50,6 +50,8 @@ def staff_dashboard(request):
 
         payment_forms = {payment.id: PaymentForm(instance=payment) for payment in search_res}
         ticket_forms = {ticket.id: TicketForm(instance=ticket) for payment in search_res for ticket in payment.ticket_set.all()}
+    
+    ce_create_ticket_dropdown = ChapterEventDropdownTicketCreation
 
     context = {
         "dropDownMenu": dropdown, 
@@ -58,8 +60,9 @@ def staff_dashboard(request):
         "total_values": total_values,
         "searchBar": search_bar,
         "search_res": search_res,
-        'payment_forms': payment_forms,
-        'ticket_forms': ticket_forms
+        "payment_forms": payment_forms,
+        "ticket_forms": ticket_forms,
+        "createTicketDropdown": ce_create_ticket_dropdown,
     }
 
     return render(request, "staff_dashboard.html", context)
@@ -77,7 +80,6 @@ def update_payment(request, payment_id):
 @require_POST
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def update_ticket(request, ticket_id):
-    print("Update ticket")
     ticket = get_object_or_404(Ticket, id=ticket_id)
     form = TicketForm(request.POST, instance=ticket)
     if form.is_valid():
@@ -85,3 +87,16 @@ def update_ticket(request, ticket_id):
     query_param = request.POST.get("query")
     return redirect(f"/staff/?query={query_param}") 
 
+@require_GET
+def filter_ticket_type_from_chapter_event(request, chapter_event_id):
+    chapter_event = ChapterEvent.objects.get(pk=chapter_event_id)
+    ticket_types = chapter_event.ticket_types.all()
+    ticket_types_data = [{"id": tt.pk, "title": tt.title, "price": tt.price} for tt in ticket_types]
+    return JsonResponse({"ticket_types": ticket_types_data})
+    
+
+@require_POST
+@user_passes_test(lambda u: u.groups.filter(name="organisers").count())
+def create_tickets(request):
+    return JsonResponse({'success': False, 'errors': form.errors})
+    
