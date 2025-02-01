@@ -1,8 +1,14 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
+from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 from django.db.models import Count, F, Sum
+from django.db.utils import IntegrityError
+
+import logging
+import random
+
 from bittan.forms.forms import ChapterEventDropdownTicketCreation, ChapterEventForm, SearchForm, PaymentForm, TicketCreationForm, TicketForm
 from bittan.models import ChapterEvent, Ticket, Payment
 from bittan.models.payment import PaymentStatus
@@ -98,5 +104,45 @@ def filter_ticket_type_from_chapter_event(request, chapter_event_id):
 @require_POST
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def create_tickets(request):
+    chapter_event_id = request.POST.get('chapter_event')
+    chapter_event = ChapterEvent.objects.get(id=chapter_event_id)
+    ticket_types = chapter_event.ticket_types.all()
+    form = TicketCreationForm(request.POST, ticket_types=ticket_types)
+
+    if form.is_valid():
+        # TODO: check if there are enough tickets left in the event. 
+        email = form.cleaned_data["email"]
+        payment = Payment.objects.create(
+            expires_at = timezone.now() + chapter_event.reservation_duration,
+            swish_id = None,
+            status = PaymentStatus.RESERVED,
+            email = email
+        )
+        for ticket_type in ticket_types:
+            for _ in range(1000):
+                try:
+                    Ticket.objects.create(
+                            external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
+                            time_created=timezone.now(),
+                            payment=payment,
+                            ticket_type=ticket_type,
+                            chapter_event=chapter_event
+                        )
+                except IntegrityError as e:
+                    continue
+                break
+            else: 
+                # TODO: clean up already created tickets as the cleaner will not do it here. 
+                logging.critical("Failed to generate a ticket external id. This should never happen. This happened when admin attempted to create a ticket.")
+                return JsonResponse({"success": False, "errors": "Failed to create tickets. "})
+
+        # We set this to paid here so that it does not interfer with the cleaner in case above fails. 
+        payment.status = PaymentStatus.PAID
+        payment.save()
+
+        # TODO: fix sending of the mail. 
+        return JsonResponse({'success': True, "payment_reference": payment.swish_id})
+    
     return JsonResponse({'success': False, 'errors': form.errors})
     
+
