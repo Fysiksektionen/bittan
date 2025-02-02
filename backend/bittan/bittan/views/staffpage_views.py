@@ -110,37 +110,43 @@ def create_tickets(request):
     form = TicketCreationForm(request.POST, ticket_types=ticket_types)
 
     if form.is_valid():
-        # TODO: check if there are enough tickets left in the event. 
+        total_ticket_count = 0
+        for ticket_type in ticket_types:
+            total_ticket_count += form.cleaned_data[f"ticket_type_{ticket_type.id}"]
+
+        if total_ticket_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
+            return JsonResponse({"success": False, "errors": "Not enough tickets left"})
+        
+
         email = form.cleaned_data["email"]
         payment = Payment.objects.create(
             expires_at = timezone.now() + chapter_event.reservation_duration,
-            swish_id = None,
-            status = PaymentStatus.RESERVED,
+            swish_id = str(uuid4()).replace('-', '').upper(),
+            status = PaymentStatus.PAID,
             email = email
         )
+
         for ticket_type in ticket_types:
-            for _ in range(1000):
-                try:
-                    Ticket.objects.create(
-                            external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
-                            time_created=timezone.now(),
-                            payment=payment,
-                            ticket_type=ticket_type,
-                            chapter_event=chapter_event
-                        )
-                except IntegrityError as e:
-                    continue
-                break
-            else: 
-                # TODO: clean up already created tickets as the cleaner will not do it here. 
-                logging.critical("Failed to generate a ticket external id. This should never happen. This happened when admin attempted to create a ticket.")
-                return JsonResponse({"success": False, "errors": "Failed to create tickets. "})
+            quantity = form.cleaned_data[f"ticket_type_{ticket_type.id}"]
+            for _ in range(quantity):
+                for _ in range(1000):
+                    try:
+                        Ticket.objects.create(
+                                external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
+                                time_created=timezone.now(),
+                                payment=payment,
+                                ticket_type=ticket_type,
+                                chapter_event=chapter_event
+                            )
+                    except IntegrityError as e:
+                        continue
+                    break
+                else: 
+                    payment.status = PaymentStatus.FAILED_OUT_OF_IDS
+                    logging.critical("Failed to generate a ticket external id. This should never happen. This happened when admin attempted to create a ticket.")
+                    return JsonResponse({"success": False, "errors": "Failed to create tickets. "})
 
-        # We set this to paid here so that it does not interfer with the cleaner in case above fails. 
-        payment.status = PaymentStatus.PAID
-        payment.save()
-
-        # TODO: fix sending of the mail. 
+        # TODO: fix sending of the mail (requires the mail branch to be merged with this one). 
         return JsonResponse({'success': True, "payment_reference": payment.swish_id})
     
     return JsonResponse({'success': False, 'errors': form.errors})

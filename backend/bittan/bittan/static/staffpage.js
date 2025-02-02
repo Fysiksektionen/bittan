@@ -40,20 +40,21 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 
-    ticketFormContainer.addEventListener('submit', function(event) {
+    ticketFormContainer.addEventListener("submit", function(event) {
         event.preventDefault();
-        const formData = new FormData(document.getElementById('ticket-form'));
+        const formData = new FormData(document.getElementById("ticket-form"));
         formData.append("chapter_event", document.querySelector('#ticket-creation-chapter-event-form select[name="chapter_event"]').value)
         axios.post("/create_tickets", formData)
             .then(response => {
                 if (response.data.success) {
-                    alert('Tickets created successfully!');
+                    alert(`Tickets created successfully: created payment with reference ${response.data.payment_reference}`);
                 } else {
-                    alert('Error creating tickets.');
+                    console.log(response.data.errors)
+                    alert(`Error creating tickets. Error message: ${response.data.errors}`);
                 }
             })
             .catch(error => {
-                console.error('Error creating tickets:', error);
+                console.error("Error creating tickets:", error);
             });
     });
 });
