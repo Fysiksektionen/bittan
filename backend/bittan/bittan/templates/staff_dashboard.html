@@ -83,6 +83,8 @@
     </form>
         <button>Resend Email</button>
         <h5>Ticket information</h5>
+        <form id="ticket-form-{{ payment.id }}" method="post" action="{% url 'update_tickets' payment.id %}">
+        {% csrf_token %}
         <table border=1>
             <thead>
             <tr>
@@ -95,25 +97,19 @@
             <tbody>
                 {% for ticket in payment.ticket_set.all %}
                 <tr>
-                    <form method="post" action="{% url 'update_ticket' ticket.id %}">
-                        {% csrf_token %}
-                        {% with ticket_form=ticket_forms|get_item:ticket.id %}
-                        {{ ticket_form.non_field_errors }}
-                        <td>{{ ticket_form.ticket_type }}{{ ticket_form.ticket_type.errors }}</td>
-                        <td>{{ ticket_form.chapter_event }}{{ ticket_form.chapter_event.errors }}</td>
-                        <td>{{ ticket.external_id }}</td>
-                        <td><input type="checkbox" name="delete_ticket_{{ ticket.id }}" value="{{ ticket.id }}"></td>
-                        <td><button type="button" onclick="editTicket('{{ ticket.id }}')">Edit</button></td>
-                        <td><button type="submit"  id="save-btn-ticket-{{ ticket.id }}">Save</button></td>
-                        {% if request.GET.query %}
-                        <input type="hidden" name="query" value="{{ payment.swish_id }}">
-                        {% endif %}
-                        {% endwith %}
-                    </form>
+                    {% with ticket_form=ticket_forms|get_item:ticket.id %}
+                    {{ ticket_form.non_field_errors }}
+                    <td> {{ ticket_form.ticket_type }}{{ ticket_form.ticket_type.errors }}</td>
+                    <td>{{ ticket_form.chapter_event }}{{ ticket_form.chapter_event.errors }}</td>
+                    <td>{{ ticket.external_id }}</td>
+                    <td><input type="checkbox" name="delete_ticket_{{ ticket.id }}" value="{{ ticket.id }}"></td>
+                    {% endwith %}
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        <button type="submit">Save Changes</button>
+        </form>
     {% endfor %}
     </div>
 

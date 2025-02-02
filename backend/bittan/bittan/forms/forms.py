@@ -1,5 +1,5 @@
 from django import forms
-from bittan.models import ChapterEvent, Payment, Ticket, TicketType
+from bittan.models import ChapterEvent, Payment, Ticket
 
 class ChapterEventForm(forms.Form):
     chapter_event = forms.ModelChoiceField(

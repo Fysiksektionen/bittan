@@ -22,7 +22,7 @@ from django.urls import path
 from .api.swish import swish_callback, debug_make_request 
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
-from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, staff_dashboard, update_ticket, update_payment
+from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, staff_dashboard, update_payment, update_tickets
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -35,7 +35,7 @@ urlpatterns = [
     path("accounts/login/", django_views.LoginView.as_view(), name="login"),
     path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
     path("update_payment/<int:payment_id>/", update_payment, name="update_payment"),
-    path("update_ticket/<int:ticket_id>/", update_ticket, name="update_ticket"),
+    path("update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
     path("create_tickets", create_tickets , name="create_tickets"),
     path("filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event)
 ]

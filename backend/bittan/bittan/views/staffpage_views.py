@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.db.models import Count, F, Sum
 from django.db.utils import IntegrityError
 
+from uuid import uuid4
 import logging
 import random
 
@@ -55,7 +56,7 @@ def staff_dashboard(request):
             search_res = Payment.objects.filter(swish_id=query)
 
         payment_forms = {payment.id: PaymentForm(instance=payment) for payment in search_res}
-        ticket_forms = {ticket.id: TicketForm(instance=ticket) for payment in search_res for ticket in payment.ticket_set.all()}
+        ticket_forms = {ticket.id: TicketForm(instance=ticket, prefix=f"ticket_{ticket.id}") for payment in search_res for ticket in payment.ticket_set.all()}
     
     ce_create_ticket_dropdown = ChapterEventDropdownTicketCreation
 
@@ -83,22 +84,29 @@ def update_payment(request, payment_id):
     query_param = request.POST.get("query")
     return redirect(f"/staff/?query={query_param}") 
 
-@require_POST
-@user_passes_test(lambda u: u.groups.filter(name="organisers").count())
-def update_ticket(request, ticket_id):
-    ticket = get_object_or_404(Ticket, id=ticket_id)
-    form = TicketForm(request.POST, instance=ticket)
-    if form.is_valid():
-        form.save()
-    query_param = request.POST.get("query")
-    return redirect(f"/staff/?query={query_param}") 
-
 @require_GET
 def filter_ticket_type_from_chapter_event(request, chapter_event_id):
     chapter_event = ChapterEvent.objects.get(pk=chapter_event_id)
     ticket_types = chapter_event.ticket_types.all()
     ticket_types_data = [{"id": tt.pk, "title": tt.title, "price": tt.price} for tt in ticket_types]
     return JsonResponse({"ticket_types": ticket_types_data})
+
+@require_POST
+@user_passes_test(lambda u: u.groups.filter(name="organisers").count())
+def update_tickets(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id)
+    for ticket in payment.ticket_set.all():
+        form = TicketForm(request.POST, instance=ticket, prefix=f"ticket_{ticket.id}")
+        if form.is_valid():
+            form.save()
+        else:
+            # Debugging: Print form errors
+            print(f"Form errors for ticket {ticket.id}: {form.errors}")
+
+        delete_checkbox = request.POST.get(f"delete_ticket_{ticket.id}")
+        if delete_checkbox:
+            ticket.delete() 
+    return redirect(f"/staff/?query={payment.swish_id}") 
     
 
 @require_POST
