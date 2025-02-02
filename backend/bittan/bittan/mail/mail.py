@@ -19,7 +19,7 @@ class MailError(Exception):
 	"""Base class for all Exceptions raised by mail."""
 	pass
 
-class InvalidRecieverAddressError(MailError):
+class InvalidReceiverAddressError(MailError):
 	pass
 
 @dataclass
@@ -29,12 +29,12 @@ class MailImage:
 	filename: str
 	"The desired filename without any extension (no .png)"
 
-def send_mail(reciever_address: str, subject: str, message_content: str, images_to_attach: list[MailImage] = [], images_to_embed: list[MailImage] = [], format_as_html: bool = True):
+def send_mail(receiver_address: str, subject: str, message_content: str, images_to_attach: list[MailImage] = [], images_to_embed: list[MailImage] = [], format_as_html: bool = True):
 	"""
 	Sends an email message.
 
 	Args:
-		reciever_address (str): The email address that should recieve the email.
+		receiver_address (str): The email address that should receive the email.
 		subject (str): The subject of the email.
 		message_content (str): The text sent in the email.
 		images_to_attach (list[MailImage]): A list of `MailImage`s to attach. Assumes png formatting. Defaults to an empty list.
@@ -42,7 +42,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, images_
 		format_as_html (bool): Whether the `message_content` should be interpreted as html. Defaults to `True`.
 
 	Raises:
-		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
+		InvalidReceiverAddressError: Raised if receiver_address is not a valid email address.
 		MailError: Raised if some miscellaneous error occurred while sending the email.
 	"""
 	creds = _get_credentials()
@@ -50,7 +50,7 @@ def send_mail(reciever_address: str, subject: str, message_content: str, images_
 
 	message = MIMEMultipart("related")
 	message["Subject"] = subject
-	message["To"] = reciever_address
+	message["To"] = receiver_address
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
 
 	for image_to_embed in images_to_embed:
@@ -75,9 +75,9 @@ def send_mail(reciever_address: str, subject: str, message_content: str, images_
 		)
 	except HttpError as error:
 		if error.reason == "Invalid To header":
-			raise InvalidRecieverAddressError(f"Invalid address: '{reciever_address}'")
+			raise InvalidReceiverAddressError(f"Invalid address: '{receiver_address}'")
 	if not "SENT" in sent_message["labelIds"]:
-		logging.error(f"Could not send mail. Address: {reciever_address}; Has image: {bool(image)}; Message content:\n{message_content}")
+		logging.error(f"Could not send mail. Address: {receiver_address}; Has image: {bool(image)}; Message content:\n{message_content}")
 		raise MailError("Mail was not sent for unknown reasons.")
 	return
 

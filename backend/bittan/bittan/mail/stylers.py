@@ -17,7 +17,7 @@ def mail_payment(payment: Payment):
     All tickets related to this payment must be from the same ChapterEvent.
 
 	Raises:
-		InvalidRecieverAddressError: Raised if reciever_address is not a valid email address.
+		InvalidReceiverAddressError: Raised if receiver_address is not a valid email address.
 		MailError: Raised if some miscellaneous error occured while sending the email.
     """
     ## Grab data ##
@@ -31,6 +31,8 @@ def mail_payment(payment: Payment):
     event_at: datetime = timezone.localtime(chapter_event.event_at)
     date_string = f"{event_at.day}/{event_at.month} {event_at.year}"
     date_string_no_year = f"{event_at.day}/{event_at.month}"
+    start_time = f"{event_at.hour}:{event_at.minute}"
+    doors_open = f"{event_at - chapter_event.door_open_before}"
 
     ## Generate message ##
     message = \
@@ -41,8 +43,8 @@ f"""
 <img src="https://fysikalen.se/wordpress/wp-content/uploads/2024/07/LOGGA.png" alt="" width=300>
 
 <p><b>Datum</b>: {date_string}</p>
-<p><b>Dörrarna öppnas</b>: 18:00</p>
-<p><b>Föreställningen börjar</b>: 19:00</p>
+<p><b>Dörrarna öppnas</b>: {doors_open}</p>
+<p><b>Föreställningen börjar</b>: {start_time}</p>
 <p><b>Plats</b>: Kulturhuset Dieselverkstaden, Marcusplatsen 17, 131 54 Nacka. <i>Fri placering under föreställningen!</i></p>
 """
     if plural:
@@ -72,7 +74,7 @@ f"""
         images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{ticket.external_id}_embed"))
 
     ## Send mail ##
-    send_mail(reciever_address=payment.email, subject=f"Biljett, Fysikalen {date_string}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+    send_mail(receiver_address=payment.email, subject=f"Biljett, Fysikalen {date_string}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
     payment.sent_email = True
     payment.save()
 
@@ -94,7 +96,7 @@ def mail_bittan_developers(message_content: str, subject: str = ""):
 
     NOW = timezone.localtime(timezone.now())
     full_message = f"This is an automated mail sent by BitTan because an error has occurred at {NOW}. The following information has been attached:\n\n" + message_content
-    send_mail(reciever_address="biljettsupport@f.kth.se", subject=full_subject, message_content=full_message, format_as_html=False)
+    send_mail(receiver_address="biljettsupport@f.kth.se", subject=full_subject, message_content=full_message, format_as_html=False)
 
 def make_qr_image(text_qr: str, title: str) -> bytes:
 	"""

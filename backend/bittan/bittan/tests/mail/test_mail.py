@@ -2,7 +2,7 @@ import datetime
 from django.test import TestCase, tag
 from django.utils import timezone
 from bittan.mail import send_mail, mail_payment
-from bittan.mail import MailError, InvalidRecieverAddressError
+from bittan.mail import MailError, InvalidReceiverAddressError
 from bittan.mail.stylers import make_qr_image
 from bittan.mail.mail import MailImage
 from bittan.models.chapter_event import ChapterEvent
@@ -21,7 +21,7 @@ class SendMailTest(TestCase):
 
 	def test_invalid_address(self):
 		self.assertRaises(
-			InvalidRecieverAddressError,
+			InvalidReceiverAddressError,
 			lambda : send_mail("some invalid address", "Test", "This is sent by a test.", format_as_html=False)
 		)
 		self.assertRaises(
@@ -86,3 +86,4 @@ class StylersTest(TestCase):
 				)
 
 		mail_payment(payment1)
+		self.assertEqual(payment1.sent_email, True)
