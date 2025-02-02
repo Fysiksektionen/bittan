@@ -11,9 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
-from email import encoders
 
 class MailError(Exception):
 	"""Base class for all Exceptions raised by mail."""
