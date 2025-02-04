@@ -96,6 +96,7 @@ def filter_ticket_type_from_chapter_event(request, chapter_event_id):
 def update_tickets(request, payment_id):
     payment = get_object_or_404(Payment, id=payment_id)
     for ticket in payment.ticket_set.all():
+        # Potential TODO: Check that the admin does not exceed maximum tickets by moving around chapter events.
         form = TicketForm(request.POST, instance=ticket, prefix=f"ticket_{ticket.id}")
         if form.is_valid():
             form.save()
