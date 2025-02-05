@@ -229,7 +229,8 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_HEADERS = [
     'Bypass-tunnel-reminder',
-    'content-type'
+    'content-type',
+    'cookie'
 ]
 
 # SESSION_COOKIE_SAMESITE = None
