@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-	baseURL: "http://localhost:8000/",
-	withCredentials: false,
-
+	baseURL: "https://kind-ears-melt.loca.lt",
+	withCredentials: true,
+	headers: {  'Bypass-tunnel-reminder': true }
 });
 
 export default axiosInstance;

@@ -214,4 +214,22 @@ LOGGING = {
 
 CORS_ALLOWED_ORIGINS = [
   'http://localhost:3000',
+  'https://kind-ears-melt.loca.lt',
+  'https://modern-flowers-crash.loca.lt'
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    'https://kind-ears-melt.loca.lt',
+    'https://modern-flowers-crash.loca.lt'
+]
+
+CORS_ALLOW_HEADERS = [
+    'Bypass-tunnel-reminder',
+    'content-type'
+]
+
+# SESSION_COOKIE_SAMESITE = None

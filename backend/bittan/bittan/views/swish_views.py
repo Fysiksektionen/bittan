@@ -11,7 +11,7 @@ def get_qr(request, token):
     data = {
             "format": "png",
             "size": "300",
-            "token": token,
+            "token": token
     }
 
     response = requests.post(qr_endpoint, stream=True, json=data)

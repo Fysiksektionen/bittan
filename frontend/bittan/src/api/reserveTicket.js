@@ -1,13 +1,35 @@
-// src/api/reserveTicket.js
+// // src/api/reserveTicket.js
+
 import axiosInstance from './axiosConfig';
 
-export const reserveTicket = async (chapterEventId, tickets) => {
+/**
+ * Reserves tickets and retrieves the session cookie.
+ *
+ * @param {Object} requestBody - The request body containing chapter event ID and tickets.
+ * @returns {Object} An object containing response data and session ID.
+ * @throws {Error} If the request fails.
+ */
+export const reserveTicket = async (requestBody) => {
   try {
-    const response = await axiosInstance.post('/reserve-ticket/', {
-      chapter_event: chapterEventId,
-      tickets: tickets,
+    // Function to get CSRF token from cookies
+
+    const response = await axiosInstance.post('/reserve_ticket/', {
+      chapter_event: requestBody.chapter_event,
+      tickets: requestBody.tickets,
     });
-    return response;
+
+    // Extract session ID from cookies
+    const setCookieHeader = response.headers['set-cookie'];
+    let sessionId = null;
+
+    if (setCookieHeader) {
+      const sessionCookie = setCookieHeader.find(cookie => cookie.startsWith('sessionid='));
+      if (sessionCookie) {
+        sessionId = sessionCookie.split(';')[0].split('=')[1];
+      }
+    }
+
+    return { data: response.data, sessionId };
   } catch (error) {
     console.error('Error reserving tickets:', error);
     throw error;

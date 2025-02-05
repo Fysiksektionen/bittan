@@ -1,55 +1,96 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosConfig";
-import { reserveTicket } from "../api/reserveTicket";
+import { reserveTicket } from "../api/reserveTicket"; // Separate API file for reserve tickets
+import Payment from "./Payment"; // Import the Payment component
+
+import "./EventDetails.css"
 
 const EventDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     // Fetch event details
-    axiosInstance.get(`/get_chapterevents`).then((response) => {
-      const event = response.data.find((event) => event.id == id);
+    axiosInstance.get(`/get_chapterevents?format=json`).then((response) => {
+      const event = response.data.chapter_events.find((event) => event.id == id);
       setEvent(event);
+      console.log(event)
+
+      const ticket_types = response.data.ticket_types;
+          
+      const filteredTickets = ticket_types.filter((type) =>
+        event.ticket_types.includes(type.id) // Match by ID
+      );
       // Initialize tickets selection
+      
       setTickets(
-        event.ticket_types.map((type) => ({
-          ticket_type: type.name,
+        filteredTickets.map((type) => ({
+          ticket_type: type.id, // Use the ticket type ID for API consistency
+          title: type.title,
+          price: type.price,
           count: 0,
         }))
       );
     });
   }, [id]);
 
-  const handleTicketChange = (index, action) => {
-    const newTickets = [...tickets];
-    if (action === "increment") {
-      newTickets[index].count += 1;
-    } else if (action === "decrement" && newTickets[index].count > 0) {
-      newTickets[index].count -= 1;
-    }
-    setTickets(newTickets);
-  };
-
-  const EventTime = ({ datetime }) => {
-    const localTime = new Date(datetime).toLocaleString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: false, // Change to true for 12-hour format
+  const handleTicketChange = (ticketTypeId, action) => {
+    const newTickets = tickets.map((ticket) => {
+      if (ticket.ticket_type === ticketTypeId) {
+        return {
+          ...ticket,
+          count:
+            action === "increment"
+              ? ticket.count + 1
+              : ticket.count > 0
+              ? ticket.count - 1
+              : 0,
+        };
+      }
+      return ticket;
     });
-    return <span>{localTime}</span>;
+    setTickets(newTickets);
+
+    console.log(newTickets)
+
+    // Update total amount
+    const total = newTickets.reduce(
+      (sum, ticket) => sum + ticket.count * ticket.price,
+      0
+    );
+
+    setTotalAmount(total);
   };
 
   const handleReserve = async () => {
-    await reserveTicket(id, tickets.filter((t) => t.count > 0));
-    navigate("/confirmation");
+    try {
+      // Prepare request body
+      const requestBody = {
+        chapter_event: id, // The ID of the chapter event
+        tickets: tickets
+          .filter((t) => t.count > 0) // Only include tickets with count > 0
+          .map((t) => ({
+            ticket_type: t.ticket_type, // Use the ticket type ID
+            count: t.count,
+          })),
+      };
+
+      console.log(requestBody)
+
+      // Call the API
+      await reserveTicket(requestBody);
+
+      // Navigate to confirmation page
+      navigate("/Payment", { state: { email, totalAmount } });
+    } catch (error) {
+      console.error("Failed to reserve tickets:", error);
+      alert("An error occurred while reserving tickets. Please try again.");
+    }
   };
 
   if (!event) return <p>Loading...</p>;
@@ -59,22 +100,33 @@ const EventDetails = () => {
       <h2>{event.title}</h2>
       <p>{event.description}</p>
       <p>
-        <EventTime datetime={event.event_at} />
+        Event Time: {" "}
+        {new Date(event.event_at).toLocaleString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: false,
+        })}
       </p>
 
-      {event.ticket_types.map((type, index) => (
-        <div key={type.name} style={{ marginBottom: "15px" }}>
-          <span style={{ marginRight: "10px" }}>{type.name}</span>
-          <span style={{ marginRight: "10px" }}>{type.price} kr</span>
+      {tickets.map((ticket) => (
+        <div key={ticket.ticket_type} style={{ marginBottom: "15px" }}>
+          <span style={{ marginRight: "10px" }}>{ticket.title}</span>
+          <span style={{ marginRight: "10px" }}>{ticket.price} kr</span>
           <button
-            onClick={() => handleTicketChange(index, "increment")}
+            onClick={() => handleTicketChange(ticket.ticket_type, "increment")}
+            className="btn btn-primary"
             style={{ marginRight: "5px" }}
           >
             +
           </button>
-          <span>{tickets[index]?.count || 0}</span>
+          <span>{ticket.count}</span>
           <button
-            onClick={() => handleTicketChange(index, "decrement")}
+            onClick={() => handleTicketChange(ticket.ticket_type, "decrement")}
+            className="btn btn-primary"
             style={{ marginLeft: "5px" }}
           >
             -
@@ -82,7 +134,18 @@ const EventDetails = () => {
         </div>
       ))}
 
-      <button onClick={handleReserve}>Reserve Tickets</button>
+      <h4>Total Amount: {totalAmount} kr</h4>
+
+      <div>
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+
+      <button onClick={handleReserve} className="btn btn-primary">Start Ticket Purchase</button>
     </div>
   );
 };

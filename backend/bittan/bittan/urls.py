@@ -31,7 +31,7 @@ urlpatterns = [
     path('validate_ticket/', validate_ticket),
     path("reserve_ticket/", reserve_ticket),
     path("start_payment/", start_payment),
-    path("generate_qr/<str:token>/", get_qr),
+    path("generate_qr/<str:token>", get_qr),
 ]
 
 
