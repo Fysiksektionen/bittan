@@ -29,10 +29,11 @@ def mail_payment(payment: Payment):
     ticket_types: list[TicketType] = [ticket.ticket_type for ticket in tickets]
     chapter_event: ChapterEvent = tickets[0].chapter_event # We assume that all tickets are from the same ChapterEvent
     event_at: datetime = timezone.localtime(chapter_event.event_at)
+    doors_open: datetime = timezone.localtime(chapter_event.event_at - chapter_event.door_open_before)
     date_string = f"{event_at.day}/{event_at.month} {event_at.year}"
     date_string_no_year = f"{event_at.day}/{event_at.month}"
-    start_time = f"{event_at.hour}:{event_at.minute}"
-    doors_open = f"{event_at - chapter_event.door_open_before}"
+    start_time = event_at.strftime("%H:%M")
+    doors_open = doors_open.strftime("%H:%M")
 
     ## Generate message ##
     message = \
