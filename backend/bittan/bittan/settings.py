@@ -26,6 +26,7 @@ class ENV_VAR_NAMES(Enum):
     # A URI from where the application is reachable from the web. Should end with a '/'. 
     # E.g https://bittan.com/
     APPLICATION_URL="APPLICATION_URL"
+    APPLICATION_API_URL="APPLICATION_API_URL" # The backend is currently running on another port mb O_O
 
     SWISH_API_URL="SWISH_API_URL"
 
@@ -213,18 +214,16 @@ LOGGING = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'https://kind-ears-melt.loca.lt',
-  'https://modern-flowers-crash.loca.lt'
+  EnvVars.get(ENV_VAR_NAMES.APPLICATION_URL),
+  EnvVars.get(ENV_VAR_NAMES.APPLICATION_API_URL)
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    'https://kind-ears-melt.loca.lt',
-    'https://modern-flowers-crash.loca.lt'
+    EnvVars.get(ENV_VAR_NAMES.APPLICATION_URL),
+    EnvVars.get(ENV_VAR_NAMES.APPLICATION_API_URL)
 ]
 
 CORS_ALLOW_HEADERS = [

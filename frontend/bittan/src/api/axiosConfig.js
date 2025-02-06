@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-	baseURL: "https://kind-ears-melt.loca.lt",
+	baseURL: import.meta.env.VITE_APPLICATION_API_URL,
 	withCredentials: true,
 	headers: {  'Bypass-tunnel-reminder': true }
 });
