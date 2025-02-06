@@ -19,7 +19,7 @@
       devShells.default = pkgs.mkShell {
         name = "python-venv";
         venvDir = "./.venv";
-        buildInputs = [
+        buildInputs = with pkgs; [
           # A Python interpreter including the 'venv' module is required to bootstrap
           # the environment.
           pythonPackages.python
@@ -27,6 +27,11 @@
           # This executes some shell code to initialize a venv in $venvDir before
           # dropping into the shell
           pythonPackages.venvShellHook
+
+          qrencode
+          httpie
+          # echo "D$(http post "https://7245d903793b99.lhr.life/swish/dummy/" -b | tr -d '\"')" | qrencode -- -t ANSI
+          # http post https://mpc.getswish.net/qrg-swish/api/v1/commerce format=png size=300 token="$(http post "https://5567ed24bbd129.lhr.life/swish/dummy/" | tr -d '\"')" -d
         ];
 
         # Run this command, only after creating the virtual environment

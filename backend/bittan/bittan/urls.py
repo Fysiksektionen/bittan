@@ -18,7 +18,9 @@ from os import environ
 from django.contrib import admin
 from django.urls import path
 
-from .api.swish import swish_callback, debug_make_request 
+from bittan.views.swish_views import get_qr
+
+from .api.swish import swish_callback, debug_make_request, debug_synchronize_request
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
 
@@ -29,8 +31,10 @@ urlpatterns = [
     path('validate_ticket/', validate_ticket),
     path("reserve_ticket/", reserve_ticket),
     path("start_payment/", start_payment),
+    path("generate_qr/<str:token>/", get_qr),
 ]
 
 
 if environ.get("DEBUG") == "True":
 	urlpatterns.append(path('swish/dummy/', debug_make_request))
+	urlpatterns.append(path('swish/sync/', debug_synchronize_request))
