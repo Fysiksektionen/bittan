@@ -1,5 +1,6 @@
 import logging
 from django.apps import apps
+from django.dispatch import Signal
 import requests
 import json
 
@@ -8,6 +9,7 @@ from .swish_payment_request import SwishPaymentRequest
 
 from uuid import uuid4
 
+payment_signal = Signal()
 
 class SwishPaymentRequestResponse: 
 	""" This is the response that the official swish api sends after we have sent a request """ 
@@ -21,13 +23,12 @@ class SwishPaymentRequestResponse:
 		self.error_code = SwishApiErrorCode.from_swish_reponse_code(response['errorCode'])
 
 class Swish:
-	def __init__(self, swish_url, payee_alias, callback_url, cert_file_paths, callback_function):
+	def __init__(self, swish_url, payee_alias, callback_url, cert_file_paths):
 		self.swish_url = swish_url
 		self.payee_alias = payee_alias
 		self.callback_url = callback_url
 		self.cert_file_paths = cert_file_paths
 
-		self.callback_function = callback_function
 
 	def update_swish_payment_request(self, payment_request_response: dict, model: SwishPaymentRequestModel | None = None):
 		""" Updates a payment according to a response (payment_request_response) from the Swish api """
@@ -53,9 +54,12 @@ class Swish:
 
 		if send_callback:
 			payment_request = SwishPaymentRequest(model)
-			self.callback_function(payment_request)
+			self.notify_listeners(payment_request)
 
 		return model
+
+	def notify_listeners(self, payment_request: SwishPaymentRequest):
+		payment_signal.send(Swish, payment_request=payment_request)
 
 	def synchronize_all_pending(self):
 		pending_payments = SwishPaymentRequestModel.objects.filter(status=SwishApiPaymentStatus.CREATED)
@@ -104,7 +108,10 @@ class Swish:
 
 	def send_to_swish(self, method, path: str, **kwargs):
 		""" Convenience method for sending an HTTP request to the SWISH api """
-		return requests.request(method, f'{self.swish_url}{path}', cert=self.cert_file_paths, **kwargs)
+
+		# TODO handle if headers is passed in kwargs?
+		headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+		return requests.request(method, f'{self.swish_url}{path}', cert=self.cert_file_paths, headers=headers, **kwargs)
 
 
 	def create_swish_payment(self, amount: int, message="") -> SwishPaymentRequest:
@@ -122,6 +129,7 @@ class Swish:
 			payment_request_db_object.save()
 
 			json = {
+				"payeePaymentReference": self.payee_alias,
 				"payeeAlias": self.payee_alias,
 				"callbackUrl": self.callback_url,
 				"amount": amount,
@@ -144,12 +152,12 @@ class Swish:
 				logging.error(f'Error creating Swish payment: {e}')
 
 				# The data is, unlike the "happy path", in the body as json if the request fails 
-				payment_request_db_object.swish_api_response = e.response.json()
+				payment_request_db_object.swish_api_response = e.response.text
 
 				payment_request_db_object.fail(SwishApiErrorCode.FAILED_TO_INITIATE)
 				payment_request_db_object.save()
 
-				self.callback_function(SwishPaymentRequest(payment_request_db_object))
+				self.notify_listeners(SwishPaymentRequest(payment_request_db_object))
 
 
 
