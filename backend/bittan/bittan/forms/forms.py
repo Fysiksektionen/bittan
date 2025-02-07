@@ -10,7 +10,10 @@ class ChapterEventForm(forms.Form):
     )
 
 class SearchForm(forms.Form):
-    query = forms.CharField(label="Search ticket or payment", max_length=100)
+    query = forms.CharField(
+        label="Search ticket or payment",
+        widget=forms.TextInput(attrs={'class': 'search-input'})
+    )
 
 class PaymentForm(forms.ModelForm):
     class Meta:

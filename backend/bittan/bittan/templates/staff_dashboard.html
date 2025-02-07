@@ -1,131 +1,143 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Staff page</title>
-</head>
-{% load custom_filters %}
-{% load static %}
-<body>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="{% static "staffpage.js" %}"></script>
-    <h1>Welcome to the staff page, {{ user.username }}!</h1>
-     
-    <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">Log Out</button>
-    </form>
+    {% load custom_filters %}
+    {% load static %}
 
-    <div>
-    <h2>Overview</h2>
-    <form method="get">
-        {{ dropDownMenu.as_p }}
-        <button type="submit">Filter</button>
-    </form>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Ticket Type</th>
-                <th>Sold count</th>
-                <th>Total price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ticket_type in ticket_types %}
-            <tr>
-                <td>{{ ticket_type.ticket_type__title }}</td>
-                <td>{{ ticket_type.ticket_count }}</td>
-                <td>{{ ticket_type.total_price }}</td>
-            </tr>
-            {% endfor %}
-            <tr>
-                <td>Total</td>
-                <td>{{total_values.total_ticket_count}}</td>
-                <td>{{total_values.all_ticket_price}}</td>
-            </tr>
-        </tbody>
-    </table>
-    </div>
+    <head>
+        <title>Staff page</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="{% static "staffpage.css" %}">
+    </head>
 
-    <div>
-        <h2>Edit tickets and payments</h2>
-    <form method="get">
-        {{searchBar.as_p}}
-        <button type="submit">Search</button>
-    </form>
+    <body>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script src="{% static "staffpage.js" %}"></script>
+        <h1>Welcome to the staff page, {{ user.username }}!</h1>
 
-    {% for payment in search_res%}
-    <h4>Payment information</h4>
-    <form method="post" action="{% url 'update_payment' payment.id %}">
-        {% csrf_token %}
-        {% with payment_form=payment_forms|get_item:payment.id %}
-        {{ form.non_field_errors }}
-        <table border=1>
-            <tbody>
-                <tr>
-                    <td>Email: </td>
-                    <td>{{ payment_form.email }}{{ payment_form.email.errors }}</td>
-                </tr>
-                <tr>
-                    <td>Status: </td>
-                    <td>{{ payment_form.status }}{{ payment_form.errors }}</td>
-                </tr>
-                <tr>
-                    <td>Payment reference:</td>
-                    <td>{{ payment.swish_id }}</td>
-                </tr>
-            </tbody>
-        </table>
-        {% endwith %}
-        {% if request.GET.query %}
-        <input type="hidden" name="query" value="{{ payment.swish_id }}">
-        {% endif %}
-        <button type="submit" id="save-btn-{{ payment.id }}">Save</button>
-    </form>
-        <button>Resend Email</button>
-        <h5>Ticket information</h5>
-        <form id="ticket-form-{{ payment.id }}" method="post" action="{% url 'update_tickets' payment.id %}">
-        {% csrf_token %}
-        <table border=1>
-            <thead>
-            <tr>
-                <th>Ticket Type</th>
-                <th>Chapter Event</th>
-                <th>Ticket identifer</th>
-                <th>Delete Ticket</th>
-            </tr>
-            </thead>
-            <tbody>
-                {% for ticket in payment.ticket_set.all %}
-                <tr>
-                    {% with ticket_form=ticket_forms|get_item:ticket.id %}
-                    {{ ticket_form.non_field_errors }}
-                    <td> {{ ticket_form.ticket_type }}{{ ticket_form.ticket_type.errors }}</td>
-                    <td>{{ ticket_form.chapter_event }}{{ ticket_form.chapter_event.errors }}</td>
-                    <td>{{ ticket.external_id }}</td>
-                    <td><input type="checkbox" name="delete_ticket_{{ ticket.id }}" value="{{ ticket.id }}"></td>
-                    {% endwith %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <button type="submit">Save Changes</button>
-        <p>Please note that there are no checks that validates that there exists tickets for a chapter event when editing.</p>
-        </form>
-    {% endfor %}
-    </div>
-
-    <div>
-        <h2>Create new tickets</h2>
-        <form id="ticket-creation-chapter-event-form">
+        <form action="{% url 'logout' %}" method="post">
             {% csrf_token %}
-            {{ createTicketDropdown.as_p }}
+            <button type="submit">Log Out</button>
         </form>
-        <div id="ticket-form-container">
-            <form id="ticket-form">
-                {% csrf_token %}
-            </form>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <h2>Overview</h2>
+                    <form method="get", class="search-form">
+                        <div class="search-container">
+                        {{ dropDownMenu.as_p }}
+                        <button type="submit">Filter</button>
+                        </div>
+                    </form>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ticket Type</th>
+                                <th>Sold count</th>
+                                <th>Total price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket_type in ticket_types %}
+                            <tr>
+                                <td>{{ ticket_type.ticket_type__title }}</td>
+                                <td>{{ ticket_type.ticket_count }}</td>
+                                <td>{{ ticket_type.total_price }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td>Total</td>
+                                <td>{{total_values.total_ticket_count}}</td>
+                                <td>{{total_values.all_ticket_price}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col">
+                    <h2>Edit tickets and payments</h2>
+                    <form method="get" class"search-form">
+                        <div class="search-container">
+                        {{searchBar.as_p}}
+                        <button type="submit">Search</button>
+                        </div>
+                    </form>
+
+                    {% for payment in search_res%}
+                    <h4>Payment information</h4>
+                    <form method="post" action="{% url 'update_payment' payment.id %}">
+                        {% csrf_token %}
+                        {% with payment_form=payment_forms|get_item:payment.id %}
+                        {{ form.non_field_errors }}
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td>Email: </td>
+                                    <td>{{ payment_form.email }}{{ payment_form.email.errors }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Status: </td>
+                                    <td>{{ payment_form.status }}{{ payment_form.errors }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Payment reference:</td>
+                                    <td>{{ payment.swish_id }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        {% endwith %}
+                        {% if request.GET.query %}
+                        <input type="hidden" name="query" value="{{ payment.swish_id }}">
+                        {% endif %}
+                        <button type="submit" id="save-btn-{{ payment.id }}">Save</button>
+                        <button>Resend Email</button>
+                    </form>
+                    <h5>Ticket information</h5>
+                    <form id="ticket-form-{{ payment.id }}" method="post" action="{% url 'update_tickets' payment.id %}">
+                        {% csrf_token %}
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Ticket Type</th>
+                                    <th>Chapter Event</th>
+                                    <th>Ticket identifer</th>
+                                    <th>Delete Ticket</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in payment.ticket_set.all %}
+                                <tr>
+                                    {% with ticket_form=ticket_forms|get_item:ticket.id %}
+                                    {{ ticket_form.non_field_errors }}
+                                    <td> {{ ticket_form.ticket_type }}{{ ticket_form.ticket_type.errors }}</td>
+                                    <td>{{ ticket_form.chapter_event }}{{ ticket_form.chapter_event.errors }}</td>
+                                    <td>{{ ticket.external_id }}</td>
+                                    <td><input type="checkbox" name="delete_ticket_{{ ticket.id }}" value="{{ ticket.id }}"></td>
+                                    {% endwith %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <button type="submit">Save Changes</button>
+                        <p>Please note that there are no checks that validates that there exists tickets for a chapter event when editing.</p>
+                    </form>
+                    {% endfor %}
+                </div>
+                <div class="col">
+                    <h2>Create new tickets</h2>
+                    <form id="ticket-creation-chapter-event-form">
+                        {% csrf_token %}
+                        {{ createTicketDropdown.as_p }}
+                    </form>
+                    <div id="ticket-form-container">
+                        <form id="ticket-form">
+                            {% csrf_token %}
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</body>
+    </body>
 </html>
 

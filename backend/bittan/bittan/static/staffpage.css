@@ -1,0 +1,30 @@
+.col {
+	padding-left: 24px;
+	padding-right: 24px;
+}
+.search-form {
+	display: flex;
+	align-items: center;
+}
+
+.search-container {
+	display: flex;
+	align-items: center;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
+
+.search-container p {
+	margin: 0;
+	flex: 1;
+}
+
+.search-container button {
+	margin-left: 10px;
+}
+
+.search-input {
+	width: 350px; /* Set the default width here */
+	max-width: 100%; /* Ensure it doesn't exceed its container's width */
+	box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
