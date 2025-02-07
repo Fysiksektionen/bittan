@@ -6,6 +6,10 @@ from django.views.decorators.http import require_POST, require_GET
 from django.db.models import Count, F, Sum
 from django.db.utils import IntegrityError
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.request import Request
+
 from uuid import uuid4
 import logging
 import random
@@ -136,7 +140,8 @@ def create_tickets(request):
         expires_at = timezone.now() + chapter_event.reservation_duration,
         swish_id = str(uuid4()).replace('-', '').upper(),
         status = PaymentStatus.PAID,
-        email = email
+        email = email,
+        payment_started=True
     )
 
     for ticket_type in ticket_types:
@@ -169,4 +174,22 @@ def create_tickets(request):
 
     return JsonResponse({'success': True, "payment_reference": payment.swish_id})
     
+@api_view(['POST'])
+@user_passes_test(lambda u: u.groups.filter(name="organisers").count())
+def resend_email(request) -> Response:
+    payment_id = request.data["paymentId"]
+    payment: Payment =  Payment.objects.get(pk=payment_id)
+
+    try:
+        mail_payment(payment)
+        payment.sent_email = True
+        payment.save()
+    except MailError as e:
+        logging.warning(f"Error {e} when attempting to resend mail from staff interface. ")
+        payment.status = PaymentStatus.FAILED_ADMIN
+        payment.save()
+        return Response({'success': False, 'errors': "Something went wrong when sending the email. "})
     
+    return Response({'success': True})
+
+

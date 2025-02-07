@@ -24,7 +24,7 @@ from bittan.views.swish_views import get_qr
 from .api.swish import swish_callback, debug_make_request, debug_synchronize_request
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
-from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, staff_dashboard, update_payment, update_tickets
+from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, resend_email, staff_dashboard, update_payment, update_tickets
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -39,6 +39,7 @@ urlpatterns = [
     path("update_payment/<int:payment_id>/", update_payment, name="update_payment"),
     path("update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
     path("create_tickets", create_tickets , name="create_tickets"),
+    path("resend_email", resend_email),
     path("filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
     path("generate_qr/<str:token>/", get_qr),
 ]

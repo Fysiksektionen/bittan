@@ -1,3 +1,30 @@
+function resendEmail(paymentId) {
+    const csrf = document.querySelector('meta[name="csrf-token"]').content
+    console.log(paymentId)
+    console.log(csrf)
+    axios.post(
+        "/resend_email",
+        {"paymentId": paymentId},
+        {
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrf
+            }
+        })
+        .then(response => {
+            if (response.data.success) {
+                alert("Mail sent successfully");
+            } else {
+                console.log(response.data.errors)
+                alert(`error creating tickets. error message: ${response.data.errors}`);
+            }
+        }
+        ).catch(error => {
+            console.error("Error resending the email:", error);
+        }
+    )
+}
+
 function calculateTotalPrice() {
     const ticketRows = document.querySelectorAll("#ticket-form table tr");
     let totalPrice = 0;
