@@ -13,6 +13,8 @@ import random
 from bittan.forms.forms import ChapterEventDropdownTicketCreation, ChapterEventForm, SearchForm, PaymentForm, TicketCreationForm, TicketForm
 from bittan.models import ChapterEvent, Ticket, Payment
 from bittan.models.payment import PaymentStatus
+from bittan.mail import mail_payment
+from bittan.mail import MailError
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
@@ -118,46 +120,53 @@ def create_tickets(request):
     ticket_types = chapter_event.ticket_types.all()
     form = TicketCreationForm(request.POST, ticket_types=ticket_types)
 
-    if form.is_valid():
-        total_ticket_count = 0
-        for ticket_type in ticket_types:
-            total_ticket_count += form.cleaned_data[f"ticket_type_{ticket_type.id}"]
+    if not form.is_valid():
+        return JsonResponse({'success': False, 'errors': form.errors})
 
-        if total_ticket_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
-            return JsonResponse({"success": False, "errors": "Not enough tickets left"})
-        
+    total_ticket_count = 0
+    for ticket_type in ticket_types:
+        total_ticket_count += form.cleaned_data[f"ticket_type_{ticket_type.id}"]
 
-        email = form.cleaned_data["email"]
-        payment = Payment.objects.create(
-            expires_at = timezone.now() + chapter_event.reservation_duration,
-            swish_id = str(uuid4()).replace('-', '').upper(),
-            status = PaymentStatus.PAID,
-            email = email
-        )
-
-        for ticket_type in ticket_types:
-            quantity = form.cleaned_data[f"ticket_type_{ticket_type.id}"]
-            for _ in range(quantity):
-                for _ in range(1000):
-                    try:
-                        Ticket.objects.create(
-                                external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
-                                time_created=timezone.now(),
-                                payment=payment,
-                                ticket_type=ticket_type,
-                                chapter_event=chapter_event
-                            )
-                    except IntegrityError as e:
-                        continue
-                    break
-                else: 
-                    payment.status = PaymentStatus.FAILED_OUT_OF_IDS
-                    logging.critical("Failed to generate a ticket external id. This should never happen. This happened when admin attempted to create a ticket.")
-                    return JsonResponse({"success": False, "errors": "Failed to create tickets. "})
-
-        # TODO: fix sending of the mail (requires the mail branch to be merged with this one). 
-        return JsonResponse({'success': True, "payment_reference": payment.swish_id})
-    
-    return JsonResponse({'success': False, 'errors': form.errors})
+    if total_ticket_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
+        return JsonResponse({"success": False, "errors": "Not enough tickets left"})
     
 
+    email = form.cleaned_data["email"]
+    payment = Payment.objects.create(
+        expires_at = timezone.now() + chapter_event.reservation_duration,
+        swish_id = str(uuid4()).replace('-', '').upper(),
+        status = PaymentStatus.PAID,
+        email = email
+    )
+
+    for ticket_type in ticket_types:
+        quantity = form.cleaned_data[f"ticket_type_{ticket_type.id}"]
+        for _ in range(quantity):
+            for _ in range(1000):
+                try:
+                    Ticket.objects.create(
+                            external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
+                            time_created=timezone.now(),
+                            payment=payment,
+                            ticket_type=ticket_type,
+                            chapter_event=chapter_event
+                        )
+                except IntegrityError as e:
+                    continue
+                break
+            else: 
+                payment.status = PaymentStatus.FAILED_OUT_OF_IDS
+                logging.critical("Failed to generate a ticket external id. This should never happen. This happened when admin attempted to create a ticket.")
+                return JsonResponse({"success": False, "errors": "Failed to create tickets. "})
+
+    try:
+        mail_payment(payment)
+    except MailError as e:
+        logging.warning(f"Error {e} when attempting to send mail for staff created tickets. ")
+        payment.status = PaymentStatus.FAILED_ADMIN
+        payment.save()
+        return JsonResponse({'success': False, 'errors': "Something went wrong when sending the email. "})
+
+    return JsonResponse({'success': True, "payment_reference": payment.swish_id})
+    
+    
