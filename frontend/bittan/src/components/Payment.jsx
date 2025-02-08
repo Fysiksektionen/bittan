@@ -19,10 +19,11 @@ const Payment = () => {
     try {
       const token = await startPayment(email);
       setSwishToken(token);
-      
       if (isMobile) {
         // Open Swish app if on mobile
-        window.location.href = `swish://payment?token=${token}`;
+        // The url which will be opened by swish when the "payment flow" inside the swish app is done
+        const callbackurl = `${window.location.origin}/booking-confirmed`
+        window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
       } else {
         // Fetch QR code as a blob
         const response = await generateQR(token);
