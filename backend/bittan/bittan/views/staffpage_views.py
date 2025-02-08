@@ -8,14 +8,15 @@ from django.db.utils import IntegrityError
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.request import Request
+from rest_framework import serializers, status
+
 
 from uuid import uuid4
 import logging
 import random
 
 from bittan.forms.forms import ChapterEventDropdownTicketCreation, ChapterEventForm, SearchForm, PaymentForm, TicketCreationForm, TicketForm
-from bittan.models import ChapterEvent, Ticket, Payment
+from bittan.models import ChapterEvent, Ticket, Payment, chapter_event
 from bittan.models.payment import PaymentStatus
 from bittan.mail import mail_payment
 from bittan.mail import MailError
@@ -143,63 +144,79 @@ def update_tickets(request, payment_id):
 
     
 
-@require_POST
+class TicketCreationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    chapter_event = serializers.PrimaryKeyRelatedField(queryset=ChapterEvent.objects.all())
+    ticket_types = serializers.DictField(child=serializers.IntegerField())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        chapter_event = self.initial_data.get('chapter_event')
+        if chapter_event:
+            chapter_event_instance = ChapterEvent.objects.get(id=chapter_event)
+            ticket_types = chapter_event_instance.ticket_types.all()
+            for ticket_type in ticket_types:
+                self.fields[f'ticket_type_{ticket_type.id}'] = serializers.IntegerField(required=False, min_value=0)
+
+    def validate(self, data):
+        chapter_event = data['chapter_event']
+        ticket_types = chapter_event.ticket_types.all()
+        total_ticket_count = sum(data.get(f"ticket_type_{ticket_type.id}", 0) for ticket_type in ticket_types)
+
+        if total_ticket_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
+            raise serializers.ValidationError("Not enough tickets left")
+
+        return data
+
+@api_view(["POST"])
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def create_tickets(request):
-    chapter_event_id = request.POST.get('chapter_event')
-    chapter_event = ChapterEvent.objects.get(id=chapter_event_id)
-    ticket_types = chapter_event.ticket_types.all()
-    form = TicketCreationForm(request.POST, ticket_types=ticket_types)
-
-    if not form.is_valid():
-        return JsonResponse({'success': False, 'errors': form.errors})
-
-    total_ticket_count = 0
-    for ticket_type in ticket_types:
-        total_ticket_count += form.cleaned_data[f"ticket_type_{ticket_type.id}"]
-
-    if total_ticket_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
-        return JsonResponse({"success": False, "errors": "Not enough tickets left"})
+    serializer = TicketCreationSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    chapter_event = serializer.validated_data['chapter_event']
+    ticket_types = chapter_event.ticket_types.all()
+    email = serializer.validated_data['email']
+    ticket_counts = {f"ticket_type_{ticket_type.id}": serializer.validated_data.get(f"ticket_type_{ticket_type.id}", 0) for ticket_type in ticket_types}
 
-    email = form.cleaned_data["email"]
     payment = Payment.objects.create(
-        expires_at = timezone.now() + chapter_event.reservation_duration,
-        swish_id = str(uuid4()).replace('-', '').upper(),
-        status = PaymentStatus.PAID,
-        email = email,
+        expires_at=timezone.now() + chapter_event.reservation_duration,
+        swish_id=str(uuid4()).replace('-', '').upper(),
+        status=PaymentStatus.PAID,
+        email=email,
         payment_started=True
     )
 
     for ticket_type in ticket_types:
-        quantity = form.cleaned_data[f"ticket_type_{ticket_type.id}"]
+        quantity = ticket_counts.get(f"ticket_type_{ticket_type.id}", 0)
         for _ in range(quantity):
             for _ in range(1000):
                 try:
                     Ticket.objects.create(
-                            external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
-                            time_created=timezone.now(),
-                            payment=payment,
-                            ticket_type=ticket_type,
-                            chapter_event=chapter_event
-                        )
-                except IntegrityError as e:
+                        external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
+                        time_created=timezone.now(),
+                        payment=payment,
+                        ticket_type=ticket_type,
+                        chapter_event=chapter_event
+                    )
+                except IntegrityError:
                     continue
                 break
-            else: 
+            else:
                 payment.status = PaymentStatus.FAILED_OUT_OF_IDS
                 logging.critical("Failed to generate a ticket external id. This should never happen. This happened when admin attempted to create a ticket.")
-                return JsonResponse({"success": False, "errors": "Failed to create tickets. "})
+                return Response("Failed to create tickets.", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     try:
         mail_payment(payment)
     except MailError as e:
-        logging.warning(f"Error {e} when attempting to send mail for staff created tickets. ")
+        logging.warning(f"Error {e} when attempting to send mail for staff created tickets.")
         payment.status = PaymentStatus.FAILED_ADMIN
         payment.save()
-        return JsonResponse({'success': False, 'errors': "Something went wrong when sending the email. "})
+        return Response("Something went wrong when sending the email.", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    return JsonResponse({'success': True, "payment_reference": payment.swish_id})
+    return Response(payment.swish_id, status=status.HTTP_201_CREATED)
     
 @api_view(['POST'])
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
