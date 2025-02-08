@@ -1,7 +1,7 @@
 function resendEmail(paymentId) {
     const csrf = document.querySelector('meta[name="csrf-token"]').content
     axios.post(
-        "/resend_email",
+        "/staff/resend_email",
         {"paymentId": paymentId},
         {
             headers: {
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ticketFormContainer.innerHTML = `<form id="ticket-form">${csrf}</form>`
             return
         }
-        axios.get(`/filter_ticket_type_by_chapter_event/${chapterEventId}/`)
+        axios.get(`/staff/filter_ticket_type_by_chapter_event/${chapterEventId}/`)
             .then(response => {
                 const ticketTypes = response.data.ticket_types;
                 let formHtml = '<table>';
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         event.preventDefault();
         const formData = new FormData(document.getElementById("ticket-form"));
         formData.append("chapter_event", document.querySelector('#ticket-creation-chapter-event-form select[name="chapter_event"]').value)
-        axios.post("/create_tickets", formData)
+        axios.post("/staff/create_tickets", formData)
             .then(response => {
                 alert(`Tickets created successfully: Created payment with reference ${response.data}`);
             })

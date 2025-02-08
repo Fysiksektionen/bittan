@@ -36,11 +36,11 @@ urlpatterns = [
     path("staff/", staff_dashboard, name="staff_dashboard"), 
     path("accounts/login/", django_views.LoginView.as_view(), name="login"),
     path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
-    path("update_payment/<int:payment_id>/", update_payment, name="update_payment"),
-    path("update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
-    path("create_tickets", create_tickets , name="create_tickets"),
-    path("resend_email", resend_email),
-    path("filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
+    path("staff/update_payment/<int:payment_id>/", update_payment, name="update_payment"),
+    path("staff/update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
+    path("staff/create_tickets", create_tickets , name="create_tickets"),
+    path("staff/resend_email", resend_email),
+    path("staff/filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
     path("generate_qr/<str:token>/", get_qr),
 ]
 
