@@ -111,6 +111,7 @@
                                 <tr>
                                     {% with ticket_form=ticket_forms|get_item:ticket.id %}
                                     {{ ticket_form.non_field_errors }}
+                                    {{ ticket_form.errors }}
                                     <td> {{ ticket_form.ticket_type }}{{ ticket_form.ticket_type.errors }}</td>
                                     <td>{{ ticket_form.chapter_event }}{{ ticket_form.chapter_event.errors }}</td>
                                     <td>{{ ticket.external_id }}</td>
@@ -121,7 +122,8 @@
                             </tbody>
                         </table>
                         <button type="submit">Save Changes</button>
-                        <p>Please note that there are no checks that validates that there exists tickets for a chapter event when editing.</p>
+                        <p>This will check if the change in chapter event will result that the number of tickets in that event exceeds the number of seats. If it does it woll not perform the change. 
+                        There are however currently NO error messages displayed when this happens. Please double check that the chapter event was actually moved when changing it. </p>
                     </form>
                     {% endfor %}
                 </div>

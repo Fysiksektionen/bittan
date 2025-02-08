@@ -101,19 +101,46 @@ def filter_ticket_type_from_chapter_event(request, chapter_event_id):
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def update_tickets(request, payment_id):
     payment = get_object_or_404(Payment, id=payment_id)
-    for ticket in payment.ticket_set.all():
-        # Potential TODO: Check that the admin does not exceed maximum tickets by moving around chapter events.
-        form = TicketForm(request.POST, instance=ticket, prefix=f"ticket_{ticket.id}")
-        if form.is_valid():
-            form.save()
-        else:
-            # Debugging: Print form errors
-            print(f"Form errors for ticket {ticket.id}: {form.errors}")
+    tickets = payment.ticket_set.all()
+    forms = []
+    errors = False
+    chapter_event_changes = {}
 
-        delete_checkbox = request.POST.get(f"delete_ticket_{ticket.id}")
-        if delete_checkbox:
-            ticket.delete() 
+    for ticket in tickets:
+        old_chapter_event_pk = ticket.chapter_event.pk
+        form = TicketForm(request.POST, instance=ticket, prefix=f"ticket_{ticket.id}")
+        forms.append(form)
+
+
+        if form.is_valid():
+            new_chapter_event = form.cleaned_data.get("chapter_event")
+            old_chapter_event = ChapterEvent.objects.get(pk=old_chapter_event_pk)
+
+            if new_chapter_event != old_chapter_event:
+                chapter_event_changes[new_chapter_event] = chapter_event_changes.get(new_chapter_event, 0) + 1
+                chapter_event_changes[old_chapter_event] = chapter_event_changes.get(old_chapter_event, 0) - 1
+        else:
+            errors = True
+
+    if not errors:
+        for chapter_event, change in chapter_event_changes.items():
+            if change > chapter_event.total_seats - chapter_event.alive_ticket_count:
+                errors = True
+                for form in forms:
+                    if form.cleaned_data.get("chapter_event") == chapter_event:
+                        form.add_error('chapter_event', "Exceeds maximum ticket count for this chapter event")
+
+    if not errors:
+        for form in forms:
+            form.save()
+
+        for ticket in tickets:
+            delete_checkbox = request.POST.get(f"delete_ticket_{ticket.id}")
+            if delete_checkbox:
+                ticket.delete()
+
     return redirect(f"/staff/?query={payment.swish_id}") 
+
     
 
 @require_POST
