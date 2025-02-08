@@ -21,6 +21,7 @@ function resendEmail(paymentId) {
         }
         ).catch(error => {
             console.error("Error resending the email:", error);
+            alert(`error creating tickets. error message: ${response.data.errors}`);
         }
     )
 }
@@ -73,15 +74,14 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append("chapter_event", document.querySelector('#ticket-creation-chapter-event-form select[name="chapter_event"]').value)
         axios.post("/create_tickets", formData)
             .then(response => {
-                if (response.data.success) {
-                    alert(`Tickets created successfully: created payment with reference ${response.data.payment_reference}`);
-                } else {
-                    console.log(response.data.errors)
-                    alert(`Error creating tickets. Error message: ${response.data.errors}`);
-                }
+                alert(`Tickets created successfully: Created payment with reference ${response.data}`);
             })
             .catch(error => {
-                console.error("Error creating tickets:", error);
+                if (error.response) {
+                    alert(`Error creating tickets. Validation errors: ${error.response.data.non_field_errors[0]}`);
+                } else {
+                    alert("Error setting up the request.");
+                }
             });
     });
 });
