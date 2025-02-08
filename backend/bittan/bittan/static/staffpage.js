@@ -1,7 +1,5 @@
 function resendEmail(paymentId) {
     const csrf = document.querySelector('meta[name="csrf-token"]').content
-    console.log(paymentId)
-    console.log(csrf)
     axios.post(
         "/resend_email",
         {"paymentId": paymentId},
@@ -15,7 +13,6 @@ function resendEmail(paymentId) {
             if (response.data.success) {
                 alert("Mail sent successfully");
             } else {
-                console.log(response.data.errors)
                 alert(`error creating tickets. error message: ${response.data.errors}`);
             }
         }
