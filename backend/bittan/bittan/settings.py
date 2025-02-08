@@ -46,6 +46,7 @@ class EnvVars:
             ENV_VAR_NAMES.SWISH_KEY_FILE_PATH.value:  "./test_certificates/testcert.key",
             ENV_VAR_NAMES.SWISH_PAYEE_ALIAS.value:  "1234679304",
             ENV_VAR_NAMES.SWISH_QR_GENERATOR_ENDPOINT.value: "https://mpc.getswish.net/qrg-swish/api/v1/commerce",
+            ENV_VAR_NAMES.BITTAN_FRONTEND_URL.value: "http://localhost:3000",
     }
 
     @staticmethod
