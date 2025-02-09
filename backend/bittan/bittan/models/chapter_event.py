@@ -13,6 +13,7 @@ class ChapterEvent(models.Model):
 	reservation_duration = models.DurationField(default=timezone.timedelta(hours=1))
 	swish_message = models.TextField(max_length=50)
 	event_at = models.DateTimeField()
+	door_open_before = models.DurationField(default=timezone.timedelta(hours=1))
 
 	def save(self, *args, **kwargs):
 		if not self.swish_message:
