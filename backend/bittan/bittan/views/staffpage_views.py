@@ -91,12 +91,15 @@ def update_payment(request, payment_id):
     query_param = request.POST.get("query")
     return redirect(f"/staff/?query={query_param}") 
 
-@require_GET
-def filter_ticket_type_from_chapter_event(request, chapter_event_id):
-    chapter_event = ChapterEvent.objects.get(pk=chapter_event_id)
-    ticket_types = chapter_event.ticket_types.all()
-    ticket_types_data = [{"id": tt.pk, "title": tt.title, "price": tt.price} for tt in ticket_types]
-    return JsonResponse({"ticket_types": ticket_types_data})
+@api_view(["GET"])
+def filter_ticket_type_from_chapter_event(request, chapter_event_id) -> Response:
+    try:
+        chapter_event = ChapterEvent.objects.get(pk=chapter_event_id)
+        ticket_types = chapter_event.ticket_types.all()
+        ticket_types_data = [{"id": tt.pk, "title": tt.title, "price": tt.price} for tt in ticket_types]
+        return Response({"ticket_types": ticket_types_data}, status=status.HTTP_200_OK)
+    except ChapterEvent.DoesNotExist:
+        return Response({"error": "Chapter event not found"}, status=status.HTTP_404_NOT_FOUND)
 
 @require_POST
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
@@ -170,7 +173,7 @@ class TicketCreationSerializer(serializers.Serializer):
 
 @api_view(["POST"])
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
-def create_tickets(request):
+def create_tickets(request) -> Response:
     serializer = TicketCreationSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
