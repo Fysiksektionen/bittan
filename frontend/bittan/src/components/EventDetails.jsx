@@ -19,7 +19,6 @@ const EventDetails = () => {
     axiosInstance.get(`/get_chapterevents?format=json`).then((response) => {
       const event = response.data.chapter_events.find((event) => event.id == id);
       setEvent(event);
-      console.log(event)
 
       const ticket_types = response.data.ticket_types;
           
@@ -56,8 +55,6 @@ const EventDetails = () => {
     });
     setTickets(newTickets);
 
-    console.log(newTickets)
-
     // Update total amount
     const total = newTickets.reduce(
       (sum, ticket) => sum + ticket.count * ticket.price,
@@ -79,9 +76,7 @@ const EventDetails = () => {
             count: t.count,
           })),
       };
-
-      console.log(requestBody)
-
+      
       // Call the API
       await reserveTicket(requestBody);
 

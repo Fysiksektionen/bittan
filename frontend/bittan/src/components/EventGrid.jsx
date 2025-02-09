@@ -13,7 +13,6 @@ const EventGrid = () => {
 		// Fetch events from the backend
 
 		axiosInstance.get("/get_chapterevents/?format=json").then((response) => {
-			console.log(response)
 			setUpcomingEvents(response.data.chapter_events);
 			setPastEvents(response.data.chapter_events);
 		});
