@@ -12,7 +12,7 @@ class ChapterEventForm(forms.Form):
 class SearchForm(forms.Form):
     query = forms.CharField(
         label="Search ticket or payment",
-        widget=forms.TextInput(attrs={'class': 'search-input'})
+        widget=forms.TextInput(attrs={"class": "search-input"})
     )
 
 class PaymentForm(forms.ModelForm):
@@ -43,15 +43,4 @@ class ChapterEventDropdownTicketCreation(forms.Form):
     @staticmethod
     def label_from_instance(obj):
         return str(obj)
-
-
-# class TicketCreationForm(forms.Form):
-#     def __init__(self, *args, **kwargs):
-#         ticket_types = kwargs.pop('ticket_types', [])
-#         super(TicketCreationForm, self).__init__(*args, **kwargs)
-# 
-#         for ticket_type in ticket_types:
-#             self.fields[f'ticket_type_{ticket_type.id}'] = forms.IntegerField(label=ticket_type.title, min_value=0)
-#             self.fields[f"ticket_type_{ticket_type.id}_price"] = forms.IntegerField(initial=ticket_type.price, widget=forms.HiddenInput())
-#         self.fields['email'] = forms.EmailField(label="Email Address")
 

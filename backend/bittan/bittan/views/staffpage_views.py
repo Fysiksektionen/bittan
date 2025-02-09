@@ -23,6 +23,9 @@ from bittan.mail import MailError
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def staff_dashboard(request):
+    """
+    Renders the staff dashboard with the appropriate information and functionality to administer basic staff tasks. 
+    """
     dropdown = ChapterEventForm(request.GET or None)
     chapter_events = ChapterEvent.objects.all()
     ticket_type_infos = None
@@ -88,6 +91,9 @@ class PaymentSerializer(serializers.ModelSerializer):
 @api_view(["POST"])
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def update_payment(request, payment_id):
+    """
+    Takes form input from the staffpage and updates a payment. 
+    """
     payment = get_object_or_404(Payment, id=payment_id)
     serializer = PaymentSerializer(payment, data=request.data)
     if serializer.is_valid():
@@ -98,6 +104,9 @@ def update_payment(request, payment_id):
 
 @api_view(["GET"])
 def filter_ticket_type_from_chapter_event(request, chapter_event_id) -> Response:
+    """
+    Gets all the allowed ticket types from a chapter event by the chapter event's id. 
+    """
     try:
         chapter_event = ChapterEvent.objects.get(pk=chapter_event_id)
         ticket_types = chapter_event.ticket_types.all()
@@ -109,6 +118,9 @@ def filter_ticket_type_from_chapter_event(request, chapter_event_id) -> Response
 @require_POST
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def update_tickets(request, payment_id):
+    """
+    Takes form input from the staff page and updates tickets associated with a payment accordingly. 
+    """
     payment = get_object_or_404(Payment, id=payment_id)
     tickets = payment.ticket_set.all()
     forms = []
@@ -179,6 +191,9 @@ class TicketCreationSerializer(serializers.Serializer):
 @api_view(["POST"])
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def create_tickets(request) -> Response:
+    """
+    Takes ticket information from the 
+    """
     serializer = TicketCreationSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -229,6 +244,9 @@ def create_tickets(request) -> Response:
 @api_view(['POST'])
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def resend_email(request) -> Response:
+    """
+    Takes payment info from the staffpage and resends the standard payment mail to the mail address associated with the payment. 
+    """
     payment_id = request.data["paymentId"]
     payment: Payment =  Payment.objects.get(pk=payment_id)
 
