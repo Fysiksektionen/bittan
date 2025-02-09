@@ -68,8 +68,8 @@ jobs:
           done
 
           url=$(grep -oP 'https://[a-f0-9]+\.lhr\.life' "localhost.log")
-          export APPLICATION_URL=$url
+          export BITTAN_BACKEND_URL=$url
 
-          python3 manage.py test ./bittan/tests --exclude-tag=no_ci
+          python3 manage.py test bittan.tests --exclude-tag=no_ci
 
           kill $PID

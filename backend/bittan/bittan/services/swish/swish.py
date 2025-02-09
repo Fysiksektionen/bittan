@@ -111,7 +111,7 @@ class Swish:
 
 		# TODO handle if headers is passed in kwargs?
 		headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-		return requests.request(method, f'{self.swish_url}{path}', cert=self.cert_file_paths, headers=headers, **kwargs)
+		return requests.request(method, f'{self.swish_url}/{path}', cert=self.cert_file_paths, headers=headers, **kwargs)
 
 
 	def create_swish_payment(self, amount: int, message="") -> SwishPaymentRequest:

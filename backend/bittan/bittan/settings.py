@@ -15,7 +15,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from enum import Enum
 
-import requests
 import os 
 
 # Loading environment variables 
@@ -23,9 +22,13 @@ load_dotenv()
 
 
 class ENV_VAR_NAMES(Enum):
-    # A URI from where the application is reachable from the web. Should end with a '/'. 
-    # E.g https://bittan.com/
-    APPLICATION_URL="APPLICATION_URL"
+    # A URI from where the frontend is served. Should not end with a '/' 
+    # Used for CORS-setup
+    # E.g https://bittan.com
+    BITTAN_FRONTEND_URL="BITTAN_FRONTEND_URL"
+
+    # Example: https://api.bittan.com, used for swish callback
+    BITTAN_BACKEND_URL="BITTAN_BACKEND_URL" 
 
     SWISH_API_URL="SWISH_API_URL"
 
@@ -38,11 +41,12 @@ class ENV_VAR_NAMES(Enum):
 
 class EnvVars:
     __DEFAULTS = {
-            ENV_VAR_NAMES.SWISH_API_URL.value: "https://mss.cpc.getswish.net/swish-cpcapi/",
+            ENV_VAR_NAMES.SWISH_API_URL.value: "https://mss.cpc.getswish.net/swish-cpcapi",
             ENV_VAR_NAMES.SWISH_PEM_FILE_PATH.value:  "./test_certificates/testcert.pem",
             ENV_VAR_NAMES.SWISH_KEY_FILE_PATH.value:  "./test_certificates/testcert.key",
             ENV_VAR_NAMES.SWISH_PAYEE_ALIAS.value:  "1234679304",
             ENV_VAR_NAMES.SWISH_QR_GENERATOR_ENDPOINT.value: "https://mpc.getswish.net/qrg-swish/api/v1/commerce",
+            ENV_VAR_NAMES.BITTAN_FRONTEND_URL.value: "http://localhost:3000",
     }
 
     @staticmethod
@@ -214,4 +218,23 @@ LOGGING = {
 
 CORS_ALLOWED_ORIGINS = [
   'http://localhost:3000',
+  EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
+  EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
+    EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
+]
+
+CORS_ALLOW_HEADERS = [
+    'Bypass-tunnel-reminder',
+    'content-type',
+    'cookie'
+]
+
+# SESSION_COOKIE_SAMESITE = None
