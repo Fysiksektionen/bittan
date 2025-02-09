@@ -1,8 +1,7 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_POST
 from django.db.models import Count, F, Sum
 from django.db.utils import IntegrityError
 
@@ -15,8 +14,8 @@ from uuid import uuid4
 import logging
 import random
 
-from bittan.forms.forms import ChapterEventDropdownTicketCreation, ChapterEventForm, SearchForm, PaymentForm, TicketCreationForm, TicketForm
-from bittan.models import ChapterEvent, Ticket, Payment, chapter_event
+from bittan.forms.forms import ChapterEventDropdownTicketCreation, ChapterEventForm, SearchForm, PaymentForm, TicketForm
+from bittan.models import ChapterEvent, Ticket, Payment
 from bittan.models.payment import PaymentStatus
 from bittan.mail import mail_payment
 from bittan.mail import MailError
