@@ -81,15 +81,21 @@ def staff_dashboard(request):
 
     return render(request, "staff_dashboard.html", context)
 
-@require_POST
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ["email", "status"]
+
+@api_view(["POST"])
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def update_payment(request, payment_id):
     payment = get_object_or_404(Payment, id=payment_id)
-    form = PaymentForm(request.POST, instance=payment)
-    if form.is_valid():
-        form.save()
-    query_param = request.POST.get("query")
-    return redirect(f"/staff/?query={query_param}") 
+    serializer = PaymentSerializer(payment, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        query_param = request.POST.get("query")
+        return redirect(f"/staff/?query={query_param}") 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
 @api_view(["GET"])
 def filter_ticket_type_from_chapter_event(request, chapter_event_id) -> Response:
