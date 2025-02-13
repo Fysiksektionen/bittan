@@ -28,16 +28,9 @@ class ReserveTicketRequestSerializer(serializers.Serializer):
     chapter_event = serializers.CharField(required = True)
     tickets = serializers.ListField(child=TicketsSerializer())
 
-
 @api_view(['GET'])
 def get_current_ticket_payment_status(request: Request) -> Response:
-    payment_id = request.session.get("reserved_payment")
     payment_primary_key = request.session.get("reserved_payment")
-
-    print("a client with session connected")
-    print(request.session.keys())
-    print(payment_primary_key)
-
     if payment_primary_key == None:
         return Response(
                 "No ticket attatched to session",
@@ -45,13 +38,13 @@ def get_current_ticket_payment_status(request: Request) -> Response:
             )
 
     try:
-        ticket = Payment.objects.get(pk=payment_primary_key)
+        payment = Payment.objects.get(pk=payment_primary_key)
     except Ticket.DoesNotExist:
         return Response(
                 "Session had a payment id, but no such payment existed in the database",
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-    return Response(ticket.status)
+    return Response(payment.status)
 
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
@@ -152,11 +145,7 @@ def start_payment(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
-
     payment = Payment.objects.get(pk=payment_id)
-    print("starting payment!! payment id:")
-    print(payment)
 
     if payment.payment_started:
         return Response(

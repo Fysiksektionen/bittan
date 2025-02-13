@@ -13,7 +13,7 @@ export const currentTicketPaymentStatus = async () => {
       const response = await axiosInstance.get(`/current_ticket_payment_status/`);
       return response.data; 
     } catch (error) {
-      console.error('AAAAAAAAAAAAAAAaFuk', error);
+      console.error('Unable to get current payment status', error);
       throw error;
     }
 };

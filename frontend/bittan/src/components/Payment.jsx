@@ -14,7 +14,6 @@ const Payment = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   const [status, setStatus] = useState("pending");
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +25,6 @@ const Payment = () => {
         console.log(response)
         if (response === "PAID") {
           clearInterval(interval);
-          setLoading(false);
           navigate("/booking-confirmed")
         }
       } catch (error) {
