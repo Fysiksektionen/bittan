@@ -1,0 +1,134 @@
+from datetime import datetime
+from .mail import send_mail, MailImage, MailError
+from ..models.payment import Payment
+from ..models.chapter_event import ChapterEvent
+from ..models.ticket import Ticket
+from ..models.ticket_type import TicketType
+from django.utils import timezone
+import qrcode
+import aggdraw
+import io
+import logging
+import os
+
+def mail_payment(payment: Payment):
+    """
+    Wrapper function to handle everything involved in sending an email containing the tickets in a payment.
+    All tickets related to this payment must be from the same ChapterEvent.
+
+	Raises:
+		InvalidReceiverAddressError: Raised if receiver_address is not a valid email address.
+		MailError: Raised if some miscellaneous error occured while sending the email.
+    """
+    ## Grab data ##
+    tickets: list[Ticket] = list(payment.ticket_set.order_by("ticket_type__title"))
+    if len(tickets) == 0:
+        raise MailError("No tickets found associated with payment.")
+    
+    plural = len(tickets) > 1
+    ticket_types: list[TicketType] = [ticket.ticket_type for ticket in tickets]
+    chapter_event: ChapterEvent = tickets[0].chapter_event # We assume that all tickets are from the same ChapterEvent
+    event_at: datetime = timezone.localtime(chapter_event.event_at)
+    doors_open: datetime = timezone.localtime(chapter_event.event_at - chapter_event.door_open_before)
+    date_string = f"{event_at.day}/{event_at.month} {event_at.year}"
+    date_string_no_year = f"{event_at.day}/{event_at.month}"
+    start_time = event_at.strftime("%H:%M")
+    doors_open = doors_open.strftime("%H:%M")
+
+    ## Generate message ##
+    message = \
+f"""
+<html>
+<h1>Din Fysikalenbiljett är här!</h1>
+
+<img src="https://fysikalen.se/wordpress/wp-content/uploads/2024/07/LOGGA.png" alt="" width=300>
+
+<p><b>Datum</b>: {date_string}</p>
+<p><b>Dörrarna öppnas</b>: {doors_open}</p>
+<p><b>Föreställningen börjar</b>: {start_time}</p>
+<p><b>Plats</b>: Kulturhuset Dieselverkstaden, Marcusplatsen 17, 131 54 Nacka. <i>Fri placering under föreställningen!</i></p>
+"""
+    if plural:
+        message += f"<p>Du har köpt följande {len(tickets)} biljetter. Dessa finns även bifogade i detta mail.</p>"
+    else:
+        message += "<p>Du har köpt följande biljett. Denna finns även bifogad i detta mail.</p>"
+    for ticket, ticket_type in zip(tickets, ticket_types):
+        message += f'<img src="cid:biljett_{ticket.external_id}_embed" alt="{ticket_type.title} {date_string_no_year}: {ticket.external_id}">'
+    
+    message += \
+"""
+<p>Varmt välkommen!</p>
+
+<p><u>Kvitto</u>:</p>
+<p>[KVITTO... DETTA MAIL ÄR ETT TESTUTSKICK, EJ RIKTIG BILJETT]</p>
+
+<i>Har du frågor angående ditt köp? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
+</html>
+"""
+
+    ## Generate qr codes ##
+    images_to_attach = []
+    images_to_embed = []
+    for ticket, ticket_type in zip(tickets, ticket_types):
+        imagebytes = make_qr_image(text_qr=ticket.external_id, title=f"{ticket_type.title} {date_string_no_year}")
+        images_to_attach.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{ticket.external_id}"))
+        images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{ticket.external_id}_embed"))
+
+    ## Send mail ##
+    send_mail(receiver_address=payment.email, subject=f"Biljett, Fysikalen {date_string}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+    payment.sent_email = True
+    payment.save()
+
+def mail_bittan_developers(message_content: str, subject: str = ""):
+    """
+    Sends a mail to the developers of bittan. Use in case of unexpected errors!
+
+	Args:
+		message_content (str): The text sent in the email. Should contain details of the error.
+		subject (str): A short summary of the error to be appended to the subject of the email (optional).
+
+	Raises:
+		MailError: Raised if some miscellaneous error occurred while sending the email.
+    """
+
+    full_subject = "BACKEND ERROR"
+    if subject:
+        full_subject += f": {subject}" 
+
+    NOW = timezone.localtime(timezone.now())
+    full_message = f"This is an automated mail sent by BitTan because an error has occurred at {NOW}. The following information has been attached:\n\n" + message_content
+    send_mail(receiver_address="biljettsupport@f.kth.se", subject=full_subject, message_content=full_message, format_as_html=False)
+
+def make_qr_image(text_qr: str, title: str) -> bytes:
+	"""
+	Creates a QR image. Meant to be used in a `MailImage` as `MailImage(make_qr_image(...), ...)`.
+
+	Args:
+		text_qr (str): Text to be encoded in the QR code.
+		title (str): Text to be displayed above the QR code.
+
+	Returns:
+		bytes: A bytes representation of the image, encoded as png.
+	"""
+
+	TITLE_OFFSET = 10 # Offset relative to top of image
+	TEXT_BOTTOM_OFFSET = 10 # Offset relative to bottom of image
+
+	img = qrcode.make(text_qr)
+	img = img.convert("RGBA")
+	img_width, img_height = img.size 
+
+	draw = aggdraw.Draw(img)
+	font = aggdraw.Font("black", os.path.join(os.path.dirname(__file__), "OpenSans-Regular.ttf"), 20)
+
+	title_width = draw.textsize(title, font)[0]
+	draw.text((((img_width-title_width)/2, TITLE_OFFSET)), title, font)
+
+	text_bottom_width, text_bottom_height = draw.textsize(text_qr, font)
+	draw.text((((img_width-text_bottom_width)/2, img_height-text_bottom_height-TEXT_BOTTOM_OFFSET)), text_qr, font)
+
+	draw.flush()
+	b = io.BytesIO()
+	img.save(b, format="PNG")
+	return b.getvalue()
+ 
