@@ -90,10 +90,9 @@ class Swish:
 
 	def cancel_payment(self, payment_id: str):
 		""" 
-		Retracts a payment request so that a user is unable to pay it if it has not already been payed. If the payment already is payed, nothing happens.
+		Retracts a payment request so that a user is unable to pay it if it has not already been paid. If the payment already is paid, nothing happens.
 		return true if the payment was able to be cancelled, false otherwise
 		"""
-		print("entölkejlkrejlk")
 		headers = {'Content-Type': 'application/json-patch+json'}
 
 		payment_request = SwishPaymentRequestModel.objects.get(pk=payment_id)
@@ -108,15 +107,14 @@ class Swish:
 		}]
 
 		response = self.send_to_swish("PATCH", f'api/v1/paymentrequests/{payment_request.id}',headers=headers, json=body)
-		print(response.status_code)
-		print(response.text)
-		print(response.ok)
 		if not response.ok:
 			# Our internal payment status does not match the payment status that swish has.
-			print("could not cancel")
+			logging.warn(f'Payment {payment_id} was not able to be cancelled, however it should be cancellable.')
 			self.synchronize_payment_request(payment_id)
 			return False
 
+		# Note: We do not have to update the payment status if we are able to cancel the payment since swish will send a callback to 
+		# our callback endpoint which inturn will update the payment status. 
 		return True
 
 	def get_payment_request(self, id: str) -> SwishPaymentRequest:
