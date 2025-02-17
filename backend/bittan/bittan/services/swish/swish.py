@@ -87,6 +87,38 @@ class Swish:
 		response_body = response.json()
 		return self.update_swish_payment_request(response_body, payment_request)
 
+
+	def cancel_payment(self, payment_id: str):
+		""" 
+		Retracts a payment request so that a user is unable to pay it if it has not already been payed. If the payment already is payed, nothing happens.
+		return true if the payment was able to be cancelled, false otherwise
+		"""
+		print("entölkejlkrejlk")
+		headers = {'Content-Type': 'application/json-patch+json'}
+
+		payment_request = SwishPaymentRequestModel.objects.get(pk=payment_id)
+
+		if payment_request.status != SwishApiPaymentStatus.CREATED:
+			return False
+
+		body = [{
+			"op": "replace",
+			"path": "/status",
+			"value": "cancelled"
+		}]
+
+		response = self.send_to_swish("PATCH", f'api/v1/paymentrequests/{payment_request.id}',headers=headers, json=body)
+		print(response.status_code)
+		print(response.text)
+		print(response.ok)
+		if not response.ok:
+			# Our internal payment status does not match the payment status that swish has.
+			print("could not cancel")
+			self.synchronize_payment_request(payment_id)
+			return False
+
+		return True
+
 	def get_payment_request(self, id: str) -> SwishPaymentRequest:
 		payment_request = SwishPaymentRequestModel.objects.get(pk=id)
 
@@ -109,9 +141,8 @@ class Swish:
 	def send_to_swish(self, method, path: str, **kwargs):
 		""" Convenience method for sending an HTTP request to the SWISH api """
 
-		# TODO handle if headers is passed in kwargs?
-		headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-		return requests.request(method, f'{self.swish_url}/{path}', cert=self.cert_file_paths, headers=headers, **kwargs)
+		endpoint = f'{self.swish_url}/{path}'
+		return requests.request(method, endpoint, cert=self.cert_file_paths, **kwargs)
 
 
 	def create_swish_payment(self, amount: int, message="") -> SwishPaymentRequest:
