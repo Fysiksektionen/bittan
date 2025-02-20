@@ -21,10 +21,10 @@ from django.urls import path
 
 from bittan.views.swish_views import get_qr
 
-from .api.swish import swish_callback, debug_make_request, debug_synchronize_request
+from .api.swish import debug_cancel, swish_callback, debug_make_request, debug_synchronize_request
 
-from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket
 from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, resend_email, staff_dashboard, update_payment, update_tickets
+from bittan.views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -32,10 +32,11 @@ urlpatterns = [
 	path("get_chapterevents/", get_chapterevents),
     path("validate_ticket/", validate_ticket),
     path("reserve_ticket/", reserve_ticket),
+    path('session_payment_status/', get_session_payment_status),
     path("start_payment/", start_payment),
-    path("staff/", staff_dashboard, name="staff_dashboard"), 
     path("accounts/login/", django_views.LoginView.as_view(), name="login"),
     path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
+    path("staff/", staff_dashboard, name="staff_dashboard"), 
     path("staff/update_payment/<int:payment_id>/", update_payment, name="update_payment"),
     path("staff/update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
     path("staff/create_tickets", create_tickets , name="create_tickets"),
@@ -47,4 +48,5 @@ urlpatterns = [
 
 if environ.get("DEBUG") == "True":
 	urlpatterns.append(path('swish/dummy/', debug_make_request))
+	urlpatterns.append(path('swish/cancel/<str:pk>/', debug_cancel))
 	urlpatterns.append(path('swish/sync/', debug_synchronize_request))

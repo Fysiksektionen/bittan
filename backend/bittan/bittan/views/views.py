@@ -1,4 +1,4 @@
-from bittan.models.payment import PaymentStatus
+from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
 from bittan.models import ChapterEvent, Ticket, TicketType, Payment
@@ -28,6 +28,23 @@ class ReserveTicketRequestSerializer(serializers.Serializer):
     chapter_event = serializers.CharField(required = True)
     tickets = serializers.ListField(child=TicketsSerializer())
 
+@api_view(['GET'])
+def get_session_payment_status(request: Request) -> Response:
+    payment_primary_key = request.session.get("reserved_payment")
+    if payment_primary_key == None:
+        return Response(
+                "No ticket attatched to session",
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    try:
+        payment = Payment.objects.get(pk=payment_primary_key)
+    except Ticket.DoesNotExist:
+        return Response(
+                "Session had a payment id, but no such payment existed in the database",
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+    return Response(payment.status)
 
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
@@ -168,6 +185,7 @@ def start_payment(request):
         return Response("PaymentStartFailed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     payment.swish_id = payment_request.id
+    payment.payment_method = PaymentMethod.SWISH
     payment.save()
      
     return Response(payment_request.token)
@@ -217,7 +235,6 @@ def validate_ticket(request: Request) -> Response:
     times_used = ticket.times_used
     ticket.times_used += 1 
     ticket.save()
-    
 
     return Response({"times_used": times_used, "status": ticket.payment.status})
 
