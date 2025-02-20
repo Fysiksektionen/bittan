@@ -29,7 +29,7 @@ class ReserveTicketRequestSerializer(serializers.Serializer):
     tickets = serializers.ListField(child=TicketsSerializer())
 
 @api_view(['GET'])
-def get_current_ticket_payment_status(request: Request) -> Response:
+def get_session_payment_status(request: Request) -> Response:
     payment_primary_key = request.session.get("reserved_payment")
     if payment_primary_key == None:
         return Response(

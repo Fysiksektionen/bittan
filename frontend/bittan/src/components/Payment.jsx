@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { startPayment } from "../api/startPayment";
-import { currentTicketPaymentStatus } from "../api/currentTicketPaymentStatus";
+import { sessionPaymentStatus } from "../api/sessionPaymentStatus";
 import { generateQR } from "../api/generateQR";
 
 const Payment = () => {
@@ -21,7 +21,7 @@ const Payment = () => {
 
     const fetchStatus = async () => {
       try {
-        const response = await currentTicketPaymentStatus();
+        const response = await sessionPaymentStatus();
         console.log(response)
         if (response === "PAID") {
           clearInterval(interval);
