@@ -1,4 +1,4 @@
-from bittan.models.payment import PaymentStatus
+from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
 from bittan.models import ChapterEvent, Ticket, TicketType, Payment
@@ -185,6 +185,7 @@ def start_payment(request):
         return Response("PaymentStartFailed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     payment.swish_id = payment_request.id
+    payment.payment_method = PaymentMethod.SWISH
     payment.save()
      
     return Response(payment_request.token)
