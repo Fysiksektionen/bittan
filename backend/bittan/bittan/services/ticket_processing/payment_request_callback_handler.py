@@ -1,4 +1,4 @@
-from ..swish.swish import payment_signal 
+from bittan.services.swish.swish import payment_signal 
 from django.dispatch import receiver
 from bittan.models.payment import Payment, PaymentStatus
 
