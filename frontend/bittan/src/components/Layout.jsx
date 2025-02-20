@@ -8,7 +8,6 @@ const Layout = ({ children }) => (
         <Navbar.Brand href="/">Event Booking</Navbar.Brand>
         <Nav className="me-auto">
           <Nav.Link href="/">Home</Nav.Link>
-          <Nav.Link href="/events">Events</Nav.Link>
         </Nav>
       </Container>
     </Navbar>
