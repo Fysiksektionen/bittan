@@ -1,4 +1,5 @@
 import os
+import logging
 
 from django.apps import AppConfig
 
@@ -12,7 +13,9 @@ class BittanConfig(AppConfig):
         from bittan.services.swish.swish import Swish 
 
         swish_url = EnvVars.get(ENV_VAR_NAMES.SWISH_API_URL)
-        callback_url = f'{EnvVars.get(ENV_VAR_NAMES.APPLICATION_URL)}swish/callback/'
+        callback_url = f'{EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)}/swish/callback/'
+        logging.info(f'Swish url set to: {swish_url}')
+        logging.info(f'Callback url set to: {callback_url}')
 
         cert_file_paths = (
                 EnvVars.get(ENV_VAR_NAMES.SWISH_PEM_FILE_PATH),
