@@ -9,7 +9,7 @@ django.setup()
 
 from django.contrib.auth.models import User
 from bittan.models import TicketType, ChapterEvent, Payment, Ticket, chapter_event
-from bittan.models.payment import PaymentStatus
+from bittan.models.payment import PaymentMethod, PaymentStatus
 import datetime
 
 User.objects.create_superuser("admin", None, "admin")
@@ -30,6 +30,7 @@ payment1 = Payment.objects.create(
             status = PaymentStatus.RESERVED,
             email = "mail@mail.com",
             sent_email = False
+            payment_method = PaymentMethod.SWISH
         )
 
 ticket1 = Ticket.objects.create(

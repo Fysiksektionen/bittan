@@ -16,6 +16,7 @@ def swish_callback(request: Request):
 	# Swish expects a 201 when a callback is sucessfully recieved
 	return Response("", status=status.HTTP_201_CREATED)
 
+
 @api_view(['POST'])
 def debug_synchronize_request(request: Request):
 	Swish.get_instance().synchronize_all_pending()
@@ -33,6 +34,10 @@ def debug_make_request(request: Request):
 	print("Skapade betalning")
 	print(f'id: {resp.id}, token: {resp.token}')
 	return Response(f"{resp.token}", status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def debug_cancel(request: Request, pk):
+	return Response(Swish.get_instance().cancel_payment(pk))
 
 @api_view(['POST'])
 def debug_query(request: Request, id):

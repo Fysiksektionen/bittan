@@ -217,12 +217,11 @@ LOGGING = {
 }
 
 CORS_ALLOWED_ORIGINS = [
+
   'http://localhost:3000',
   EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
   EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
 ]
-
-CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
@@ -235,6 +234,6 @@ CORS_ALLOW_HEADERS = [
     'Bypass-tunnel-reminder',
     'content-type',
     'cookie'
+
 ]
 
-# SESSION_COOKIE_SAMESITE = None

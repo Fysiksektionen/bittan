@@ -1,4 +1,4 @@
-from bittan.models.payment import PaymentStatus
+from bittan.models.payment import PaymentStatus, PaymentMethod
 from unittest.mock import patch
 from django.test import TestCase, Client
 
@@ -59,6 +59,7 @@ class StartPaymentTest(TestCase):
         self.assertEqual(payment.payment_started, True)
         self.assertEqual(payment.email, mail_address)
         self.assertEqual(payment.status, PaymentStatus.RESERVED)
+        self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
         self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
     
     def test_invalid_mail(self):
@@ -146,6 +147,7 @@ class StartPaymentTest(TestCase):
         self.assertEqual(payment.email, mail_address)
         self.assertEqual(payment.status, PaymentStatus.RESERVED)
         self.assertEqual(payment.expires_at, now + self.test_event.reservation_duration)
+        self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
         self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
 
     def test_double_payment(self):
