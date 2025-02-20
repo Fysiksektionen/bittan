@@ -20,7 +20,7 @@ from django.urls import path
 
 from bittan.views.swish_views import get_qr
 
-from .api.swish import swish_callback, debug_make_request, debug_synchronize_request
+from .api.swish import debug_cancel, swish_callback, debug_make_request, debug_synchronize_request
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status
 
@@ -38,4 +38,5 @@ urlpatterns = [
 
 if environ.get("DEBUG") == "True":
 	urlpatterns.append(path('swish/dummy/', debug_make_request))
+	urlpatterns.append(path('swish/cancel/<str:pk>/', debug_cancel))
 	urlpatterns.append(path('swish/sync/', debug_synchronize_request))
