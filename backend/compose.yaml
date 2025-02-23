@@ -8,10 +8,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    env_file: ./bittan_server_debug.env
+    env_file: ./bittan_server_debug.env.txt
     environment:
       PYTHONUNBUFFERED: 1
-      DEBUG: "True" 
     container_name: bittan_server
   postgres:
     image: postgres
