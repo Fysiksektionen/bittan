@@ -15,7 +15,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from enum import Enum
 
-import os 
+import json
 
 # Loading environment variables 
 load_dotenv()
@@ -68,13 +68,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-s624n0s_!oexn6#=uas1qglb_1=jenz4k5641+ibfdajk48=xu'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [] if not (os.environ.get("DEBUG") == "True") else ["*"]
+ALLOWED_HOSTS = json.loads(os.getenv("ALLOWED_HOSTS"))
 
 
 # Application definition
@@ -129,12 +128,12 @@ WSGI_APPLICATION = 'bittan.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bittan_db',
+        'NAME': os.getenv("DATABASE_NAME"),
 
-        'USER': 'postgres',  
-        'PASSWORD': 'postgres',  
-        'HOST': 'postgres',  
-        'PORT': '5432',  
+        'USER': os.getenv("DATABASE_USER"),  
+        'PASSWORD': os.getenv("DATABASE_PASSWORD"),  
+        'HOST': os.getenv("DATABASE_HOST"),  
+        'PORT': os.getenv("DATABASE_PORT"),  
         # 'OPTIONS': {  
         #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
         # }  
