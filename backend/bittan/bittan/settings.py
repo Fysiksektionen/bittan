@@ -64,6 +64,11 @@ class EnvVars:
 
         raise Exception("The environment variable "+var_name+" was not set and has no default.")
 
+def get_bittan_backend_url_path_prefix():
+    prefix = urlparse(EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)).path.strip("/")
+    if prefix != "":
+        prefix += "/"
+    return prefix
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -179,7 +184,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = get_bittan_backend_url_path_prefix()+'static/'
+STATIC_ROOT = 'static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

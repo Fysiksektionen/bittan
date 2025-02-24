@@ -19,30 +19,27 @@ from django.contrib import admin
 from django.urls import path
 
 from bittan.views.swish_views import get_qr
-from bittan.settings import EnvVars, ENV_VAR_NAMES
-from urllib.parse import urlparse
+from bittan.settings import get_bittan_backend_url_path_prefix
 
 from .api.swish import debug_cancel, swish_callback, debug_make_request, debug_synchronize_request
 
 from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status
 
-_urlpath_prefix = urlparse(EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)).path.strip("/")
-if _urlpath_prefix != "":
-    _urlpath_prefix += "/"
+_prefix = get_bittan_backend_url_path_prefix()
 
 urlpatterns = [
-    path(_urlpath_prefix+'admin/', admin.site.urls),
-    path(_urlpath_prefix+'swish/callback/', swish_callback),
-	path(_urlpath_prefix+'get_chapterevents/', get_chapterevents),
-    path(_urlpath_prefix+'validate_ticket/', validate_ticket),
-    path(_urlpath_prefix+"reserve_ticket/", reserve_ticket),
-    path(_urlpath_prefix+'session_payment_status/', get_session_payment_status),
-    path(_urlpath_prefix+"start_payment/", start_payment),
-    path(_urlpath_prefix+"generate_qr/<str:token>", get_qr),
+    path(_prefix+'admin/', admin.site.urls),
+    path(_prefix+'swish/callback/', swish_callback),
+	path(_prefix+'get_chapterevents/', get_chapterevents),
+    path(_prefix+'validate_ticket/', validate_ticket),
+    path(_prefix+"reserve_ticket/", reserve_ticket),
+    path(_prefix+'session_payment_status/', get_session_payment_status),
+    path(_prefix+"start_payment/", start_payment),
+    path(_prefix+"generate_qr/<str:token>", get_qr),
 ]
 
 
 if environ.get("DEBUG") == "True":
-	urlpatterns.append(path(_urlpath_prefix+'swish/dummy/', debug_make_request))
-	urlpatterns.append(path(_urlpath_prefix+'swish/cancel/<str:pk>/', debug_cancel))
-	urlpatterns.append(path(_urlpath_prefix+'swish/sync/', debug_synchronize_request))
+	urlpatterns.append(path(_prefix+'swish/dummy/', debug_make_request))
+	urlpatterns.append(path(_prefix+'swish/cancel/<str:pk>/', debug_cancel))
+	urlpatterns.append(path(_prefix+'swish/sync/', debug_synchronize_request))
