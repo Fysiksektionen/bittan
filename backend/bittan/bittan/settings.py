@@ -217,16 +217,16 @@ LOGGING = {
 CORS_ALLOWED_ORIGINS = [
 
   'http://localhost:3000',
-  EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
-  EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
-]
+#   EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
+#   EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
+] # TODO kolla vad som borde skrivas här egentligen för Fysikmotorn
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
-    EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
-    EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
-]
+    # EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
+    # EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
+] # TODO kolla vad som borde skrivas här egentligen för Fysikmotorn
 
 CORS_ALLOW_HEADERS = [
     'Bypass-tunnel-reminder',
