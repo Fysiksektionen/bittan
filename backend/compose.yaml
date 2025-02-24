@@ -16,7 +16,7 @@ services:
       DATABASE_NAME: bittan_db
       DATABASE_USER: postgres
       DATABASE_PORT: 5432
-      DEBUG: true
+      DEBUG: "True"
     container_name: bittan_server
   postgres:
     image: postgres
