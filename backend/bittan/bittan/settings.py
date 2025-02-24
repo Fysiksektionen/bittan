@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from enum import Enum
 
 import json
+from urllib.parse import urlparse
 
 # Loading environment variables 
 load_dotenv()
@@ -39,6 +40,8 @@ class ENV_VAR_NAMES(Enum):
     SWISH_PAYEE_ALIAS="SWISH_PAYEE_ALIAS"
     SWISH_QR_GENERATOR_ENDPOINT="SWISH_QR_ENDPOINT" 
 
+    DEBUG="DEBUG"
+
 class EnvVars:
     __DEFAULTS = {
             ENV_VAR_NAMES.SWISH_API_URL.value: "https://mss.cpc.getswish.net/swish-cpcapi",
@@ -47,6 +50,7 @@ class EnvVars:
             ENV_VAR_NAMES.SWISH_PAYEE_ALIAS.value:  "1234679304",
             ENV_VAR_NAMES.SWISH_QR_GENERATOR_ENDPOINT.value: "https://mpc.getswish.net/qrg-swish/api/v1/commerce",
             ENV_VAR_NAMES.BITTAN_FRONTEND_URL.value: "http://localhost:3000",
+            ENV_VAR_NAMES.BITTAN_BACKEND_URL.value: "http://localhost:8000"
     }
 
     @staticmethod
@@ -70,7 +74,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-DEBUG = json.loads(os.getenv("DEBUG"))
+DEBUG = EnvVars.get(ENV_VAR_NAMES.DEBUG)
 
 ALLOWED_HOSTS = json.loads(os.getenv("ALLOWED_HOSTS"))
 
@@ -214,19 +218,16 @@ LOGGING = {
     },
 }
 
+_parsed_frontend_url = urlparse(EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL))
+_parsed_backend_url = urlparse(EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL))
 CORS_ALLOWED_ORIGINS = [
+   _parsed_frontend_url.scheme + "://" + _parsed_frontend_url.netloc,
+   _parsed_backend_url.scheme + "://" + _parsed_backend_url.netloc,
+]
 
-  'http://localhost:3000',
-#   EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
-#   EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
-] # TODO kolla vad som borde skrivas här egentligen för Fysikmotorn
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
-    # EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
-    # EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
-] # TODO kolla vad som borde skrivas här egentligen för Fysikmotorn
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
 
 CORS_ALLOW_HEADERS = [
     'Bypass-tunnel-reminder',
