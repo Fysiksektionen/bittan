@@ -11,6 +11,13 @@ services:
     env_file: ./bittan_server_debug.env.txt
     environment:
       PYTHONUNBUFFERED: 1
+      ALLOWED_HOSTS: '["*"]'
+      DATABASE_HOST: postgres
+      DATABASE_NAME: bittan_db
+      DATABASE_USER: postgres
+      DATABASE_PORT: 5432
+      DEBUG: true
+      BITTAN_BACKEND_URL: https://google.com
     container_name: bittan_server
   postgres:
     image: postgres
