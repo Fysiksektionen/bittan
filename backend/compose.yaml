@@ -17,7 +17,6 @@ services:
       DATABASE_USER: postgres
       DATABASE_PORT: 5432
       DEBUG: true
-      BITTAN_BACKEND_URL: https://google.com
     container_name: bittan_server
   postgres:
     image: postgres
