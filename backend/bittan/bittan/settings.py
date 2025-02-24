@@ -74,7 +74,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-DEBUG = EnvVars.get(ENV_VAR_NAMES.DEBUG)
+DEBUG = EnvVars.get(ENV_VAR_NAMES.DEBUG)=="True"
 
 ALLOWED_HOSTS = json.loads(os.getenv("ALLOWED_HOSTS"))
 
