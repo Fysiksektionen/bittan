@@ -28,8 +28,15 @@ jobs:
           cd frontend/bittan
           npm run build
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: bittan-frontend
-          path: frontend/bittan/build
+          tag_name: ${{ github.ref_name }}
+          name: Frontend release ${{ github.ref_name }}
+          body: Automatically generated frontend release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            frontend/bittan/build/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
