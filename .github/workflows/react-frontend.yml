@@ -3,7 +3,7 @@ name: Build and Publish React App
 on:
   push:
     tags:
-      - "frontend-v*"
+      - "f*"
 
 jobs:
   build:
