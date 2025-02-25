@@ -1,0 +1,35 @@
+name: Build and Publish React App
+
+on:
+  push:
+    tags:
+      - "frontend-v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 23
+
+    - name: Install dependencies
+      run: |
+        cd frontend/bittan
+        npm install
+
+    - name: Build React app
+      run: |
+        cd frontend/bittan
+        npm run build
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.repository }}-frontend
+        path: frontend/bittan/build
