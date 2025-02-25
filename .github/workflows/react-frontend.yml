@@ -28,6 +28,10 @@ jobs:
           cd frontend/bittan
           npm run build
 
+      - name: Create .tar.gz archive
+        run: |
+          tar -czvf build.tar.gz -C frontend/bittan/build .
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -36,7 +40,6 @@ jobs:
           body: Automatically generated frontend release ${{ github.ref_name }}
           draft: false
           prerelease: false
-          files: |
-            frontend/bittan/build/**
+          files: build.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
