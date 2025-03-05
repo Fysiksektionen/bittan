@@ -1,6 +1,7 @@
 import os
 import logging
 from dataclasses import dataclass
+from typing import List
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 import base64
@@ -77,6 +78,48 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 	if not "SENT" in sent_message["labelIds"]:
 		logging.error(f"Could not send mail. Address: {receiver_address}; Has image: {bool(image)}; Message content:\n{message_content}")
 		raise MailError("Mail was not sent for unknown reasons.")
+	return
+
+def send_bulk_mail(receiver_addresses: List[str], subject: str, message_content: str, format_as_html: bool=True) -> None:
+	"""
+	Sends an email message to multiple receivers in bulk.
+
+	Args:
+		receiver_addresses (List[str]): List of email addresses that should receive the email.
+		subject (str): The subject of the email.
+		message_content (str): The text sent in the email.
+		format_as_html (bool): Whether the `message_content` should be interpreted as html. Defaults to `True`.
+
+	Raises:
+		InvalidReceiverAddressError: Raised if receiver_address is not a valid email address.
+		MailError: Raised if some miscellaneous error occurred while sending the email.
+	"""
+	creds = _get_credentials()
+	service = build("gmail", "v1", credentials=creds)
+	
+	for receiver_address in receiver_addresses:
+		message = MIMEMultipart("related")
+		message["Subject"] = subject
+		message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
+		message["To"] = receiver_address
+		
+		encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+		create_message = {"raw": encoded_message}
+
+		try:
+			sent_message = (
+				service.users()
+				.messages()
+				.send(userId="me", body=create_message)
+				.execute()
+			)
+		except HttpError as error:
+			if error.reason == "Invalid To header":
+				raise InvalidReceiverAddressError(f"Invalid address: '{receiver_address}'")
+		if not "SENT" in sent_message["labelIds"]:
+			logging.error(f"Could not send mail. Address: {receiver_address}; Has image: {bool(image)}; Message content:\n{message_content}")
+			raise MailError("Mail was not sent for unknown reasons.")
+
 	return
 
 def _get_credentials() -> Credentials:
