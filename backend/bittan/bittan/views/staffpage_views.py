@@ -17,7 +17,7 @@ import random
 from bittan.forms.forms import ChapterEventDropdownTicketCreation, ChapterEventForm, SearchForm, PaymentForm, TicketForm
 from bittan.models import ChapterEvent, Ticket, Payment
 from bittan.models.payment import PaymentStatus
-from bittan.mail import mail_payment
+from bittan.mail import mail_payment, send_bulk_mail
 from bittan.mail import MailError
 
 @login_required
@@ -31,10 +31,14 @@ def staff_dashboard(request):
     ticket_type_infos = None
     total_values = None
 
+    # Default id is -1. This corresponds to all chapter events. 
+    selected_chapter_event_id = -1
+
     if dropdown.is_valid():
         selected_chapter_event = dropdown.cleaned_data.get("chapter_event")
         if selected_chapter_event:
             chapter_event = get_object_or_404(ChapterEvent, pk=selected_chapter_event.pk)
+            selected_chapter_event_id = selected_chapter_event.pk
             ticket_type_infos = chapter_event.ticket_set.filter(
                 payment__status = PaymentStatus.PAID, 
                 chapter_event = selected_chapter_event
@@ -72,6 +76,7 @@ def staff_dashboard(request):
     context = {
         "dropDownMenu": dropdown, 
         "chapter_events": chapter_events, 
+        "chosen_chapter_event": selected_chapter_event_id,
         "ticket_types": ticket_type_infos, 
         "total_values": total_values,
         "searchBar": search_bar,
@@ -262,4 +267,38 @@ def resend_email(request) -> Response:
     
     return Response({'success': True})
 
+@api_view(["POST"])
+@user_passes_test(lambda u: u.groups.filter(name="organisers").count())
+def send_mass_email(request) -> Response:
+    chapter_event_id = request.data["chapter_event_id"]
+    mail_subject = request.data["email_subject"]
+    if mail_subject == "":
+        return Response({"success": False, "errors": "Mail subject is empty. "})
+    mail_content = request.data["email_content"]
+    if mail_content == "":
+        return Response({"success": False, "errors": "Mail content is empty. "})
+    
+    # Chapter event id of -1 is all chapter events in this case. 
+    if chapter_event_id == -1:
+        mail_addresses = Payment.objects.filter(
+            status=PaymentStatus.PAID
+        ).values_list("email", flat=True)
+    else:
+        chapter_event: ChapterEvent = ChapterEvent.objects.get(pk=chapter_event_id)
+        mail_addresses = Payment.objects.filter(
+            ticket__chapter_event=chapter_event,
+            status=PaymentStatus.PAID
+        ).values_list("email", flat=True)
+    
+    print(mail_addresses)
+    print(mail_subject)
+    print(mail_content)
+    try:
+        send_bulk_mail(list(mail_addresses), mail_subject, mail_content)
+    except MailError as e:
+        logging.warning(f"Error {e} when attempting to send mass mail from staff interface. ")
+        return Response({'success': False, 'errors': "Something went wrong when sending the mass email. "})
+
+
+    return Response({"success": True})
 

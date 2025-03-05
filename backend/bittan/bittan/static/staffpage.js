@@ -1,3 +1,34 @@
+function sendMassEmail(chapter_event_id) {
+    const csrf = document.querySelector('meta[name="csrf-token"]').content
+    const email_content = document.getElementById("email-content").value
+    const email_subject = document.getElementById("mass-email-subject").value
+    axios.post(
+        "/staff/send_mass_mail",
+        {
+            "chapter_event_id": chapter_event_id,
+            "email_subject": email_subject,
+            "email_content": email_content
+        },
+        {
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrf
+            }
+        })
+        .then(response => {
+            if (response.data.success) {
+                alert("Mass email sent successfully");
+            } else {
+                alert(`Error sending mass email. Error message: ${response.data.errors}`);
+            }
+        }
+        ).catch(error => {
+            console.error("Error sending the emails:", error);
+            alert(`Error sending mass email. Error message: ${response.data.errors}`);
+        }
+    )
+}
+
 function resendEmail(paymentId) {
     const csrf = document.querySelector('meta[name="csrf-token"]').content
     axios.post(
@@ -81,4 +112,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
     });
+
+    const emailContent = document.getElementById("email-content")
+    const emailPreview = document.getElementById("email-preview")
+
+    emailContent.addEventListener("input", function(){
+        emailPreview.innerHTML = emailContent.value
+    })
 });

@@ -26,10 +26,10 @@
             <div class="row">
                 <div class="col">
                     <h2>Overview</h2>
-                    <form method="get", class="search-form">
+                    <form method="get" class="search-form">
                         <div class="search-container">
                         {{ dropDownMenu.as_p }}
-                        <button type="submit">Filter</button>
+                        <button type="submit">Choose event</button>
                         </div>
                     </form>
                     <table class="table">
@@ -55,10 +55,20 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
+                    <h2>Mass email</h2>
+                    <p>Send a mass email to everyone who has bought tickets to the chosen chapter event.</p>
+                    <label for="mass-mail-subject">Subject:</label>
+                    <input type="text" id="mass-email-subject"> 
+                    <h4>Write the mail</h4>
+                    <textarea id="email-content" rows="10" cols="80"></textarea>
+                    
+                    <h4>Email preview</h4>
+                    <div id="email-preview" class="email-preview"></div>
+                <button onclick="sendMassEmail({{ chosen_chapter_event }})">Send</button>
+            </div>
                 <div class="col">
                     <h2>Edit tickets and payments</h2>
-                    <form method="get" class"search-form">
+                    <form method="get" class="search-form">
                         <div class="search-container">
                         {{searchBar.as_p}}
                         <button type="submit">Search</button>
