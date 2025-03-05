@@ -29,8 +29,8 @@ payment1 = Payment.objects.create(
             swish_id = "Hej",
             status = PaymentStatus.RESERVED,
             email = "mail@mail.com",
-            sent_email = False
-            payment_method = PaymentMethod.SWISH
+            sent_email = False,
+            payment_method = PaymentMethod.SWISH,
         )
 
 ticket1 = Ticket.objects.create(
