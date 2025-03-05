@@ -78,7 +78,6 @@ def reserve_ticket(request: Request) -> Response:
     # Maybe the session should already be killed on successful payment in the polling?
     payment_id = request.session.get("reserved_payment")
     if payment_id != None:
-        print("Attempted double booking")
         payment = Payment.objects.get(pk=payment_id)
         if payment.payment_started:
             swish = Swish.get_instance() 
