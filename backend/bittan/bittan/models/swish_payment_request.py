@@ -60,6 +60,8 @@ class SwishPaymentRequestModel(models.Model):
 	status = enum.EnumField(PaymentStatus, default=PaymentStatus.CREATED)
 	error_code = enum.EnumField(PaymentErrorCode, null=True)
 
+	date_paid = models.DateTimeField(null=True)
+
 	amount = models.IntegerField()
 
 	external_uri= models.TextField(null=True)

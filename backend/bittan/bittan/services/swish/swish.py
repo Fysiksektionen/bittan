@@ -40,6 +40,8 @@ class Swish:
 		if model is None:
 			model = SwishPaymentRequestModel.objects.get(pk=payment_request_response.id)
 
+		model.date_paid = payment_request_response.get("datePaid")
+
 		send_callback = False
 		# TODO Check that it makes sense to only call the callback on status change
 		# Only send a callback to the callback handler if the status has been changed

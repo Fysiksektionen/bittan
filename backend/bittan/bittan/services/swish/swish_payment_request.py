@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum
 
 import logging
@@ -68,6 +69,7 @@ class SwishPaymentRequest:
 	id: str
 	amount: int
 	status: PaymentStatus 
+	# date_paid # TODO  Figure out the type of this one!
 
 	# Used to start the swish app. Used by the frontent to make the payment
 	# See https://developer.swish.nu/documentation/guides/trigger-the-swish-app
@@ -79,6 +81,7 @@ class SwishPaymentRequest:
 		self.status = PaymentStatus.from_swish_api_status(paymentRequest.status, paymentRequest.error_code)
 		self.token = paymentRequest.token or None
 		self.amount = paymentRequest.amount
+		self.date_paid = paymentRequest.date_paid
 		
 	def is_paid(self):
 		return self.status == PaymentStatus.PAID.value
