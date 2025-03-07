@@ -97,7 +97,7 @@ f"""
 <td align="left">Summa</td>
 <td></td>
 <td></td>
-<td></td>
+<td>0 kr</td>
 <td align="left">{sum(group["count"]*group["price"] for group in ticket_groups)} kr</td>
 </tr>
 </table>
