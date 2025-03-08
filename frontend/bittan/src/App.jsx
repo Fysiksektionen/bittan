@@ -9,9 +9,11 @@ import Payment from './components/Payment';
 import BookingConfirmed from './pages/BookingConfirmed';
 import TicketValidation from './components/TicketValidation';
 
+const basename = process.env.PUBLIC_URL || "/";
+
 function App() {
   return (
-    <Router basename="/biljett-test">
+    <Router basename={basename}>
       <Layout>
         <Routes>
           <Route path="/" element={<EventGrid />} />
