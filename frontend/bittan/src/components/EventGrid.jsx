@@ -4,7 +4,7 @@ import axiosInstance from "../api/axiosConfig";
 
 import "./EventGrid.css";
 
-const basename = process.env.PUBLIC_URL || "/";
+const basename = process.env.PUBLIC_URL || "";
 
 const EventGrid = () => {
 	const [upcomingEvents, setUpcomingEvents] = useState([]);
