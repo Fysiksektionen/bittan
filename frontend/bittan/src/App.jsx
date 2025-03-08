@@ -11,7 +11,7 @@ import TicketValidation from './components/TicketValidation';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/biljett-test">
       <Layout>
         <Routes>
           <Route path="/" element={<EventGrid />} />
