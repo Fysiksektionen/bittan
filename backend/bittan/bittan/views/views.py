@@ -73,25 +73,28 @@ def reserve_ticket(request: Request) -> Response:
         )
     
     # Check if the current session already has a payment with associated tickets. 
-    # If the payment is already started but not finished, then cancel the swish payment and set status to something failed (this might be done in the swish callback). 
-    # If the payment is started, finished, and mail is sent, then killing of the session and starting a new one should be fine as everything is already done. 
-    # Maybe the session should already be killed on successful payment in the polling?
     payment_id = request.session.get("reserved_payment")
     if payment_id != None:
-        payment = Payment.objects.get(pk=payment_id)
-        if payment.payment_started:
-            swish = Swish.get_instance() 
-            cancel_status = swish.cancel_payment(payment.swish_id)
-            # Checks if the cancel_status is still CREATED. This is the only case that needs handling as the other cases should already be handled by the swish callback. 
-            if cancel_status == SwishPaymentStatus.CREATED:
+        try: 
+            payment = Payment.objects.get(pk=payment_id)
+            # If the payment is already started then attempt to cancel it. 
+            if payment.payment_started:
+                swish = Swish.get_instance() 
+                cancel_status = swish.cancel_payment(payment.swish_id)
+                print(cancel_status)
+                # Checks if the cancel_status is still CREATED. This is the only case that needs handling as the other cases should already be handled by the swish callback. 
+                if cancel_status == SwishPaymentStatus.CREATED:
+                    payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+                    payment.save()
+                    request.session.delete()
+                    return Response(status=500)
+            else:
+                # Since the payment is not started just failing it should not have any severe consequences.
                 payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
                 payment.save()
-                request.session.delete()
-                return Response(status=500)
-        else:
-            # Since the payment is not started just failing it should not have any severe consequences.
-            payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-            payment.save()
+        except Payment.DoesNotExist:
+            pass
+
         
         request.session.delete()
 
