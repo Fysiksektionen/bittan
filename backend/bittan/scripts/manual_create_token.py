@@ -7,10 +7,10 @@ def main():
 	SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 
 	flow = InstalledAppFlow.from_client_secrets_file(
-		"../gmail_secret.json", SCOPES
+		"../gmail_creds/gmail_secret.json", SCOPES
 	)
 	creds = flow.run_local_server(port=0)
-	with open("../gmail_token.json", "w") as f:
+	with open("../gmail_creds/gmail_token.json", "w") as f:
 		f.write(creds.to_json())
 
 if __name__ == "__main__":

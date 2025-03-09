@@ -3,6 +3,5 @@ __pycache__
 backend/postgres-data
 *.env
 backend/bittan/certificates
-backend/bittan/gmail_token.json
-backend/bittan/gmail_secret.json
+backend/bittan/gmail_creds
 *.log
