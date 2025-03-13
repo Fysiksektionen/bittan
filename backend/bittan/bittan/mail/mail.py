@@ -84,15 +84,15 @@ def _get_credentials() -> Credentials:
 
 	creds = None
 	
-	if os.path.exists("gmail_token.json"):
-		creds = Credentials.from_authorized_user_file("gmail_token.json", scopes)
+	if os.path.exists("gmail_creds/gmail_token.json"):
+		creds = Credentials.from_authorized_user_file("gmail_creds/gmail_token.json", scopes)
 	if creds and creds.expired and creds.refresh_token:
 		try:
 			creds.refresh(Request())
 		except RefreshError as e:
 			logging.error(f"Could not get Google Credentials because Refresh failed, causing the following exception:\n{e}")
 			raise MailError("Could not get Google Credientials")
-		with open("gmail_token.json", "w") as f:
+		with open("gmail_creds/gmail_token.json", "w") as f:
 			f.write(creds.to_json())
 
 	if not creds:
