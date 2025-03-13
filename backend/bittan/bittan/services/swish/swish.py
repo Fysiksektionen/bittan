@@ -16,11 +16,13 @@ class SwishPaymentRequestResponse:
 	status: SwishApiPaymentStatus
 	error_code: SwishApiErrorCode 
 	id: str 
+	date_paid: None | str
 
 	def __init__(self, response):
 		self.id = response['id']
 		self.status = SwishApiPaymentStatus.from_swish_api_status(response['status'])
 		self.error_code = SwishApiErrorCode.from_swish_reponse_code(response['errorCode'])
+		self.date_paid = response['datePaid']
 
 class Swish:
 	def __init__(self, swish_url, payee_alias, callback_url, cert_file_paths):
@@ -30,7 +32,7 @@ class Swish:
 		self.cert_file_paths = cert_file_paths
 
 
-	def update_swish_payment_request(self, payment_request_response: dict, model: SwishPaymentRequestModel | None = None):
+	def update_swish_payment_request(self, payment_request_response: SwishPaymentRequestResponse, model: SwishPaymentRequestModel | None = None):
 		""" Updates a payment according to a response (payment_request_response) from the Swish api """
 		
 		# We are going to store the raw response data in our model, incase something bad happens and manual analysis
@@ -39,6 +41,8 @@ class Swish:
 		payment_request_response = SwishPaymentRequestResponse(payment_request_response)
 		if model is None:
 			model = SwishPaymentRequestModel.objects.get(pk=payment_request_response.id)
+
+		model.date_paid = payment_request_response.date_paid
 
 		send_callback = False
 		# TODO Check that it makes sense to only call the callback on status change
