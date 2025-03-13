@@ -81,12 +81,9 @@ def reserve_ticket(request: Request) -> Response:
             if payment.payment_started:
                 swish = Swish.get_instance() 
                 cancel_status = swish.cancel_payment(payment.swish_id)
-                print(cancel_status)
-                # Checks if the cancel_status is still CREATED. This is the only case that needs handling as the other cases should already be handled by the swish callback. 
+                # Checks if the cancel_status is still CREATED. This should never happen. 
                 if cancel_status == SwishPaymentStatus.CREATED:
-                    payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-                    payment.save()
-                    request.session.delete()
+                    logging.warning(f"Swish did not cancel a payment that should be cancelled. Swish payment reference: {payment.swish_id}")
                     return Response(status=500)
             else:
                 # Since the payment is not started just failing it should not have any severe consequences.
@@ -94,7 +91,6 @@ def reserve_ticket(request: Request) -> Response:
                 payment.save()
         except Payment.DoesNotExist:
             pass
-
         
         request.session.delete()
 
