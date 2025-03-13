@@ -69,7 +69,7 @@ class SwishPaymentRequest:
 	id: str
 	amount: int
 	status: PaymentStatus 
-	data_paid: str | None
+	date_paid: str | None
 
 	# Used to start the swish app. Used by the frontent to make the payment
 	# See https://developer.swish.nu/documentation/guides/trigger-the-swish-app
