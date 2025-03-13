@@ -8,6 +8,7 @@ def payment_request_callback_handler(sender, **kwargs):
 
 	payment = Payment.objects.get(swish_id=payment_request.id) 
 	if payment_request.is_paid(): 
+		payment.time_paid = payment_request.date_paid
 		payment.status = PaymentStatus.PAID 
 
 	if payment_request.is_failed():
