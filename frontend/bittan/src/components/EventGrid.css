@@ -1,0 +1,84 @@
+/* General container styling */
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px; /* Spacing between cards */
+	justify-content: center; /* Center the cards */
+	margin: 0 auto;
+	padding: 20px;
+}
+
+/* Style for individual columns (bootstrap columns will work fine here) */
+.col {
+	flex: 0 0 calc(100% - 40px); /* Full-width cards with a margin */
+	max-width: calc(100% - 40px);
+}
+
+/* Custom card styling */
+.card {
+	display: flex;
+	align-items: center; /* Align content vertically */
+	background-color: #4a4a4a; /* Dark grey background for cards */
+	color: white;
+	border: none;
+	border-radius: 8px;
+	overflow: hidden;
+	padding: 20px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slight shadow for depth */
+}
+
+/* Placeholder for the event image */
+.card img {
+	width: 100px; /* Fixed size for image */
+	height: 100px;
+	object-fit: cover;
+	background-color: #bcbcbc; /* Light grey for placeholder if no image */
+	border-radius: 8px;
+	margin-right: 20px; /* Space between image and text */
+}
+
+/* Card body */
+.card-body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 10px;
+}
+
+/* Event name */
+.card-title {
+	font-size: 20px;
+	font-weight: bold;
+	margin: 0;
+}
+
+/* Event location and date/time */
+.card-text {
+	font-size: 16px;
+	color: #d9d9d9; /* Light grey text for subtle contrast */
+	margin: 0;
+}
+
+/* Dropdown styling */
+.dropdown-toggle {
+	background-color: #6c757d; /* Medium grey for dropdown button */
+	border: none;
+	color: white;
+	margin-top: 20px;
+}
+
+.dropdown-menu {
+	margin-top: 10px;
+	padding: 10px;
+	border-radius: 4px;
+	background-color: #4a4a4a; /* Dark grey menu background */
+}
+
+.dropdown-item {
+	color: white;
+}
+
+.dropdown-item:hover {
+	background-color: #6c757d; /* Highlight on hover */
+	color: white;
+}

@@ -1,0 +1,75 @@
+name: Backend Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: bittan_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=30
+
+    steps:
+      - name: Setup postgres etc/hosts
+        run: |
+          echo "127.0.0.1 postgres" | sudo tee -a /etc/hosts
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.13
+
+      - name: Install dependencies
+        working-directory: ./backend/bittan
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: ./backend/bittan
+        run: |
+          timeout=30
+          start_time=$SECONDS
+
+          ssh -o "StrictHostKeyChecking no" -R 80:localhost:8000 nokey@localhost.run > localhost.log 2>&1 &
+          PID=$!
+
+          while true; do
+            sleep 1
+            echo "Checking if localhost is up..."
+            if grep -qP 'https://[a-f0-9]+\.lhr\.life' "localhost.log"; then
+              break
+            fi
+            if (( SECONDS - start_time >= timeout )); then
+              echo "Timeout reached. Exiting."
+              exit 1
+            fi
+          done
+
+          url=$(grep -oP 'https://[a-f0-9]+\.lhr\.life' "localhost.log")
+          export BITTAN_BACKEND_URL=$url
+
+          python3 manage.py test bittan.tests --exclude-tag=no_ci
+
+          kill $PID

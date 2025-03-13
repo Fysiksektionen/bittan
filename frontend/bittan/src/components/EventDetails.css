@@ -1,0 +1,61 @@
+/* General container styling */
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px; /* Spacing between cards */
+	justify-content: center; /* Center the cards */
+	margin: 0 auto;
+	padding: 20px;
+}
+
+/* Style for individual columns */
+.col {
+	flex: 0 0 calc(100% - 40px); /* Full-width cards with a margin */
+	max-width: calc(100% - 40px);
+}
+
+/* Custom card styling */
+.card {
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* Center align content */
+	background-color: white; /* White background for cards */
+	color: black; /* Black text for contrast */
+	border: 1px solid #e0e0e0; /* Light grey border */
+	border-radius: 8px;
+	padding: 20px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+	text-align: center; /* Center text */
+}
+
+/* Event title */
+.card-title {
+	font-size: 24px;
+	font-weight: bold;
+	color: #333; /* Slightly dark grey */
+	margin-bottom: 10px;
+}
+
+/* Event date and time */
+.card-text {
+	font-size: 16px;
+	color: #555; /* Subtle grey for text */
+	margin-bottom: 20px;
+}
+
+/* Button styling */
+.card button {
+	background-color: #007bff; /* Bright blue for the button */
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	font-size: 16px;
+	font-weight: bold;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.card button:hover {
+	background-color: #0056b3; /* Darker blue on hover */
+}
