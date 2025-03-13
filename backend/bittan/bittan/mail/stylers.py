@@ -62,7 +62,6 @@ f"""
         message += \
 f"""
 <p><u>Kvitto</u>:</p>
-<p>[KVITTO... DETTA MAIL ÄR ETT TESTUTSKICK, EJ RIKTIG BILJETT]</p>
 <p><b>Referensnummer: </b>{payment.swish_id}</p>
 
 <table style="border-spacing: 8px">
@@ -104,7 +103,7 @@ f"""
 
 <table style="border-spacing: 8px">
 <tr>
-<th align="left">Betalningsmetod</th>
+<th align="left">Betalmetod</th>
 <th align="left">Tid</th>
 <tr/>
 
