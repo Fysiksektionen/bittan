@@ -76,8 +76,7 @@ const Payment = () => {
       <div>
         <label>
           <input type="checkbox" checked={isChecked} onChange={() => setIsChecked(!isChecked)} />
-            I agree to the <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
-              and <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer"></a>
+            I agree to the <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>{" "}and <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
         </label>
       </div>
       <div>

@@ -14,12 +14,15 @@ const EventDetails = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("")
+  const [maxTickets, setMaxTickets] = useState(8)
 
   useEffect(() => {
     // Fetch event details
     axiosInstance.get(`/get_chapterevents?format=json`).then((response) => {
       const event = response.data.chapter_events.find((event) => event.id == id);
       setEvent(event);
+
+      setMaxTickets(event.max_tickets_per_payment)
 
       const ticket_types = response.data.ticket_types;
           
@@ -39,29 +42,29 @@ const EventDetails = () => {
     });
   }, [id]);
 
+   // Set the maximum number of tickets per type
+
   const handleTicketChange = (ticketTypeId, action) => {
+    const totalSelected = tickets.reduce((sum, ticket) => sum + ticket.count, 0);
+  
     const newTickets = tickets.map((ticket) => {
       if (ticket.ticket_type === ticketTypeId) {
-        return {
-          ...ticket,
-          count:
-            action === "increment"
-              ? ticket.count + 1
-              : ticket.count > 0
-              ? ticket.count - 1
-              : 0,
-        };
+        let newCount = ticket.count;
+  
+        if (action === "increment" && totalSelected < maxTickets) {
+          newCount += 1;
+        } else if (action === "decrement" && ticket.count > 0) {
+          newCount -= 1;
+        }
+  
+        return { ...ticket, count: newCount };
       }
       return ticket;
     });
     setTickets(newTickets);
-
+  
     // Update total amount
-    const total = newTickets.reduce(
-      (sum, ticket) => sum + ticket.count * ticket.price,
-      0
-    );
-
+    const total = newTickets.reduce((sum, ticket) => sum + ticket.count * ticket.price, 0);
     setTotalAmount(total);
   };
 
@@ -130,19 +133,21 @@ const EventDetails = () => {
           <span style={{ marginRight: "10px" }}>{ticket.title}</span>
           <span style={{ marginRight: "10px" }}>{ticket.price} kr</span>
           <button
-            onClick={() => handleTicketChange(ticket.ticket_type, "increment")}
+            onClick={() => handleTicketChange(ticket.ticket_type, "decrement")}
             className="btn btn-primary"
+            disabled={ticket.count === 0}
             style={{ marginRight: "5px" }}
           >
-            +
+            -
           </button>
           <span>{ticket.count}</span>
           <button
-            onClick={() => handleTicketChange(ticket.ticket_type, "decrement")}
+            onClick={() => handleTicketChange(ticket.ticket_type, "increment")}
             className="btn btn-primary"
+            disabled={tickets.reduce((sum, t) => sum + t.count, 0) >= maxTickets}
             style={{ marginLeft: "5px" }}
           >
-            -
+            +
           </button>
         </div>
       ))}
