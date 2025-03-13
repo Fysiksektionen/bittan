@@ -13,6 +13,7 @@ const EventDetails = () => {
   const [tickets, setTickets] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("")
 
   useEffect(() => {
     // Fetch event details
@@ -66,25 +67,42 @@ const EventDetails = () => {
 
   const handleReserve = async () => {
     try {
+
+      if (email !== confirmEmail) throw "mail"
+
+      var chosenTickets = tickets
+      .filter((t) => t.count > 0) // Only include tickets with count > 0
+      .map((t) => ({
+        ticket_type: t.ticket_type, // Use the ticket type ID
+        count: t.count,
+        price: t.price,
+        title: t.title
+      }))
+
+      if (chosenTickets.length === 0) throw "no tickets"
+
       // Prepare request body
       const requestBody = {
         chapter_event: id, // The ID of the chapter event
-        tickets: tickets
-          .filter((t) => t.count > 0) // Only include tickets with count > 0
-          .map((t) => ({
-            ticket_type: t.ticket_type, // Use the ticket type ID
-            count: t.count,
-          })),
+        tickets: chosenTickets
       };
       
       // Call the API
       await reserveTicket(requestBody);
 
       // Navigate to confirmation page
-      navigate("/Payment", { state: { email, totalAmount } });
+      navigate("/Payment", { state: { email, totalAmount, chosenTickets } });
     } catch (error) {
-      console.error("Failed to reserve tickets:", error);
-      alert("An error occurred while reserving tickets. Please try again.");
+
+      if(error === "mail") {
+        alert("You have not entered matching emails")
+      }
+      else if(error === "no tickets") {
+        alert("You have to pick atleast one ticket")
+      }
+      else {
+        alert("An error occurred while reserving tickets. Please try again.");
+      }
     }
   };
 
@@ -128,19 +146,33 @@ const EventDetails = () => {
           </button>
         </div>
       ))}
-
-      <h4>Total Amount: {totalAmount} kr</h4>
-
+      
       <div>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <h4>Total Amount: {totalAmount} kr</h4>
       </div>
-
-      <button onClick={handleReserve} className="btn btn-primary">Start Ticket Purchase</button>
+      
+      <div>
+        <div>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <input
+            type="email"
+            placeholder="Confirm your email"
+            value={confirmEmail}
+            onChange={(e) => setConfirmEmail(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <div>
+        <button onClick={handleReserve} className="btn btn-primary">Start Ticket Purchase</button>
+      </div>
     </div>
   );
 };
