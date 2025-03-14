@@ -1,9 +1,99 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.core.management import call_command
 from django.utils import timezone
+from unittest.mock import patch
 import datetime
 from bittan.models import TicketType, ChapterEvent, Payment, Ticket
 from bittan.models.payment import PaymentStatus
+
+MOCK_NOW = datetime.datetime(1970, 1, 1, tzinfo=timezone.timezone.utc)
+
+@patch("django.utils.timezone.now", return_value=MOCK_NOW)
+class CleanerTicketReservationIntegrationTest(TestCase):
+	def setUp(self):
+		self.res_dur = timezone.timedelta(minutes=10)
+
+		self.ce1 = ChapterEvent.objects.create(
+			title="Test event",
+			description="An event for testing",
+			total_seats=10,
+			sales_stop_at=MOCK_NOW + timezone.timedelta(days=1),
+			reservation_duration=timezone.timedelta(minutes=10),
+			event_at=MOCK_NOW + timezone.timedelta(days=365)
+		)
+
+		self.test_ticket = TicketType.objects.create(
+			title="Test ticket",
+			price=100,
+			description="A test ticket"
+		)
+		self.ce1.ticket_types.add(self.test_ticket)
+
+		self.client = Client()
+
+	def test_cleans_correctly(self, mock_now):
+		reservation_res = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.ce1.pk),
+                "tickets": [
+                    {
+                        "ticket_type": self.test_ticket.pk,
+                        "count": 4
+                        }
+                    ]
+            },
+            content_type="application/json"
+		)
+
+		if reservation_res.status_code != 201:
+			raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
+
+		call_command("run_cleaner")
+
+		payment_id = self.client.session["reserved_payment"]
+		payment = Payment.objects.get(pk=payment_id)
+
+		self.assertEqual(payment.status, PaymentStatus.RESERVED, "Payment was cleaned when still alive. ")
+		 
+		mock_now.return_value = MOCK_NOW + self.res_dur + timezone.timedelta(minutes=1)
+
+		call_command("run_cleaner")
+		payment = Payment.objects.get(pk=payment_id)
+		self.assertEqual(payment.status, PaymentStatus.FAILED_EXPIRED_RESERVATION, "Payment was not cleaned when expected. ")
+	
+	def test_ignores_payment_started(self, mock_now):
+		reservation_res = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.ce1.pk),
+                "tickets": [
+                    {
+                        "ticket_type": self.test_ticket.pk,
+                        "count": 4
+                        }
+                    ]
+            },
+            content_type="application/json"
+		)
+
+		if reservation_res.status_code != 201:
+			raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
+
+		payment_id = self.client.session["reserved_payment"]
+
+		_ = self.client.post(
+            "/start_payment/",
+            {
+				"email_address": "mail@mail.com"
+			}
+		)
+
+		mock_now.return_value = MOCK_NOW + self.res_dur + timezone.timedelta(minutes=1)
+		call_command("run_cleaner")
+		payment = Payment.objects.get(pk=payment_id)
+		self.assertEqual(payment.status, PaymentStatus.RESERVED, "Payment was cleaned when it was started.")
+		pass
 
 
 class RunCleanerTest(TestCase):
@@ -15,7 +105,6 @@ class RunCleanerTest(TestCase):
 		# chapter_event1.ticket_types.add(slowticket, fastticket)
 
 		# TODO use Gabriel's function to create payments
-		# TODO maybe reservation_duration should depend on chapter_event
 		self.payment_expires_now_id = Payment.objects.create(
 			expires_at = NOW,
 			swish_id = "abc",
