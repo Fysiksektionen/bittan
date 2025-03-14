@@ -1,14 +1,14 @@
 from django.test import TestCase
 from django.core.management import call_command
+from django.utils import timezone
 import datetime
-import time
 from bittan.models import TicketType, ChapterEvent, Payment, Ticket
 from bittan.models.payment import PaymentStatus
 
-class RunCleanerTest(TestCase):
 
+class RunCleanerTest(TestCase):
 	def setUp(self):		
-		NOW = datetime.datetime.now()
+		NOW = timezone.now()
 		# slowticket = TicketType.objects.create(price=100, title="Slow ticket", description="Ticket that expires slowly.", reservation_duration=datetime.timedelta(hours=1))
 		# fastticket = TicketType.objects.create(price=100, title="Fast ticket", description="Ticket that expires quickly.", reservation_duration=datetime.timedelta(milliseconds=1))
 		# chapter_event1 = ChapterEvent.objects.create(title="Fysikalen Dag 1", description="Första dagen av Fysikalen.", max_tickets=10, sales_stop_at=NOW+datetime.timedelta(days=365))
@@ -87,7 +87,7 @@ class RunCleanerTest(TestCase):
 		)
 
 	def test_disable_multiple(self):
-		NOW = datetime.datetime.now()
+		NOW = timezone.now()
 		self.payment_expires_now2_id = Payment.objects.create(
 			expires_at = NOW,
 			swish_id = "abc",

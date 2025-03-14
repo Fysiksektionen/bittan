@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand
-import datetime
+from django.utils import timezone
 from bittan.models import Payment
 from bittan.models.payment import PaymentStatus
 
 def run_cleaner():
-    NOW = datetime.datetime.now()
+    NOW = timezone.now()
     Payment.objects.filter(
         status = PaymentStatus.RESERVED,
         expires_at__lte = NOW,
