@@ -2,6 +2,7 @@ from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
 from bittan.models import ChapterEvent, Ticket, TicketType, Payment
+from bittan.mail import mail_bittan_developers
 
 from bittan.services.swish.swish import Swish
 
@@ -83,7 +84,7 @@ def reserve_ticket(request: Request) -> Response:
                 cancel_status = swish.cancel_payment(payment.swish_id)
                 # Checks if the cancel_status is still CREATED. This should never happen. 
                 if cancel_status == SwishPaymentStatus.CREATED:
-                    logging.warning(f"Swish did not cancel a payment that should be cancelled. Swish payment reference: {payment.swish_id}")
+                    logging.error(f"Swish did not cancel a payment that should be cancelled. Swish payment reference: {payment.swish_id}")
                     return Response(status=500)
             else:
                 # Since the payment is not started just failing it should not have any severe consequences.
@@ -137,7 +138,11 @@ def reserve_ticket(request: Request) -> Response:
                     continue
                 break
             else: 
-                logging.critical("Failed to generate a ticket external id. This should never happen.")
+                logging.error("Failed to generate a ticket external id. This should never happen.")
+                mail_bittan_developers(
+                    f"Failed to generate ticket external id at {timezone.now().strftime("%Y-%m-%d %H:%M:%S")} for payment with id {payment_id}", 
+                    "Failed to generate ticket external id. "
+                ) 
                 return Response(status=500) # Returns status internal server error. 
     request.session["reserved_payment"] = payment.pk
     return Response(status=status.HTTP_201_CREATED)
@@ -196,6 +201,7 @@ def start_payment(request):
     payment.payment_started = True
     payment.email = response_data["email_address"]
     payment.save()
+    logging.info(f"Started payment for payment with id {payment_id}")
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
     
@@ -205,11 +211,14 @@ def start_payment(request):
 
     if payment_request.is_failed():
         payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
+        logging.warning(f"Payment with id {payment_id} did not get correctly initialised with Swish.")
         return Response("PaymentStartFailed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+
     payment.swish_id = payment_request.id
     payment.payment_method = PaymentMethod.SWISH
     payment.save()
+    logging.info(f"Sucessfully initialised payment for payment with id {payment_id} with Swish.")
      
     return Response(payment_request.token)
 
