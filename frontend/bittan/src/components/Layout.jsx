@@ -1,8 +1,9 @@
 import React from 'react';
 import { Navbar, Container, Nav } from 'react-bootstrap';
+import Footer from "./Footer.jsx"
 
 const Layout = ({ children }) => (
-  <>
+  <div className='d-flex flex-column min-vh-100'>
     <Navbar bg="light" expand="lg">
       <Container>
         <Navbar.Brand href="/">Event Booking</Navbar.Brand>
@@ -11,8 +12,9 @@ const Layout = ({ children }) => (
         </Nav>
       </Container>
     </Navbar>
-    <Container>{children}</Container>
-  </>
+    <Container className='flex-grow-1 py-5'>{children}</Container>
+    <Footer></Footer>
+  </div>
 );
 
 export default Layout;

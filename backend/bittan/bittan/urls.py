@@ -20,34 +20,37 @@ from django.contrib.auth import views as django_views
 from django.urls import path
 
 from bittan.views.swish_views import get_qr
+from bittan.settings import get_bittan_backend_url_path_prefix
 
 from .api.swish import debug_cancel, swish_callback, debug_make_request, debug_synchronize_request
 
 from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, resend_email, staff_dashboard, update_payment, update_tickets, send_mass_email
 from bittan.views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status
 
+_prefix = get_bittan_backend_url_path_prefix()
+
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("swish/callback/", swish_callback),
-	path("get_chapterevents/", get_chapterevents),
-    path("validate_ticket/", validate_ticket),
-    path("reserve_ticket/", reserve_ticket),
-    path('session_payment_status/', get_session_payment_status),
-    path("start_payment/", start_payment),
-    path("accounts/login/", django_views.LoginView.as_view(), name="login"),
-    path("accounts/logout", django_views.LogoutView.as_view(), name="logout"),
-    path("staff/", staff_dashboard, name="staff_dashboard"), 
-    path("staff/update_payment/<int:payment_id>/", update_payment, name="update_payment"),
-    path("staff/update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
-    path("staff/create_tickets", create_tickets , name="create_tickets"),
-    path("staff/resend_email", resend_email),
-    path("staff/filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
-    path("staff/send_mass_mail", send_mass_email),
-    path("generate_qr/<str:token>/", get_qr),
+    path(_prefix+'admin/', admin.site.urls),
+    path(_prefix+'swish/callback/', swish_callback),
+	path(_prefix+'get_chapterevents/', get_chapterevents),
+    path(_prefix+'validate_ticket/', validate_ticket),
+    path(_prefix+"reserve_ticket/", reserve_ticket),
+    path(_prefix+'session_payment_status/', get_session_payment_status),
+    path(_prefix+"start_payment/", start_payment),
+    path(_prefix+"generate_qr/<str:token>", get_qr),
+    path(_prefix+"accounts/login/", django_views.LoginView.as_view(), name="login"),
+    path(_prefix+"accounts/logout", django_views.LogoutView.as_view(), name="logout"),
+    path(_prefix+"staff/", staff_dashboard, name="staff_dashboard"), 
+    path(_prefix+"staff/update_payment/<int:payment_id>/", update_payment, name="update_payment"),
+    path(_prefix+"staff/update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
+    path(_prefix+"staff/create_tickets", create_tickets , name="create_tickets"),
+    path(_prefix+"staff/resend_email", resend_email),
+    path(_prefix+"staff/filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
+    path(_prefix+"staff/send_mass_mail", send_mass_email),
 ]
 
 
 if environ.get("DEBUG") == "True":
-	urlpatterns.append(path('swish/dummy/', debug_make_request))
-	urlpatterns.append(path('swish/cancel/<str:pk>/', debug_cancel))
-	urlpatterns.append(path('swish/sync/', debug_synchronize_request))
+	urlpatterns.append(path(_prefix+'swish/dummy/', debug_make_request))
+	urlpatterns.append(path(_prefix+'swish/cancel/<str:pk>/', debug_cancel))
+	urlpatterns.append(path(_prefix+'swish/sync/', debug_synchronize_request))

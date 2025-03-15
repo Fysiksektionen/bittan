@@ -15,7 +15,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from enum import Enum
 
-import os 
+import json
+from urllib.parse import urlparse
 
 # Loading environment variables 
 load_dotenv()
@@ -39,6 +40,8 @@ class ENV_VAR_NAMES(Enum):
     SWISH_PAYEE_ALIAS="SWISH_PAYEE_ALIAS"
     SWISH_QR_GENERATOR_ENDPOINT="SWISH_QR_ENDPOINT" 
 
+    DEBUG="DEBUG"
+
 class EnvVars:
     __DEFAULTS = {
             ENV_VAR_NAMES.SWISH_API_URL.value: "https://mss.cpc.getswish.net/swish-cpcapi",
@@ -47,6 +50,7 @@ class EnvVars:
             ENV_VAR_NAMES.SWISH_PAYEE_ALIAS.value:  "1234679304",
             ENV_VAR_NAMES.SWISH_QR_GENERATOR_ENDPOINT.value: "https://mpc.getswish.net/qrg-swish/api/v1/commerce",
             ENV_VAR_NAMES.BITTAN_FRONTEND_URL.value: "http://localhost:3000",
+            ENV_VAR_NAMES.BITTAN_BACKEND_URL.value: "http://localhost:8000"
     }
 
     @staticmethod
@@ -60,6 +64,11 @@ class EnvVars:
 
         raise Exception("The environment variable "+var_name+" was not set and has no default.")
 
+def get_bittan_backend_url_path_prefix():
+    prefix = urlparse(EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)).path.strip("/")
+    if prefix != "":
+        prefix += "/"
+    return prefix
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -68,13 +77,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-s624n0s_!oexn6#=uas1qglb_1=jenz4k5641+ibfdajk48=xu'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = EnvVars.get(ENV_VAR_NAMES.DEBUG)=="True"
 
-ALLOWED_HOSTS = [] if not (os.environ.get("DEBUG") == "True") else ["*"]
+ALLOWED_HOSTS = json.loads(os.getenv("ALLOWED_HOSTS"))
 
 
 # Application definition
@@ -129,12 +136,12 @@ WSGI_APPLICATION = 'bittan.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bittan_db',
+        'NAME': os.getenv("DATABASE_NAME"),
 
-        'USER': 'postgres',  
-        'PASSWORD': 'postgres',  
-        'HOST': 'postgres',  
-        'PORT': '5432',  
+        'USER': os.getenv("DATABASE_USER"),  
+        'PASSWORD': os.getenv("DATABASE_PASSWORD"),  
+        'HOST': os.getenv("DATABASE_HOST"),  
+        'PORT': os.getenv("DATABASE_PORT"),  
         # 'OPTIONS': {  
         #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
         # }  
@@ -177,7 +184,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = get_bittan_backend_url_path_prefix()+'static/'
+STATIC_ROOT = 'static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -216,19 +224,16 @@ LOGGING = {
     },
 }
 
+_parsed_frontend_url = urlparse(EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL))
+_parsed_backend_url = urlparse(EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL))
 CORS_ALLOWED_ORIGINS = [
-
-  'http://localhost:3000',
-  EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
-  EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
+   _parsed_frontend_url.scheme + "://" + _parsed_frontend_url.netloc,
+   _parsed_backend_url.scheme + "://" + _parsed_backend_url.netloc,
 ]
+
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
-    EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL),
-    EnvVars.get(ENV_VAR_NAMES.BITTAN_BACKEND_URL)
-]
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
 
 CORS_ALLOW_HEADERS = [
     'Bypass-tunnel-reminder',
