@@ -97,28 +97,28 @@ def send_bulk_mail(receiver_addresses: List[str], subject: str, message_content:
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
 	
-	for receiver_address in receiver_addresses:
-		message = MIMEMultipart("related")
-		message["Subject"] = subject
-		message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
-		message["To"] = receiver_address
-		
-		encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-		create_message = {"raw": encoded_message}
+	message = MIMEMultipart("related")
+	message["Subject"] = subject
+	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
+	message["Bcc"] = ", ".join(receiver_addresses)
+	
+	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+	create_message = {"raw": encoded_message}
 
-		try:
-			sent_message = (
-				service.users()
-				.messages()
-				.send(userId="me", body=create_message)
-				.execute()
-			)
-		except HttpError as error:
-			if error.reason == "Invalid To header":
-				raise InvalidReceiverAddressError(f"Invalid address: '{receiver_address}'")
-		if not "SENT" in sent_message["labelIds"]:
-			logging.error(f"Could not send mail. Address: {receiver_address}; Has image: {bool(image)}; Message content:\n{message_content}")
-			raise MailError("Mail was not sent for unknown reasons.")
+	try:
+		sent_message = (
+			service.users()
+			.messages()
+			.send(userId="me", body=create_message)
+			.execute()
+		)
+	except HttpError as error:
+		if error.reason == "Invalid To header":
+			raise InvalidReceiverAddressError(f"Email addresses contains an invalid email address: '{receiver_addresses}'")
+
+	if not "SENT" in sent_message["labelIds"]:
+		logging.error(f"Could not send bulk mail with content \n{message_content}. ")
+		raise MailError("Mail was not sent for unknown reasons.")
 
 	return
 
