@@ -6,7 +6,7 @@ from bittan.mail import MailError, InvalidReceiverAddressError
 from bittan.mail.stylers import make_qr_image
 from bittan.mail.mail import MailImage
 from bittan.models.chapter_event import ChapterEvent
-from bittan.models.payment import Payment, PaymentStatus
+from bittan.models.payment import Payment, PaymentMethod, PaymentStatus
 from bittan.models.ticket import Ticket
 from bittan.models.ticket_type import TicketType
 
@@ -60,7 +60,9 @@ class StylersTest(TestCase):
 					swish_id = "Hej",
 					status = PaymentStatus.PAID,
 					email = "bittantest@gmail.com",
-					sent_email = False
+					sent_email = False,
+					time_paid = NOW,
+					payment_method = PaymentMethod.SWISH
 				)
 
 		ticket1 = Ticket.objects.create(

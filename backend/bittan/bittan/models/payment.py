@@ -18,3 +18,4 @@ class Payment(models.Model):
 	sent_email = models.BooleanField(default=False)
 	payment_started = models.BooleanField(default=False)
 	payment_method = models.TextField(choices=PaymentMethod, null=True, blank=True)
+	time_paid = models.DateTimeField(null=True, blank=True)
