@@ -2,13 +2,15 @@ import React from 'react';
 import { Navbar, Container, Nav } from 'react-bootstrap';
 import Footer from "./Footer.jsx"
 
+const basename = process.env.PUBLIC_URL || "/";
+
 const Layout = ({ children }) => (
   <div className='d-flex flex-column min-vh-100'>
     <Navbar bg="light" expand="lg">
       <Container>
-        <Navbar.Brand href="/">Biljettbokning</Navbar.Brand>
+        <Navbar.Brand href={basename}>Biljettbokning</Navbar.Brand>
         <Nav className="me-auto">
-          <Nav.Link href="/">Hem</Nav.Link>
+          <Nav.Link href="/">Fysikalen</Nav.Link>
         </Nav>
       </Container>
     </Navbar>
