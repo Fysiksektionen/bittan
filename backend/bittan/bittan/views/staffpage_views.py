@@ -173,6 +173,7 @@ class TicketCreationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     chapter_event = serializers.PrimaryKeyRelatedField(queryset=ChapterEvent.objects.all())
     ticket_types = serializers.DictField(child=serializers.IntegerField())
+    ignore_seat_limit = serializers.BooleanField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -187,8 +188,9 @@ class TicketCreationSerializer(serializers.Serializer):
         chapter_event = data['chapter_event']
         ticket_types = chapter_event.ticket_types.all()
         total_ticket_count = sum(data.get(f"ticket_type_{ticket_type.id}", 0) for ticket_type in ticket_types)
+        ignore_seat_limit = data.get("ignore_seat_limit", False)
 
-        if total_ticket_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
+        if not ignore_seat_limit and total_ticket_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
             raise serializers.ValidationError("Not enough tickets left")
 
         return data
@@ -207,6 +209,7 @@ def create_tickets(request) -> Response:
     ticket_types = chapter_event.ticket_types.all()
     email = serializer.validated_data['email']
     ticket_counts = {f"ticket_type_{ticket_type.id}": serializer.validated_data.get(f"ticket_type_{ticket_type.id}", 0) for ticket_type in ticket_types}
+    ignore_seat_limit = serializer.validated_data["ignore_seat_limit"]
 
     payment = Payment.objects.create(
         expires_at=timezone.now() + chapter_event.reservation_duration,
@@ -290,9 +293,6 @@ def send_mass_email(request) -> Response:
             status=PaymentStatus.PAID
         ).values_list("email", flat=True)
     
-    print(mail_addresses)
-    print(mail_subject)
-    print(mail_content)
     try:
         send_bulk_mail(list(mail_addresses), mail_subject, mail_content)
     except MailError as e:
