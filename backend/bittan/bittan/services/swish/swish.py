@@ -4,6 +4,8 @@ from django.dispatch import Signal
 import requests
 import json
 
+from bittan.mail.stylers import mail_bittan_developers
+
 from ...models.swish_payment_request import SwishPaymentRequestModel, PaymentErrorCode as SwishApiErrorCode, PaymentStatus as SwishApiPaymentStatus
 from .swish_payment_request import SwishPaymentRequest
 
@@ -19,10 +21,21 @@ class SwishPaymentRequestResponse:
 	date_paid: None | str
 
 	def __init__(self, response):
-		self.id = response['id']
-		self.status = SwishApiPaymentStatus.from_swish_api_status(response['status'])
-		self.error_code = SwishApiErrorCode.from_swish_reponse_code(response['errorCode'])
-		self.date_paid = response['datePaid']
+		try:
+			self.id = response['id']
+			self.status = SwishApiPaymentStatus.from_swish_api_status(response['status'])
+			self.error_code = SwishApiErrorCode.from_swish_reponse_code(response['errorCode'])
+			self.date_paid = response['datePaid']
+		except Exception as e:
+			try:
+				logging.critical(f'Could not parse swish payment request {response["id"]}')
+			except Exception as e:
+				logging.critical(f'Could not parse swish payment request {e}')
+
+			try:
+				mail_bittan_developers(f'Unable to parse swish response, check logs, {e}', 'Unable to parse swish response')
+			except Exception as _:
+				pass
 
 class Swish:
 	def __init__(self, swish_url, payee_alias, callback_url, cert_file_paths):
@@ -32,7 +45,7 @@ class Swish:
 		self.cert_file_paths = cert_file_paths
 
 
-	def update_swish_payment_request(self, payment_request_response: SwishPaymentRequestResponse, model: SwishPaymentRequestModel | None = None):
+	def update_swish_payment_request(self, payment_request_response, model: SwishPaymentRequestModel | None = None):
 		""" Updates a payment according to a response (payment_request_response) from the Swish api """
 		
 		# We are going to store the raw response data in our model, incase something bad happens and manual analysis
@@ -83,10 +96,13 @@ class Swish:
 
 		response = self.send_to_swish('GET', f'api/v1/paymentrequests/{payment_request_id}')
 		if response.status_code != 200:
-			# TODO Handle errors more elegantly, this should NOT happen!
 			logging.error("PaymentRequestDoes not exist:", payment_request_id)
+			try:
+				mail_bittan_developers(f"Tried to synchronize a swish payment which does not exist on the swish servers. \nSwish side id: {payment_request_id}. {response.text()}", "Tried to sync a payment which does not exist")
+			except Exception as _:
+				pass
 
-			raise Exception("There is no swish payment request with the id ", swish_payment_request)
+			raise Exception("There is no swish payment request with the id ", payment_request_id)
 		
 		response_body = response.json()
 		return self.update_swish_payment_request(response_body, payment_request)
@@ -181,7 +197,6 @@ class Swish:
 				payment_request_db_object.token = payment_request_token
 				payment_request_db_object.external_uri = payment_request_external_uri 
 			except requests.exceptions.RequestException as e:
-				# TODO This should not happen unless there is a configuration error, or if we have connectivity problems. Handle more gracefully? 
 				logging.error(f'Error creating Swish payment: {e}')
 
 				# The data is, unlike the "happy path", in the body as json if the request fails 
