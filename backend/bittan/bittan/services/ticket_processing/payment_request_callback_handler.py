@@ -14,6 +14,10 @@ def payment_request_callback_handler(sender, **kwargs):
 	if payment_request.is_paid():
 		payment.status = PaymentStatus.PAID
 		payment.time_paid = payment_request.date_paid
+		payment.save()
+		# Ugly hack to make the string into a datetime object
+		payment = Payment.objects.get(swish_id=payment_request.id)
+
 		try:
 			mail_payment(payment)
 		except MailError as e:
