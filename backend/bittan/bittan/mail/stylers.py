@@ -42,14 +42,14 @@ def mail_payment(payment: Payment, send_receipt=True):
     message = \
 f"""
 <html>
-<h1>Din Fysikalenbiljett är här!</h1>
+<h1>Din BitTan-märkes-biljett är här!</h1>
 
-<img src="https://fysikalen.se/wordpress/wp-content/uploads/2024/07/LOGGA.png" alt="" width=300>
+<p><b>Datum</b>: 20250326 - 20250628</p>
+<p><b>Hämtas</b>: Lunch</p>
+<p><b>Plats</b>: Konsulatet</p>
 
-<p><b>Datum</b>: {date_string}</p>
-<p><b>Dörrarna öppnas</b>: {doors_open}</p>
-<p><b>Föreställningen börjar</b>: {start_time}</p>
-<p><b>Plats</b>: Kulturhuset Dieselverkstaden, Marcusplatsen 17, 131 54 Nacka. <i>Fri placering under föreställningen!</i></p>
+<p>Märket hämtas upp i Konsulatet under lunch angivna datum mot uppvisning av biljett. Om du inte kan närvara vid dessa datum så kontakta någon i BitTan 
+så kan upphämtning av märke lösas vid annan tid. </p>
 """
     if plural:
         message += f"<p>Du har köpt följande {len(tickets)} biljetter. Dessa finns även bifogade i detta mail.</p>"
