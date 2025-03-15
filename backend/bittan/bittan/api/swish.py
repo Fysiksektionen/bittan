@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -6,10 +7,10 @@ from ..services.swish.swish import Swish
 
 @api_view(['POST'])
 def swish_callback(request: Request):
-	# TODO For somereason the swish callback is not working and not sending any data at all. So this is a "temporary" fix.
+	# For some reason the swish callback (when using the merchant simulater MSS) is not working and not sending any data at all. So this is a "temporary" fix.
 	if request.data == {}:
-		# TODO Make this an async job and not execute like this... 
 		Swish.get_instance().synchronize_all_pending()
+		logging.warn(f'Recieved a swish callback with an empty body. {request}')
 	else:
 		Swish.get_instance().handle_swish_callback(request.data)
 
@@ -25,7 +26,7 @@ def debug_synchronize_request(request: Request):
 @api_view(['POST'])
 def debug_make_request(request: Request):
 	# In merchant simulator, specify the msg query param to make the merchant simulator return an error.
-	# eg. POST <BACEND_URI>/swish/dummy/?msg=RF07 ==> simulate that the user declined the transaction 
+	# eg. POST <BACKEND_URI>/swish/dummy/?msg=RF07 ==> simulate that the user declined the transaction 
 	msg = ""
 	if 'msg' in request.query_params:
 		msg = request.query_params['msg']

@@ -1,19 +1,19 @@
 import { useNavigate } from "react-router-dom";
-
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { startPayment } from "../api/startPayment";
 import { sessionPaymentStatus } from "../api/sessionPaymentStatus";
 import { generateQR } from "../api/generateQR";
+import { Container, Row, Col } from "react-bootstrap";
 
 const Payment = () => {
   const location = useLocation();
-  const { email, totalAmount } = location.state || {};
+  const { email, totalAmount, chosenTickets, event } = location.state || {};
   const [swishToken, setSwishToken] = useState(null);
   const [qrUrl, setQrUrl] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-
   const [status, setStatus] = useState("pending");
+  const [isChecked, setIsChecked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,24 +22,22 @@ const Payment = () => {
     const fetchStatus = async () => {
       try {
         const response = await sessionPaymentStatus();
-        console.log(response)
         if (response === "PAID") {
           clearInterval(interval);
-          navigate("/booking-confirmed")
+          navigate("/booking-confirmed", { state: { email } });
         }
       } catch (error) {
         console.error("Error fetching payment status:", error);
       }
     };
 
-    interval = setInterval(fetchStatus, 5000); // Poll every 5 seconds
-    fetchStatus(); // Initial fetch
+    interval = setInterval(fetchStatus, 5000);
+    fetchStatus();
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    // Check if the user is on a mobile device
     setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
   }, []);
 
@@ -48,14 +46,9 @@ const Payment = () => {
       const token = await startPayment(email);
       setSwishToken(token);
       if (isMobile) {
-        // Open Swish app if on mobile
-        // The url which will be opened by swish when the "payment flow" inside the swish app is done
-
-        // TODO: Should be changed to the polling site!
-        const callbackurl = `${window.location.origin}/booking-confirmed`
+        const callbackurl = `${window.location.origin}/booking-confirmed`;
         window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
       } else {
-        // Fetch QR code as a blob
         const response = await generateQR(token);
         const blob = new Blob([response], { type: 'image/png' });
         const qrCodeUrl = URL.createObjectURL(blob);
@@ -68,21 +61,43 @@ const Payment = () => {
 
   return (
     <div>
-      <h2>Payment</h2>
-      <p>Total Amount: {totalAmount} kr</p>
+      <h2>Betalning</h2>
+    
+    <h4>{event.title}</h4>
+    <Container style={{maxWidth: "400px", float: "left"}}>
+        {chosenTickets.map((ticket) => (
+          <Row key={ticket.ticket_type} style={{ marginBottom: "15px" }}>
+            <Col className="text-left">{ticket.title}:</Col>
+            <Col className="text-left">{ticket.count}st</Col>
+            <Col className="text-left">{ticket.price}kr</Col>
+          </Row>
+        ))}
+        <Row className="py-1">
+          <Col className="text-left">
+            Totalt: {totalAmount} kr (Moms 0 kr)
+          </Col>
+        </Row>
       
-      {!qrUrl && (
-        <button onClick={handlePayment} className="btn btn-primary">
-          Pay with Swish
-        </button>
-      )}
-
-      {qrUrl && (
-        <div>
-          <p>Scan the QR code with Swish:</p>
-          <img src={qrUrl} alt="Swish QR Code" />
-        </div>
-      )}
+      <Row>
+        <label>
+          <input type="checkbox" checked={isChecked} onChange={() => setIsChecked(!isChecked)} />
+          {" "}Jag godkänner <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">köpesvillkoren</a>{" "}och <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer">Personuppgiftspolicy</a>
+        </label>
+      </Row>
+      <div>
+        {!qrUrl && (
+          <button onClick={handlePayment} className="btn btn-primary" disabled={!isChecked}>
+            Betala med Swish
+          </button>
+        )}
+        {qrUrl && (
+          <div>
+            <p>Skanna QR-koden i Swishappen:</p>
+            <img src={qrUrl} alt="Swish QR Code" />
+          </div>
+        )}
+      </div>
+      </Container>
     </div>
   );
 };

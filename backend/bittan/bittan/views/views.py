@@ -2,6 +2,7 @@ from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
 from bittan.models import ChapterEvent, Ticket, TicketType, Payment
+from bittan.mail import mail_bittan_developers
 
 from bittan.services.swish.swish import Swish
 
@@ -72,6 +73,29 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_404_NOT_FOUND
         )
     
+    # Check if the current session already has a payment with associated tickets. 
+    payment_id = request.session.get("reserved_payment")
+    if payment_id != None:
+        try: 
+            payment = Payment.objects.get(pk=payment_id)
+            # If the payment is already started then attempt to cancel it. 
+            if payment.payment_started:
+                swish = Swish.get_instance() 
+                cancel_status = swish.cancel_payment(payment.swish_id)
+                # Checks if the cancel_status is still CREATED. This should never happen. 
+                if cancel_status == SwishPaymentStatus.CREATED:
+                    logging.error(f"Swish did not cancel a payment that should be cancelled. Swish payment reference: {payment.swish_id}")
+                    return Response(status=500)
+            else:
+                # Since the payment is not started just failing it should not have any severe consequences.
+                payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+                payment.save()
+        except Payment.DoesNotExist:
+            pass
+        
+        request.session.delete()
+
+    
     if reservation_count > chapter_event.max_tickets_per_payment:
         return Response(
             "TooManyTickets",
@@ -114,7 +138,11 @@ def reserve_ticket(request: Request) -> Response:
                     continue
                 break
             else: 
-                logging.critical("Failed to generate a ticket external id. This should never happen.")
+                logging.error("Failed to generate a ticket external id. This should never happen.")
+                mail_bittan_developers(
+                    f"Failed to generate ticket external id at {timezone.now().strftime("%Y-%m-%d %H:%M:%S")} for payment with id {payment_id}", 
+                    "Failed to generate ticket external id. "
+                ) 
                 return Response(status=500) # Returns status internal server error. 
     request.session["reserved_payment"] = payment.pk
     return Response(status=status.HTTP_201_CREATED)
@@ -173,6 +201,7 @@ def start_payment(request):
     payment.payment_started = True
     payment.email = response_data["email_address"]
     payment.save()
+    logging.info(f"Started payment for payment with id {payment_id}")
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
     
@@ -182,11 +211,14 @@ def start_payment(request):
 
     if payment_request.is_failed():
         payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
+        logging.warning(f"Payment with id {payment_id} did not get correctly initialised with Swish.")
         return Response("PaymentStartFailed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+
     payment.swish_id = payment_request.id
     payment.payment_method = PaymentMethod.SWISH
     payment.save()
+    logging.info(f"Sucessfully initialised payment for payment with id {payment_id} with Swish.")
      
     return Response(payment_request.token)
 
@@ -205,7 +237,7 @@ def get_chapterevents(request: Request) -> Response:
     now = timezone.now()
     chapter_events = ChapterEvent.objects.filter(sales_stop_at__gt=now).order_by("event_at")
     chapter_events_serialized = ChapterEventSerializer(chapter_events, many=True)
-    ticket_types = {ticket_type for chapter_event in chapter_events for ticket_type in chapter_event.ticket_types.all()}
+    ticket_types = {ticket_type for chapter_event in chapter_events for ticket_type in chapter_event.ticket_types.filter(is_visible=True)}
     ticket_types_serialized = TicketTypeSerializer(ticket_types, many=True)
     data = {"chapter_events": chapter_events_serialized.data, "ticket_types": ticket_types_serialized.data}
     return Response(data)

@@ -44,7 +44,7 @@ class PaymentStatus(Enum):
 	@staticmethod
 	def from_swish_api_error(error: SwishApiPaymentErrorCode):
 		if error not in PaymentStatus.__SWISH_ERROR_CODE_MAPPINGS:
-			logging.warn(f'{error} does not have a corresponding map in PaymentErrorCode')
+			logging.warning(f'{error} does not have a corresponding map in PaymentErrorCode')
 			return PaymentStatus.UNKNOWN_ERROR
 		return PaymentStatus.__SWISH_ERROR_CODE_MAPPINGS[error]
 
@@ -56,7 +56,7 @@ class PaymentStatus(Enum):
 			return PaymentStatus.from_swish_api_error(error_code)
 
 		if status not in PaymentStatus.__SWISH_API_STATUS_MAPPINGS:
-			logging.warn(f'{status} does not have a corresponding map in PaymentStatus')
+			logging.warning(f'{status} does not have a corresponding map in PaymentStatus')
 			return PaymentStatus.ROGUE
 
 		return PaymentStatus.__SWISH_API_STATUS_MAPPINGS[status] 
@@ -88,4 +88,3 @@ class SwishPaymentRequest:
 
 	def is_failed(self):
 		return self.status != PaymentStatus.PAID.value and self.status != PaymentStatus.CREATED.value
-	

@@ -16,6 +16,5 @@ def get_qr(request, token):
 
     response = requests.post(qr_endpoint, stream=True, json=data)
 
-    # TODO error handling
     response.raise_for_status()
     return HttpResponse(response.content, content_type=response.headers.get('Content-Type', 'image/png'))

@@ -4,8 +4,10 @@ from django.dispatch import Signal
 import requests
 import json
 
+from bittan.mail.stylers import mail_bittan_developers
+
 from ...models.swish_payment_request import SwishPaymentRequestModel, PaymentErrorCode as SwishApiErrorCode, PaymentStatus as SwishApiPaymentStatus
-from .swish_payment_request import SwishPaymentRequest
+from .swish_payment_request import PaymentStatus, SwishPaymentRequest
 
 from uuid import uuid4
 
@@ -19,10 +21,21 @@ class SwishPaymentRequestResponse:
 	date_paid: None | str
 
 	def __init__(self, response):
-		self.id = response['id']
-		self.status = SwishApiPaymentStatus.from_swish_api_status(response['status'])
-		self.error_code = SwishApiErrorCode.from_swish_reponse_code(response['errorCode'])
-		self.date_paid = response['datePaid']
+		try:
+			self.id = response['id']
+			self.status = SwishApiPaymentStatus.from_swish_api_status(response['status'])
+			self.error_code = SwishApiErrorCode.from_swish_reponse_code(response['errorCode'])
+			self.date_paid = response['datePaid']
+		except Exception as e:
+			try:
+				logging.critical(f'Could not parse swish payment request {response["id"]}')
+			except Exception as e:
+				logging.critical(f'Could not parse swish payment request {e}')
+
+			try:
+				mail_bittan_developers(f'Unable to parse swish response, check logs, {e}', 'Unable to parse swish response')
+			except Exception as _:
+				pass
 
 class Swish:
 	def __init__(self, swish_url, payee_alias, callback_url, cert_file_paths):
@@ -32,7 +45,7 @@ class Swish:
 		self.cert_file_paths = cert_file_paths
 
 
-	def update_swish_payment_request(self, payment_request_response: SwishPaymentRequestResponse, model: SwishPaymentRequestModel | None = None):
+	def update_swish_payment_request(self, payment_request_response, model: SwishPaymentRequestModel | None = None):
 		""" Updates a payment according to a response (payment_request_response) from the Swish api """
 		
 		# We are going to store the raw response data in our model, incase something bad happens and manual analysis
@@ -83,10 +96,13 @@ class Swish:
 
 		response = self.send_to_swish('GET', f'api/v1/paymentrequests/{payment_request_id}')
 		if response.status_code != 200:
-			# TODO Handle errors more elegantly, this should NOT happen!
 			logging.error("PaymentRequestDoes not exist:", payment_request_id)
+			try:
+				mail_bittan_developers(f"Tried to synchronize a swish payment which does not exist on the swish servers. \nSwish side id: {payment_request_id}. {response.text()}", "Tried to sync a payment which does not exist")
+			except Exception as _:
+				pass
 
-			raise Exception("There is no swish payment request with the id ", swish_payment_request)
+			raise Exception("There is no swish payment request with the id ", payment_request_id)
 		
 		response_body = response.json()
 		return self.update_swish_payment_request(response_body, payment_request)
@@ -95,14 +111,14 @@ class Swish:
 	def cancel_payment(self, payment_id: str):
 		""" 
 		Retracts a payment request so that a user is unable to pay it if it has not already been paid. If the payment already is paid, nothing happens.
-		return true if the payment was able to be cancelled, false otherwise
+		returns the Swish status of the supplied payment after cancellation was attempted. 
 		"""
 		headers = {'Content-Type': 'application/json-patch+json'}
 
 		payment_request = SwishPaymentRequestModel.objects.get(pk=payment_id)
 
 		if payment_request.status != SwishApiPaymentStatus.CREATED:
-			return False
+			return payment_request.status
 
 		body = [{
 			"op": "replace",
@@ -114,12 +130,12 @@ class Swish:
 		if not response.ok:
 			# Our internal payment status does not match the payment status that swish has.
 			logging.warn(f'Payment {payment_id} was not able to be cancelled, however it should be cancellable.')
-			self.synchronize_payment_request(payment_id)
-			return False
+			payment_request = SwishPaymentRequest(self.synchronize_payment_request(payment_id))
+			return payment_request.status
 
 		# Note: We do not have to update the payment status if we are able to cancel the payment since swish will send a callback to 
 		# our callback endpoint which inturn will update the payment status. 
-		return True
+		return PaymentStatus.CANCELLED
 
 	def get_payment_request(self, id: str) -> SwishPaymentRequest:
 		payment_request = SwishPaymentRequestModel.objects.get(pk=id)
@@ -181,7 +197,6 @@ class Swish:
 				payment_request_db_object.token = payment_request_token
 				payment_request_db_object.external_uri = payment_request_external_uri 
 			except requests.exceptions.RequestException as e:
-				# TODO This should not happen unless there is a configuration error, or if we have connectivity problems. Handle more gracefully? 
 				logging.error(f'Error creating Swish payment: {e}')
 
 				# The data is, unlike the "happy path", in the body as json if the request fails 

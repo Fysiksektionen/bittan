@@ -28,7 +28,5 @@ class BittanConfig(AppConfig):
         self.swish = Swish(swish_url, payee_alias, callback_url, cert_file_paths)
 
         from bittan.services.swish.swish import payment_signal
-        from bittan.services.swish.example_callback_handler import example_callback_handler_function
         from bittan.services.ticket_processing.payment_request_callback_handler import payment_request_callback_handler
-        payment_signal.connect(example_callback_handler_function)
         payment_signal.connect(payment_request_callback_handler)
