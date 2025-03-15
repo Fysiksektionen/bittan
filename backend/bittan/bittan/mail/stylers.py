@@ -140,7 +140,7 @@ Momsnummer: SE802411-894801</p>
         images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{ticket.external_id}_embed"))
 
     ## Send mail ##
-    send_mail(receiver_address=payment.email, subject=f"Biljett, Fysikalen {date_string}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+    send_mail(receiver_address=payment.email, subject=f"Biljett: {chapter_event.title}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
     payment.sent_email = True
     payment.save()
 

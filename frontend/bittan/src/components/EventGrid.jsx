@@ -4,6 +4,8 @@ import axiosInstance from "../api/axiosConfig";
 
 import "./EventGrid.css";
 
+const basename = process.env.PUBLIC_URL || "";
+
 const EventGrid = () => {
 	const [upcomingEvents, setUpcomingEvents] = useState([]);
 	const [pastEvents, setPastEvents] = useState([]);
@@ -43,7 +45,7 @@ const EventGrid = () => {
 										hour12: false,
 										})}
 								</Card.Text>
-								<Button href={`/events/${event.id}`} className="button">
+								<Button href={`${basename}/events/${event.id}`} className="button">
 									View Details
 								</Button>
 							</Card.Body>
@@ -63,7 +65,7 @@ const EventGrid = () => {
 					{pastEvents.map((event) => (
 						<Dropdown.Item
 							key={event.id}
-							href={`/events/${event.id}`}
+							href={`${basename}/events/${event.id}`}
 							className="dropdown-item"
 						>
 							{event.title}

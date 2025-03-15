@@ -1,0 +1,45 @@
+name: Build and Publish React App
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+
+      - name: Install dependencies
+        run: |
+          cd frontend/bittan
+          npm install
+
+      - name: Build React app
+        run: |
+          cd frontend/bittan
+          npm run build
+
+      - name: Create .tar.gz archive
+        run: |
+          tar -czvf build.tar.gz -C frontend/bittan/build .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Frontend ${{ github.ref_name }}
+          body: Automatically generated frontend release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: build.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
