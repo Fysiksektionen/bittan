@@ -117,18 +117,6 @@ const EventDetails = () => {
       <Container>
       <h2>{event.title}</h2>
       <p>{event.description}</p>
-      <p>
-        Tid: {" "}
-        {new Date(event.event_at).toLocaleString("sv-SE", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: false,
-        })}
-      </p>
 
       {tickets.map((ticket) => (
         <div key={ticket.ticket_type} style={{ marginBottom: "15px" }}>
