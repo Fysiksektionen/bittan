@@ -35,7 +35,7 @@ const EventGrid = () => {
 							<Card.Body className="card-body">
 								<Card.Title className="card-title">{event.title}</Card.Title>
 								<Card.Text className="card-text">
-									{new Date(event.event_at).toLocaleString("en-US", {
+									{new Date(event.event_at).toLocaleString("sv-SE", {
 										weekday: "long",
 										year: "numeric",
 										month: "long",
@@ -46,14 +46,14 @@ const EventGrid = () => {
 										})}
 								</Card.Text>
 								<Button href={`${basename}/events/${event.id}`} className="button">
-									View Details
+									Se mer
 								</Button>
 							</Card.Body>
 						</Card>
 					</Col>
 				))}
 			</Row>
-			<Dropdown>
+		{/*<Dropdown>
 				<Dropdown.Toggle
 					variant="secondary"
 					id="dropdown-basic"
@@ -72,7 +72,7 @@ const EventGrid = () => {
 						</Dropdown.Item>
 					))}
 				</Dropdown.Menu>
-			</Dropdown>
+			</Dropdown>*/}
 		</>
 	);
 };

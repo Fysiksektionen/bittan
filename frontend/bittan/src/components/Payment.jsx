@@ -4,10 +4,11 @@ import { useLocation } from "react-router-dom";
 import { startPayment } from "../api/startPayment";
 import { sessionPaymentStatus } from "../api/sessionPaymentStatus";
 import { generateQR } from "../api/generateQR";
+import { Container, Row, Col } from "react-bootstrap";
 
 const Payment = () => {
   const location = useLocation();
-  const { email, totalAmount, chosenTickets } = location.state || {};
+  const { email, totalAmount, chosenTickets, event } = location.state || {};
   const [swishToken, setSwishToken] = useState(null);
   const [qrUrl, setQrUrl] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -60,38 +61,43 @@ const Payment = () => {
 
   return (
     <div>
-      <h2>Payment</h2>
-
-      <div>
+      <h2>Betalning</h2>
+    
+    <h4>{event.title}</h4>
+    <Container style={{maxWidth: "400px", float: "left"}}>
         {chosenTickets.map((ticket) => (
-          <div key={ticket.ticket_type} style={{ marginBottom: "15px" }}>
-            <span style={{ marginRight: "10px" }}>{ticket.title}:</span>
-            <span style={{ marginRight: "10px" }}>{ticket.count}*</span>
-            <span style={{ marginRight: "10px" }}>{ticket.price}kr </span>
-          </div>
+          <Row key={ticket.ticket_type} style={{ marginBottom: "15px" }}>
+            <Col className="text-left">{ticket.title}:</Col>
+            <Col className="text-left">{ticket.count}st</Col>
+            <Col className="text-left">{ticket.price}kr</Col>
+          </Row>
         ))}
-        <p>TOTAL: {totalAmount} kr (MOMS 0 kr)</p>
-      </div>
+        <Row className="py-1">
+          <Col className="text-left">
+            Totalt: {totalAmount} kr (Moms 0 kr)
+          </Col>
+        </Row>
       
-      <div>
+      <Row>
         <label>
           <input type="checkbox" checked={isChecked} onChange={() => setIsChecked(!isChecked)} />
-            I agree to the <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>{" "}and <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+          {" "}Jag godkänner <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">köpesvillkoren</a>{" "}och <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer">Personuppgiftspolicy</a>
         </label>
-      </div>
+      </Row>
       <div>
         {!qrUrl && (
           <button onClick={handlePayment} className="btn btn-primary" disabled={!isChecked}>
-            Pay with Swish
+            Betala med Swish
           </button>
         )}
         {qrUrl && (
           <div>
-            <p>Scan the QR code with Swish:</p>
+            <p>Skanna QR-koden i Swishappen:</p>
             <img src={qrUrl} alt="Swish QR Code" />
           </div>
         )}
       </div>
+      </Container>
     </div>
   );
 };
