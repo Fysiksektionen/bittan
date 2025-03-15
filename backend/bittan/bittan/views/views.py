@@ -72,6 +72,29 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_404_NOT_FOUND
         )
     
+    # Check if the current session already has a payment with associated tickets. 
+    payment_id = request.session.get("reserved_payment")
+    if payment_id != None:
+        try: 
+            payment = Payment.objects.get(pk=payment_id)
+            # If the payment is already started then attempt to cancel it. 
+            if payment.payment_started:
+                swish = Swish.get_instance() 
+                cancel_status = swish.cancel_payment(payment.swish_id)
+                # Checks if the cancel_status is still CREATED. This should never happen. 
+                if cancel_status == SwishPaymentStatus.CREATED:
+                    logging.warning(f"Swish did not cancel a payment that should be cancelled. Swish payment reference: {payment.swish_id}")
+                    return Response(status=500)
+            else:
+                # Since the payment is not started just failing it should not have any severe consequences.
+                payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+                payment.save()
+        except Payment.DoesNotExist:
+            pass
+        
+        request.session.delete()
+
+    
     if reservation_count > chapter_event.max_tickets_per_payment:
         return Response(
             "TooManyTickets",
