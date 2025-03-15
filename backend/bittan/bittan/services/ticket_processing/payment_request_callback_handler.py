@@ -15,7 +15,10 @@ def payment_request_callback_handler(sender, **kwargs):
 	try:
 		mail_payment(payment)
 	except MailError as e:
-		logging.warning(f'Unable to send mail of payment {payment.pk} due to a mail error: {e}')
+		# TODO mail staff?
+		logging.warning(
+			f'Unable to send mail of payment {payment.pk} due to a mail error: {e}'
+		)
 	except Exception as e:
 		logging.warning(f'Unable to send mail of payment {payment.pk}, {e}')
 
