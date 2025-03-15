@@ -11,6 +11,9 @@ const EventGrid = () => {
 	const [pastEvents, setPastEvents] = useState([]);
 	const [showPast, setShowPast] = useState(false);
 
+
+
+
 	useEffect(() => {
 		// Fetch events from the backend
 
@@ -29,7 +32,8 @@ const EventGrid = () => {
 							{/* If `event.image` is unavailable, display a placeholder */}
 							<Card.Img
 								variant="top"
-								src={event.image || "https://via.placeholder.com/150"}
+								// src={event.image || "https://via.placeholder.com/150"}
+								src={event.image || basename + "/BitTanMärke.png"}
 								alt={event.title}
 							/>
 							<Card.Body className="card-body">
