@@ -228,7 +228,7 @@ def get_chapterevents(request: Request) -> Response:
     now = timezone.now()
     chapter_events = ChapterEvent.objects.filter(sales_stop_at__gt=now).order_by("event_at")
     chapter_events_serialized = ChapterEventSerializer(chapter_events, many=True)
-    ticket_types = {ticket_type for chapter_event in chapter_events for ticket_type in chapter_event.ticket_types.all()}
+    ticket_types = {ticket_type for chapter_event in chapter_events for ticket_type in chapter_event.ticket_types.filter(is_visible=True)}
     ticket_types_serialized = TicketTypeSerializer(ticket_types, many=True)
     data = {"chapter_events": chapter_events_serialized.data, "ticket_types": ticket_types_serialized.data}
     return Response(data)

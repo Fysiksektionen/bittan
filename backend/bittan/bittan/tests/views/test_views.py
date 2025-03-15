@@ -10,6 +10,7 @@ class GetChaptereventsTest(TestCase):
 		self.ticket_type1 = TicketType.objects.create(title="ticket_type1", description="tt1", price=10)
 		self.ticket_type2 = TicketType.objects.create(title="ticket_type2", description="tt2", price=20)
 		self.ticket_type3 = TicketType.objects.create(title="ticket_type3", description="tt3", price=30)
+		self.hidden_ticket_type = TicketType.objects.create(title="Hidden ticket type", description="htt", price=0, is_visible=False)
 
 	def test_empty(self):
 		c = Client()
@@ -23,7 +24,7 @@ class GetChaptereventsTest(TestCase):
 		ce1_database = ChapterEvent.objects.create(title="Title1", description="Description1", total_seats=10, sales_stop_at=now+datetime.timedelta(days=365), event_at=now+datetime.timedelta(days=2))
 		ce1_database.ticket_types.add(self.ticket_type1)
 		ce2_database = ChapterEvent.objects.create(title="Title2", description="Description2", total_seats=10, sales_stop_at=now+datetime.timedelta(days=365), event_at=now+datetime.timedelta(days=1))
-		ce2_database.ticket_types.add(self.ticket_type1, self.ticket_type2)
+		ce2_database.ticket_types.add(self.ticket_type1, self.ticket_type2, self.hidden_ticket_type)
 		ce_dbs = [ce1_database, ce2_database]
 		c = Client()
 		response = c.get("/get_chapterevents/")
