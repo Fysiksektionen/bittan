@@ -5,6 +5,7 @@ import { reserveTicket } from "../api/reserveTicket"; // Separate API file for r
 import Payment from "./Payment"; // Import the Payment component
 
 import "./EventDetails.css"
+import { Col, Container, Row } from "react-bootstrap";
 
 const EventDetails = () => {
   const { id } = useParams();
@@ -94,30 +95,31 @@ const EventDetails = () => {
       await reserveTicket(requestBody);
 
       // Navigate to confirmation page
-      navigate("/Payment", { state: { email, totalAmount, chosenTickets } });
+      navigate("/Payment", { state: { email, totalAmount, chosenTickets, event } });
     } catch (error) {
 
       if(error === "mail") {
-        alert("You have not entered matching emails")
+        alert("Mejladresserna matcher inte. ")
       }
       else if(error === "no tickets") {
-        alert("You have to pick atleast one ticket")
+        alert("Du måste välja minst en biljett")
       }
       else {
-        alert("An error occurred while reserving tickets. Please try again.");
+        alert("Ett fel uppstod när biljetterna skulle reserveras. Prova igen.");
       }
     }
   };
 
-  if (!event) return <p>Loading...</p>;
+  if (!event) return <p>Laddar...</p>;
 
   return (
     <div>
+      <Container>
       <h2>{event.title}</h2>
       <p>{event.description}</p>
       <p>
-        Event Time: {" "}
-        {new Date(event.event_at).toLocaleString("en-US", {
+        Tid: {" "}
+        {new Date(event.event_at).toLocaleString("sv-SE", {
           weekday: "long",
           year: "numeric",
           month: "long",
@@ -153,30 +155,39 @@ const EventDetails = () => {
       ))}
       
       <div>
-        <h4>Total Amount: {totalAmount} kr</h4>
+        <h4>Totalt: {totalAmount} kr</h4>
       </div>
       
-      <div>
-        <div>
+        <Row className="py-1">
+          <Col className="text-left">
+            <input
+              type="email"
+              placeholder="Skriv din mejladress"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{maxWidth: "300px"}}
+            />
+          </Col>
+        </Row>
+        <Row className="py-1">
+          <Col className="text-left">
           <input
             type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div>
-          <input
-            type="email"
-            placeholder="Confirm your email"
+            placeholder="Bekräfta mejladress"
             value={confirmEmail}
             onChange={(e) => setConfirmEmail(e.target.value)}
+            style={{maxWidth: "300px"}}
           />
-        </div>
-      </div>
+          </Col>
+        </Row>
+        <Row className="py-1">
+          <Col className="text-left">
+            <button onClick={handleReserve} className="btn btn-primary">Gå vidare till betalning</button>
+          </Col>
+        </Row>
+      </Container>
       
       <div>
-        <button onClick={handleReserve} className="btn btn-primary">Start Ticket Purchase</button>
       </div>
     </div>
   );
