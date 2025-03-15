@@ -16,6 +16,7 @@ Including another URLconf
 """
 from os import environ
 from django.contrib import admin
+from django.contrib.auth import views as django_views
 from django.urls import path
 
 from bittan.views.swish_views import get_qr
@@ -23,7 +24,8 @@ from bittan.settings import get_bittan_backend_url_path_prefix
 
 from .api.swish import debug_cancel, swish_callback, debug_make_request, debug_synchronize_request
 
-from .views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status
+from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, resend_email, staff_dashboard, update_payment, update_tickets, send_mass_email
+from bittan.views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status
 
 _prefix = get_bittan_backend_url_path_prefix()
 
@@ -36,6 +38,15 @@ urlpatterns = [
     path(_prefix+'session_payment_status/', get_session_payment_status),
     path(_prefix+"start_payment/", start_payment),
     path(_prefix+"generate_qr/<str:token>", get_qr),
+    path(_prefix+"accounts/login/", django_views.LoginView.as_view(), name="login"),
+    path(_prefix+"accounts/logout", django_views.LogoutView.as_view(), name="logout"),
+    path(_prefix+"staff/", staff_dashboard, name="staff_dashboard"), 
+    path(_prefix+"staff/update_payment/<int:payment_id>/", update_payment, name="update_payment"),
+    path(_prefix+"staff/update_tickets/<int:payment_id>/", update_tickets, name="update_tickets"),
+    path(_prefix+"staff/create_tickets", create_tickets , name="create_tickets"),
+    path(_prefix+"staff/resend_email", resend_email),
+    path(_prefix+"staff/filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
+    path(_prefix+"staff/send_mass_mail", send_mass_email),
 ]
 
 
