@@ -10,7 +10,6 @@ const Layout = ({ children }) => (
       <Container>
         <Navbar.Brand href={basename}>Biljettbokning</Navbar.Brand>
         <Nav className="me-auto">
-          <Nav.Link href="/">Fysikalen</Nav.Link>
         </Nav>
       </Container>
     </Navbar>
