@@ -99,10 +99,10 @@ const EventDetails = () => {
     } catch (error) {
 
       if(error === "mail") {
-        alert("Mejladresserna matcher inte. ")
+        alert("Mejladresserna matcher inte.")
       }
       else if(error === "no tickets") {
-        alert("Du måste välja minst en biljett")
+        alert("Du måste välja minst en biljett.")
       }
       else {
         alert("Ett fel uppstod när biljetterna skulle reserveras. Prova igen.");
