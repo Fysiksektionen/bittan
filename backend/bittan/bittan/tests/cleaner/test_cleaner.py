@@ -93,7 +93,6 @@ class CleanerTicketReservationIntegrationTest(TestCase):
 		call_command("run_cleaner")
 		payment = Payment.objects.get(pk=payment_id)
 		self.assertEqual(payment.status, PaymentStatus.RESERVED, "Payment was cleaned when it was started.")
-		pass
 
 
 class RunCleanerTest(TestCase):
