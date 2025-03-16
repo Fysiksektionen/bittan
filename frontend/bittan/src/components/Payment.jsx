@@ -43,11 +43,11 @@ const Payment = () => {
     setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
   }, []);
 
-  const handlePayment = async () => {
+  const handlePayment = async (sameDevice) => {
     try {
       const token = await startPayment(email);
       setSwishToken(token);
-      if (isMobile) {
+      if (sameDevice) {
         const callbackurl = window.location.origin + basename + "/booking-confirmed"
         window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
       } else {
@@ -86,19 +86,26 @@ const Payment = () => {
           {" "}Jag godkänner <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">köpesvillkoren</a>{" "}och <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer">Personuppgiftspolicy</a>
         </label>
       </Row>
-      <div>
         {!qrUrl && (
-          <button onClick={handlePayment} className="btn btn-primary" disabled={!isChecked}>
-            Betala med Swish
-          </button>
-        )}
-        {qrUrl && (
           <div>
-            <p>Skanna QR-koden i Swishappen:</p>
-            <img src={qrUrl} alt="Swish QR Code" />
+            <Row className="py-1">
+              <button onClick={() => handlePayment(true)} className="btn btn-primary" disabled={!isChecked}>
+                Betala med Swish på denna enhet
+              </button>
+            </Row>
+            <Row className="py-1">
+              <button onClick={() => handlePayment(false)} className="btn btn-primary" disabled={!isChecked}> 
+                Betala med Swish på annan enhet 
+              </button>
+            </Row>
           </div>
         )}
-      </div>
+        {qrUrl && (
+            <Row className="py-1">
+              <p>Skanna QR-koden i Swishappen:</p>
+              <img src={qrUrl} alt="Swish QR Code" />
+            </Row>
+        )}
       </Container>
     </div>
   );
