@@ -9,8 +9,6 @@ RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 COPY . /bittan
 
-RUN printenv | sed 's/^/export /' > /etc/environment
-
 RUN apt-get install -y cron
 RUN crontab crontab
 
