@@ -12,7 +12,7 @@ const BookingConfirmed = () => {
     {!status && (
       <div>
         <h1>Ett fel uppstod</h1>
-        <p>Betaningen kunde inte hittas.</p>
+        <p>Betalningen kunde inte hittas.</p>
       </div>
     )}
     {status && (
