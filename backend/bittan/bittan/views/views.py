@@ -211,7 +211,7 @@ def start_payment(request):
     
     swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
     
-    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, "RF07")
+    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
 
     if payment_request.is_failed():
         payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
