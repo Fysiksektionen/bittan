@@ -48,8 +48,7 @@ const Payment = () => {
       const token = await startPayment(email);
       setSwishToken(token);
       if (isMobile) {
-        const callbackurl = window.location.origin + basename + "/booking-confirmed"
-        window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
+        window.location = `swish://paymentrequest?token=${token}&callbackurl`;
       } else {
         const response = await generateQR(token);
         const blob = new Blob([response], { type: 'image/png' });
