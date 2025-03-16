@@ -21,9 +21,8 @@ from bittan.models.payment import PaymentStatus
 from bittan.mail import mail_payment, send_bulk_mail
 from bittan.mail import MailError
 
-PREFIX = settings.get_bittan_backend_url_path_prefix()
-if PREFIX == "":
-    PREFIX = "/"
+PREFIX = "/"
+PREFIX += settings.get_bittan_backend_url_path_prefix()
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
