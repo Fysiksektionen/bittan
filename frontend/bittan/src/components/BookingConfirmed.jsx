@@ -12,7 +12,7 @@ const BookingConfirmed = () => {
       <h2>Ditt biljettköp har gått igenom</h2>
         <div>Dina biljetter och bokningsbekräftelse har skickats till {email}.</div>
 
-        <div>Om du inte har tagit emot dina biljetter inom 20 mintuer kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>
+        <div>Om du inte har tagit emot dina biljetter inom 20 minuter kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>
         </div>
     </div>
   );
