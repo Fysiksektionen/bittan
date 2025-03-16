@@ -16,6 +16,7 @@ const EventDetails = () => {
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("")
   const [maxTickets, setMaxTickets] = useState(8)
+  const [error, setError] = useState('');
 
   useEffect(() => {
     // Fetch event details
@@ -69,9 +70,12 @@ const EventDetails = () => {
     setTotalAmount(total);
   };
 
-  const handleReserve = async () => {
+  const handleReserve = async (e) => {
+    e.preventDefault();
     try {
 
+      if (email === "") throw "no_mail"
+      
       if (email !== confirmEmail) throw "mail"
 
       var chosenTickets = tickets
@@ -99,13 +103,16 @@ const EventDetails = () => {
     } catch (error) {
 
       if(error === "mail") {
-        alert("Mejladresserna matcher inte.")
+        setError("Mejladresserna matcher inte.")
       }
       else if(error === "no tickets") {
-        alert("Du måste välja minst en biljett.")
+        setError("Du måste välja minst en biljett.")
+      }
+      else if (error === "no_mail") {
+        setError("Du måste ange en mejladress")
       }
       else {
-        alert("Ett fel uppstod när biljetterna skulle reserveras. Prova igen.");
+        setError("Ett fel uppstod när biljetterna skulle reserveras. Prova igen.");
       }
     }
   };
@@ -146,6 +153,7 @@ const EventDetails = () => {
         <h4>Totalt: {totalAmount} kr</h4>
       </div>
       
+      <form onSubmit={handleReserve}>
         <Row className="py-1">
           <Col className="text-left">
             <input
@@ -168,11 +176,13 @@ const EventDetails = () => {
           />
           </Col>
         </Row>
+          {error && <Row className="py-1"><Col className="text-left text-danger">{error}</Col></Row>}
         <Row className="py-1">
           <Col className="text-left">
-            <button onClick={handleReserve} className="btn btn-primary">Gå vidare till betalning</button>
+            <button type="submit" className="btn btn-primary">Gå vidare till betalning</button>
           </Col>
         </Row>
+    </form>
       </Container>
       
       <div>
