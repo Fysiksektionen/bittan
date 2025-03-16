@@ -45,13 +45,16 @@ const Payment = () => {
 
   const handlePayment = async (sameDevice) => {
     try {
-      const token = await startPayment(email);
-      setSwishToken(token);
+      if(!swishToken) {
+        const token = await startPayment(email);
+        setSwishToken(token);
+      }
+
       if (sameDevice) {
         const callbackurl = window.location.origin + basename + "/booking-confirmed"
-        window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
+        window.location = `swish://paymentrequest?token=${swishToken}&callbackurl=${callbackurl}`;
       } else {
-        const response = await generateQR(token);
+        const response = await generateQR(swishToken);
         const blob = new Blob([response], { type: 'image/png' });
         const qrCodeUrl = URL.createObjectURL(blob);
         setQrUrl(qrCodeUrl);
