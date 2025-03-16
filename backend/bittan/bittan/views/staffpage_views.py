@@ -1,3 +1,4 @@
+from bittan import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
@@ -19,6 +20,10 @@ from bittan.models import ChapterEvent, Ticket, Payment
 from bittan.models.payment import PaymentStatus
 from bittan.mail import mail_payment, send_bulk_mail
 from bittan.mail import MailError
+
+PREFIX = settings.get_bittan_backend_url_path_prefix()
+if PREFIX == "":
+    PREFIX = "/"
 
 @login_required
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
@@ -73,6 +78,7 @@ def staff_dashboard(request):
     
     ce_create_ticket_dropdown = ChapterEventDropdownTicketCreation
 
+
     context = {
         "dropDownMenu": dropdown, 
         "chapter_events": chapter_events, 
@@ -84,6 +90,7 @@ def staff_dashboard(request):
         "payment_forms": payment_forms,
         "ticket_forms": ticket_forms,
         "createTicketDropdown": ce_create_ticket_dropdown,
+        "url_prefix": PREFIX 
     }
 
     return render(request, "staff_dashboard.html", context)
@@ -104,7 +111,7 @@ def update_payment(request, payment_id):
     if serializer.is_valid():
         serializer.save()
         query_param = request.POST.get("query")
-        return redirect(f"/staff/?query={query_param}") 
+        return redirect(f"{PREFIX}staff/?query={query_param}") 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
 @api_view(["GET"])
@@ -165,7 +172,7 @@ def update_tickets(request, payment_id):
             if delete_checkbox:
                 ticket.delete()
 
-    return redirect(f"/staff/?query={payment.swish_id}") 
+    return redirect(f"{PREFIX}staff/?query={payment.swish_id}") 
 
     
 

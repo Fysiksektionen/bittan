@@ -3,7 +3,7 @@ function sendMassEmail(chapter_event_id) {
     const email_content = document.getElementById("email-content").value
     const email_subject = document.getElementById("mass-email-subject").value
     axios.post(
-        "/staff/send_mass_mail",
+        window.url_prefix + "staff/send_mass_mail",
         {
             "chapter_event_id": chapter_event_id,
             "email_subject": email_subject,
@@ -32,7 +32,7 @@ function sendMassEmail(chapter_event_id) {
 function resendEmail(paymentId) {
     const csrf = document.querySelector('meta[name="csrf-token"]').content
     axios.post(
-        "/staff/resend_email",
+        window.url_prefix + "staff/resend_email",
         {"paymentId": paymentId},
         {
             headers: {
@@ -68,6 +68,8 @@ function calculateTotalPrice() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    window.url_prefix = document.querySelector('meta[name="url_prefix"]').content
+
     const chapterEventSelect = document.querySelector('#ticket-creation-chapter-event-form select[name="chapter_event"]');;
     const ticketFormContainer = document.getElementById('ticket-form-container');
 
@@ -78,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ticketFormContainer.innerHTML = `<form id="ticket-form">${csrf}</form>`
             return
         }
-        axios.get(`/staff/filter_ticket_type_by_chapter_event/${chapterEventId}/`)
+        axios.get(window.url_prefix + `staff/filter_ticket_type_by_chapter_event/${chapterEventId}/`)
             .then(response => {
                 const ticketTypes = response.data.ticket_types;
                 let formHtml = '<table>';
@@ -101,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         event.preventDefault();
         const formData = new FormData(document.getElementById("ticket-form"));
         formData.append("chapter_event", document.querySelector('#ticket-creation-chapter-event-form select[name="chapter_event"]').value)
-        axios.post("/staff/create_tickets", formData)
+        axios.post(window.url_prefix + "staff/create_tickets", formData)
             .then(response => {
                 alert(`Tickets created successfully: Created payment with reference ${response.data}`);
             })
