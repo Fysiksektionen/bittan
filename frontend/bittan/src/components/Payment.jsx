@@ -24,9 +24,13 @@ const Payment = () => {
     const fetchStatus = async () => {
       try {
         const response = await sessionPaymentStatus();
-        if (response === "PAID") {
+        if (response.status === "PAID") {
           clearInterval(interval);
-          navigate("/booking-confirmed", { state: { email } });
+          navigate("/booking-confirmed", { state: { mail: response.mail, status: response.status, reference: response.reference } });
+        }
+        else if (response.status !== "RESERVED") {
+          clearInterval(interval);
+          navigate("/booking-confirmed", { state: { mail: "", status: response.status, reference: "" } });
         }
       } catch (error) {
         console.error("Error fetching payment status:", error);

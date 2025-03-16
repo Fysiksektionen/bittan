@@ -1,3 +1,4 @@
+from requests import api
 from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
@@ -45,7 +46,10 @@ def get_session_payment_status(request: Request) -> Response:
                 "Session had a payment id, but no such payment existed in the database",
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-    return Response(payment.status)
+    if payment.status == PaymentStatus.PAID:
+        return Response({"status": payment.status, "mail": payment.email, "reference": payment.swish_id})
+
+    return Response({"status": payment.status, "mail": payment.email})
 
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
@@ -207,7 +211,7 @@ def start_payment(request):
     
     swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
     
-    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
+    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, "RF07")
 
     if payment_request.is_failed():
         payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
