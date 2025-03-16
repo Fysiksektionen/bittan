@@ -8,12 +8,14 @@ from bittan.mail import mail_payment
 
 def payment_request_callback_handler(sender, **kwargs):
 	payment_request = kwargs["payment_request"]
+	logging.info(f"Received callback from Swish for SwishId: {payment_request.id}")
 	payment = Payment.objects.get(swish_id=payment_request.id)
 	
 	if payment_request.is_paid():
 		payment.status = PaymentStatus.PAID
 		payment.time_paid = payment_request.date_paid
 		payment.save()
+		logging.info(f"Payment id: {payment.pk}; Swish id: {payment.swish_id} marked as paid in callback.")
 		# Ugly hack to make the string into a datetime object
 		payment = Payment.objects.get(swish_id=payment_request.id)
 
@@ -34,5 +36,6 @@ def payment_request_callback_handler(sender, **kwargs):
 
 
 	if payment_request.is_failed():
+		logging.info(f"Payment id: {payment.pk}; Swish id: {payment.swish_id} marked as failed in callback.")
 		payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
 	payment.save()
