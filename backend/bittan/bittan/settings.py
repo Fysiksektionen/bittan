@@ -199,13 +199,13 @@ LOGGING = {
         "fileInfo": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": "log-info.log",
+            "filename": "logs/log-info.log",
             "formatter": "level_time",
         },
         "fileWarning": {
             "level": "WARNING",
             "class": "logging.FileHandler",
-            "filename": "log-warning.log",
+            "filename": "logs/log-warning.log",
             "formatter": "level_time",
         },
     },

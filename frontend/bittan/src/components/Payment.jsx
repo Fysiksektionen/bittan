@@ -6,6 +6,8 @@ import { sessionPaymentStatus } from "../api/sessionPaymentStatus";
 import { generateQR } from "../api/generateQR";
 import { Container, Row, Col } from "react-bootstrap";
 
+const basename = process.env.PUBLIC_URL || "";
+
 const Payment = () => {
   const location = useLocation();
   const { email, totalAmount, chosenTickets, event } = location.state || {};
@@ -46,7 +48,7 @@ const Payment = () => {
       const token = await startPayment(email);
       setSwishToken(token);
       if (isMobile) {
-        const callbackurl = `${window.location.origin}/booking-confirmed`;
+        const callbackurl = window.location.origin + basename + "/booking-confirmed"
         window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
       } else {
         const response = await generateQR(token);
