@@ -37,7 +37,7 @@ const Payment = () => {
       }
     };
 
-    interval = setInterval(fetchStatus, 5000);
+    interval = setInterval(fetchStatus, 1000);
     fetchStatus();
 
     return () => clearInterval(interval);
@@ -49,11 +49,14 @@ const Payment = () => {
 
   const handlePayment = async (sameDevice) => {
     try {
-      const token = await startPayment(email);
-      setSwishToken(token);
+      let token = swishToken;
+      if(!swishToken) {
+        token = await startPayment(email);
+        setSwishToken(token);
+      }
+
       if (sameDevice) {
-        const callbackurl = window.location.origin + basename + "/booking-confirmed"
-        window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
+        window.location = `swish://paymentrequest?token=${token}`;
       } else {
         const response = await generateQR(token);
         const blob = new Blob([response], { type: 'image/png' });
@@ -115,6 +118,9 @@ const Payment = () => {
           Om du inte kan betala med Swish: Vi erbjuder även betalning via banköverföring. Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>. Kortbetalning erbjuds endast vid köp av biljett i kassan på teatern (notera att biljetten då inte kan förbokas och att föreställningen kan sälja slut). 
         </p>
       </Row>
+        <Row>
+          <p>Du skickas tillbaka till denna sida efter att du betalat. Har du betalat omdirigeras du inom kort.</p>
+        </Row>
       </Container>
     </div>
   );

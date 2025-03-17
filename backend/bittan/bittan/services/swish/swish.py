@@ -96,13 +96,13 @@ class Swish:
 
 		response = self.send_to_swish('GET', f'api/v1/paymentrequests/{payment_request_id}')
 		if response.status_code != 200:
-			logging.error("PaymentRequestDoes not exist:", payment_request_id)
+			logging.error("Could not synchronize synchronize payment with swish:", payment_request_id)
 			try:
-				mail_bittan_developers(f"Tried to synchronize a swish payment which does not exist on the swish servers. \nSwish side id: {payment_request_id}. {response.text()}", "Tried to sync a payment which does not exist")
+				mail_bittan_developers(f"Failed to synchronize a swish payment. \n SwishPaymentRequestId: {payment_request_id}. {response.text()}", "Tried to sync a payment which does not exist")
 			except Exception as _:
 				pass
 
-			raise Exception("There is no swish payment request with the id ", payment_request_id)
+			raise Exception("Could not synchronize a payment with swish", payment_request_id)
 		
 		response_body = response.json()
 		return self.update_swish_payment_request(response_body, payment_request)

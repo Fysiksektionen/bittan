@@ -76,6 +76,14 @@ f"""
         message += \
 f"""
 <p><u>Kvitto</u>:</p>
+"""
+    else: 
+        message += \
+f"""
+<p><u>Orderöversikt</u>:</p>
+"""
+    message += \
+f"""
 <p><b>Referensnummer: </b>{payment.swish_id}</p>
 
 <table style="border-spacing: 8px">
@@ -89,13 +97,13 @@ f"""
 
 <p>Länk till <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view?usp=drive_link">Köp- och leveransvillkor</a>
 """
-        ticket_groups = (payment.ticket_set
-            .values("ticket_type__title")
-            .annotate(count=Count("id"))
-            .annotate(price=F("ticket_type__price"))
-        )
-        for ticket_data in ticket_groups:
-            message += \
+    ticket_groups = (payment.ticket_set
+        .values("ticket_type__title")
+        .annotate(count=Count("id"))
+        .annotate(price=F("ticket_type__price"))
+    )
+    for ticket_data in ticket_groups:
+        message += \
 f"""
 <tr>
 <td align="left">{chapter_event.title}: {ticket_data["ticket_type__title"]}</td>

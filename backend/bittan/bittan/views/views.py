@@ -108,7 +108,10 @@ def reserve_ticket(request: Request) -> Response:
 
     if reservation_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
         return Response(
-            "OutOfTickets", 
+            {
+                "error": "OutOfTickets", 
+                "tickets_left": chapter_event.total_seats - chapter_event.alive_ticket_count
+            },
             status=status.HTTP_403_FORBIDDEN
         )
 
@@ -179,12 +182,15 @@ def start_payment(request):
 
     payment = Payment.objects.get(pk=payment_id)
 
-    if payment.payment_started:
+    if payment.status == PaymentStatus.PAID.value:
         return Response(
                 "AlreadyPaidPayment",
                 status=status.HTTP_403_FORBIDDEN
             )
 
+    swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
+    if payment.payment_started:
+        return Response(swish.get_payment_request(payment.swish_id).token)
 
     tickets = payment.ticket_set.all()
 
