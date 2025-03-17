@@ -49,6 +49,7 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 	message = MIMEMultipart("related")
 	message["Subject"] = subject
 	message["To"] = receiver_address
+	message["From"] = '"Fysiksektionen Biljetter" <biljett@fysiksektionen.se>'
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
 
 	for image_to_embed in images_to_embed:
@@ -80,7 +81,7 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 	return
 
 def _get_credentials() -> Credentials:
-	scopes = ["https://www.googleapis.com/auth/gmail.send"]
+	scopes = ["https://www.googleapis.com/auth/gmail.send", "https://www.googleapis.com/auth/gmail.settings.sharing"]
 
 	creds = None
 	
