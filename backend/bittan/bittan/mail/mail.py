@@ -81,7 +81,7 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 	return
 
 def _get_credentials() -> Credentials:
-	scopes = ["https://www.googleapis.com/auth/gmail.send", "https://www.googleapis.com/auth/gmail.settings.sharing"]
+	scopes = ["https://www.googleapis.com/auth/gmail.send"]
 
 	creds = None
 	
