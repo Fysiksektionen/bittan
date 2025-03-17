@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const chapterEventSelect = document.querySelector('#ticket-creation-chapter-event-form select[name="chapter_event"]');;
     const ticketFormContainer = document.getElementById('ticket-form-container');
 
+
     chapterEventSelect.addEventListener('change', function() {
         const chapterEventId = chapterEventSelect.value;
         const csrf = ticketFormContainer.querySelector('input[name="csrfmiddlewaretoken"]').outerHTML
@@ -90,7 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 formHtml += '<tr><td>Total Price</td><td><input type="text" id="total-price" readonly></td></tr>';
                 formHtml += '<tr><td>Email Address</td><td><input type="email" name="email" required></td></tr>';
-                formHtml += '<tr><td><input type="checkbox" name="ignore_seat_limit"></td><td>Ignore limit in total seat count.</td></tr>'
+                formHtml += '<tr><td><input type="checkbox" name="ignore_seat_limit"></td><td>Ignore limit in total seat count</td></tr>'
+                formHtml += '<tr><td><input type="checkbox" name="send_receipt"></td><td>Send receipt</td></tr>'
                 formHtml += '</table><button type="submit">Create Tickets</button>';
                 ticketFormContainer.innerHTML = `<form id="ticket-form">${csrf}${formHtml}</form>`;
             })

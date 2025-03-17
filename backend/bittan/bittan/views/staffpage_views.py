@@ -126,6 +126,7 @@ def filter_ticket_type_from_chapter_event(request, chapter_event_id) -> Response
     except ChapterEvent.DoesNotExist:
         return Response({"error": "Chapter event not found"}, status=status.HTTP_404_NOT_FOUND)
 
+
 @require_POST
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
 def update_tickets(request, payment_id):
@@ -180,6 +181,7 @@ class TicketCreationSerializer(serializers.Serializer):
     chapter_event = serializers.PrimaryKeyRelatedField(queryset=ChapterEvent.objects.all())
     ticket_types = serializers.DictField(child=serializers.IntegerField())
     ignore_seat_limit = serializers.BooleanField()
+    send_receipt = serializers.BooleanField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -216,13 +218,15 @@ def create_tickets(request) -> Response:
     email = serializer.validated_data['email']
     ticket_counts = {f"ticket_type_{ticket_type.id}": serializer.validated_data.get(f"ticket_type_{ticket_type.id}", 0) for ticket_type in ticket_types}
     ignore_seat_limit = serializer.validated_data["ignore_seat_limit"]
+    send_receipt = serializer.validated_data["send_receipt"]
 
     payment = Payment.objects.create(
         expires_at=timezone.now() + chapter_event.reservation_duration,
         swish_id=str(uuid4()).replace('-', '').upper(),
         status=PaymentStatus.PAID,
         email=email,
-        payment_started=True
+        payment_started=True,
+        time_paid=timezone.now()
     )
 
     for ticket_type in ticket_types:
@@ -246,7 +250,7 @@ def create_tickets(request) -> Response:
                 return Response("Failed to create tickets.", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     try:
-        mail_payment(payment)
+        mail_payment(payment, send_receipt=send_receipt)
     except MailError as e:
         logging.warning(f"Error {e} when attempting to send mail for staff created tickets.")
         payment.status = PaymentStatus.FAILED_ADMIN
