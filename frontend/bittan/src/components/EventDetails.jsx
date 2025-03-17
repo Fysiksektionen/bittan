@@ -39,6 +39,7 @@ const EventDetails = () => {
           title: type.title,
           price: type.price,
           count: 0,
+          description: type.description,
         }))
       );
     });
@@ -111,6 +112,9 @@ const EventDetails = () => {
       else if (error === "no_mail") {
         setError("Du måste ange en mejladress")
       }
+      else if (error.response && error.response.data.error === "OutOfTickets") {
+        setError(`Endast ${error.response.data.tickets_left} biljetter kvar till denna föreställning.`)
+      }
       else {
         setError("Ett fel uppstod när biljetterna skulle reserveras. Prova igen.");
       }
@@ -122,33 +126,71 @@ const EventDetails = () => {
   return (
     <div>
       <Container>
+    <Row>
+    <Col>
       <h2>{event.title}</h2>
       <p>{event.description}</p>
+      <p>
+        Tid: {" "}
+        {new Date(event.event_at).toLocaleString("sv-SE", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: false,
+        })}
+      </p>
+    </Col>
+    </Row>
 
       {tickets.map((ticket) => (
-        <div key={ticket.ticket_type} style={{ marginBottom: "15px" }}>
-          <span style={{ marginRight: "10px" }}>{ticket.title}</span>
-          <span style={{ marginRight: "10px" }}>{ticket.price} kr</span>
-          <button
-            onClick={() => handleTicketChange(ticket.ticket_type, "decrement")}
-            className="btn btn-primary"
-            disabled={ticket.count === 0}
-            style={{ marginRight: "5px" }}
-          >
-            -
-          </button>
-          <span>{ticket.count}</span>
-          <button
-            onClick={() => handleTicketChange(ticket.ticket_type, "increment")}
-            className="btn btn-primary"
-            disabled={tickets.reduce((sum, t) => sum + t.count, 0) >= maxTickets}
-            style={{ marginLeft: "5px" }}
-          >
-            +
-          </button>
-        </div>
+        <Row key={ticket.ticket_type} className="p-0" style={{ maxWidth: "400px" }} >
+          <Col style={{ marginBottom: "15px"}}>
+            <Container className="elevated-container">
+              <Row className="p-0 pt-2 m-0 g-0">
+                <Col xs={4} className="d-flex text-center justify-content-center align-items-center">
+                  <b>{ticket.title}</b>
+                </Col>
+                <Col xs={2} className="d-flex text-center justify-content-center align-items-center">
+                  {ticket.price} kr
+              </Col>
+              <Col className="text-center">
+                <button
+                  onClick={() => handleTicketChange(ticket.ticket_type, "decrement")}
+                  className="btn btn-primary"
+                  disabled={ticket.count === 0}
+                  style={{ marginRight: "-24px"}}
+                >
+                  -
+                </button>
+              </Col>
+              <Col className="d-flex text-center justify-content-center align-items-center">
+                {ticket.count}
+              </Col>
+              <Col className="text-center">
+                <button
+                  onClick={() => handleTicketChange(ticket.ticket_type, "increment")}
+                  className="btn btn-primary"
+                  disabled={tickets.reduce((sum, t) => sum + t.count, 0) >= maxTickets}
+                  style={{ marginLeft: "-24px"}}
+                >
+                  +
+                </button>
+              </Col>
+              </Row>
+              <Row className="pt-3 pb-3">
+                <Col className="text-left">
+                  {ticket.description}
+                </Col>
+              </Row>
+            </Container>
+          </Col>
+        </Row>
       ))}
-      
+
+
       <div>
         <h4>Totalt: {totalAmount} kr</h4>
       </div>
@@ -182,11 +224,8 @@ const EventDetails = () => {
             <button type="submit" className="btn btn-primary">Gå vidare till betalning</button>
           </Col>
         </Row>
-    </form>
+        </form>
       </Container>
-      
-      <div>
-      </div>
     </div>
   );
 };

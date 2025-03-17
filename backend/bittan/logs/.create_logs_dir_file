@@ -1,0 +1,2 @@
+THIS FILE DOES NOTHING.
+It is only here so that the logs directory is included in the git repo. Without this directory the django app will not run

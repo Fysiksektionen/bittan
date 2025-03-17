@@ -59,3 +59,9 @@
 .card button:hover {
 	background-color: #0056b3; /* Darker blue on hover */
 }
+
+.elevated-container {
+  box-shadow: 8px 8px 8px 0px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  border-radius: 8px; /* Optional: Round the corners */
+  background-color: #fff; /* Ensure the background is visible */
+}
