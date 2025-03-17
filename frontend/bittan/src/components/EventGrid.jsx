@@ -31,7 +31,7 @@ const EventGrid = () => {
 								variant="top"
 								src={event.image || basename + "/earhart_poster.png"}
 								alt={event.title}
-								style={{height: "auto", width: "20vw", backgroundColor: "transparent"}}
+								style={{height: "auto", width: "20vh", backgroundColor: "transparent"}}
 							/>
 							<Card.Body className="card-body">
 								<Card.Title className="card-title">{event.title}</Card.Title>
