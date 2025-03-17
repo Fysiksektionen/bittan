@@ -179,12 +179,15 @@ def start_payment(request):
 
     payment = Payment.objects.get(pk=payment_id)
 
-    if payment.payment_started:
+    if payment.status == PaymentStatus.PAID.value:
         return Response(
                 "AlreadyPaidPayment",
                 status=status.HTTP_403_FORBIDDEN
             )
 
+    swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
+    if payment.payment_started:
+        return Response(swish.get_payment_request(payment.swish_id).token)
 
     tickets = payment.ticket_set.all()
 
