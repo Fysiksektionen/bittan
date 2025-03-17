@@ -5,13 +5,14 @@ from ..models.chapter_event import ChapterEvent
 from ..models.ticket import Ticket
 from ..models.ticket_type import TicketType
 from django.utils import timezone
+from django.db.models import Count, F
 import qrcode
 import aggdraw
 import io
 import logging
 import os
 
-def mail_payment(payment: Payment):
+def mail_payment(payment: Payment, send_receipt=True):
     """
     Wrapper function to handle everything involved in sending an email containing the tickets in a payment.
     All tickets related to this payment must be from the same ChapterEvent.
@@ -35,6 +36,8 @@ def mail_payment(payment: Payment):
     start_time = event_at.strftime("%H:%M")
     doors_open = doors_open.strftime("%H:%M")
 
+    paid_at = timezone.localtime(payment.time_paid)
+
     ## Generate message ##
     message = \
 f"""
@@ -55,13 +58,75 @@ f"""
     for ticket, ticket_type in zip(tickets, ticket_types):
         message += f'<img src="cid:biljett_{ticket.external_id}_embed" alt="{ticket_type.title} {date_string_no_year}: {ticket.external_id}">'
     
+    if send_receipt: 
+        message += \
+f"""
+<p><u>Kvitto</u>:</p>
+<p><b>Referensnummer: </b>{payment.swish_id}</p>
+
+<table style="border-spacing: 8px">
+<tr>
+<th align="left">Namn</th>
+<th align="left">Antal</th>
+<th align="left">á pris</th>
+<th align="left">Moms</th>
+<th align="left">Totalt</th>
+</tr>
+"""
+        ticket_groups = (payment.ticket_set
+            .values("ticket_type__title")
+            .annotate(count=Count("id"))
+            .annotate(price=F("ticket_type__price"))
+        )
+        for ticket_data in ticket_groups:
+            message += \
+f"""
+<tr>
+<td align="left">{chapter_event.title}: {ticket_data["ticket_type__title"]}</td>
+<td align="left">{ticket_data["count"]}</td>
+<td align="left">{ticket_data["price"]} kr</td>
+<td align="left">{0*ticket_data["price"]} kr</td>
+<td align="left">{ticket_data["count"]*ticket_data["price"]} kr</td>
+<tr/>
+"""
+
+        message += \
+f"""
+<tr>
+<td align="left">Summa</td>
+<td></td>
+<td></td>
+<td>0 kr</td>
+<td align="left">{sum(group["count"]*group["price"] for group in ticket_groups)} kr</td>
+</tr>
+</table>
+
+<table style="border-spacing: 8px">
+<tr>
+<th align="left">Betalmetod</th>
+<th align="left">Tid</th>
+<tr/>
+
+<tr>
+<td align="left">{payment.payment_method}</td>
+<td align="left">{paid_at.strftime("%Y-%m-%d")}</td>
+</tr>
+<tr>
+<td></td>
+<td align="left">{paid_at.strftime("%H:%M:%S")}</td>
+</tr>
+</tr>
+</table>
+
+
+<p>Fysiksektionen, THS <br/>
+Brinellvägen 89 <br/>
+100 44 Stockholm <br/>
+Momsnummer: SE802411-894801</p>
+"""
+
     message += \
 """
-<p>Varmt välkommen!</p>
-
-<p><u>Kvitto</u>:</p>
-<p>[KVITTO... DETTA MAIL ÄR ETT TESTUTSKICK, EJ RIKTIG BILJETT]</p>
-
 <i>Har du frågor angående ditt köp? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
 </html>
 """
@@ -75,7 +140,7 @@ f"""
         images_to_embed.append(MailImage(imagebytes=imagebytes, filename=f"biljett_{ticket.external_id}_embed"))
 
     ## Send mail ##
-    send_mail(receiver_address=payment.email, subject=f"Biljett, Fysikalen {date_string}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
+    send_mail(receiver_address=payment.email, subject=f"Biljett: {chapter_event.title}", images_to_attach=images_to_attach, images_to_embed=images_to_embed, message_content=message)
     payment.sent_email = True
     payment.save()
 

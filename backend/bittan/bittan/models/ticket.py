@@ -7,3 +7,7 @@ class Ticket(models.Model):
 	ticket_type = models.ForeignKey('TicketType', on_delete=models.DO_NOTHING)
 	times_used = models.IntegerField(default=0)
 	chapter_event = models.ForeignKey("ChapterEvent", on_delete=models.DO_NOTHING)
+
+	def __str__(self) -> str:
+		return self.external_id
+

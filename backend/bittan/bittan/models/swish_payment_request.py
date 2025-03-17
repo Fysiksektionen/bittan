@@ -2,6 +2,8 @@ from django.db import models
 from django_enumfield import enum
 import logging
 
+from bittan.mail.stylers import mail_bittan_developers
+
 class PaymentStatus(enum.Enum):
 	# Seems to be duplicate of transaction declined, either here or in PaymentErrorCode. See https://github.com/Fysiksektionen/bittan/issues/13
 	""" Swish-side status of a payment """
@@ -23,7 +25,12 @@ class PaymentStatus(enum.Enum):
 	def from_swish_api_status(status: str):
 		""" Try to get the status from the mapping otherwise log an error and None """
 		if status not in PaymentStatus.__SWISH_API_STATUS_MAPPINGS:
-			logging.ERROR(f"Unknown Swish API status: {status}")
+			logging.critical(f"Unknown Swish API status: {status}")
+			try:
+				mail_bittan_developers(f"Swish sent the status {status}, but this status string is not known, or handled by our code.", "Unknown swish response status")
+			except Exception as _:
+				pass
+
 			return None
 		return PaymentStatus[status]
 
@@ -51,6 +58,7 @@ class PaymentErrorCode(enum.Enum):
 			return None
 
 		if status not in PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS:
+			logging.info(f"Swish sent an error code, '{status}', which is not in the swish error code mapping enum")
 			return PaymentErrorCode.UNKNOWN
 		return PaymentErrorCode.__SWISH_ERROR_CODE_MAPPINGS[status]
 
