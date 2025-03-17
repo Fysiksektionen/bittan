@@ -34,7 +34,7 @@ const EventGrid = () => {
 								variant="top"
 								src={event.image || basename + "/BitTanMärke.png"}
 								alt={event.title}
-								style={{height: "auto", width: "2wv"}}
+								style={{height: "auto", width: "2wv", backgroundColor: "transparent"}}
 							/>
 							<Card.Body className="card-body">
 								<Card.Title className="card-title">{event.title}</Card.Title>
