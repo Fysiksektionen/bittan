@@ -226,6 +226,9 @@ const EventDetails = () => {
           </Col>
         </Row>
     </form>
+        <Row>
+          <p>Vill du ha fler än 12 biljetter? Skriv ett mail till <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a></p>
+        </Row>
       </Container>
       
       <div>
