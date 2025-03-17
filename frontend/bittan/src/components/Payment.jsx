@@ -110,6 +110,11 @@ const Payment = () => {
               <img src={qrUrl} alt="Swish QR Code" />
             </Row>
         )}
+      <Row>
+        <p>
+          Om du inte kan betala med Swish: Vi erbjuder även betalning via banköverföring. Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>. Kortbetalning erbjuds endast vid köp av biljett i kassan på teatern (notera att biljetten då inte kan förbokas och att föreställningen kan sälja slut). 
+        </p>
+      </Row>
       </Container>
     </div>
   );
