@@ -49,6 +49,7 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 	message = MIMEMultipart("related")
 	message["Subject"] = subject
 	message["To"] = receiver_address
+	message["From"] = '"Fysiksektionen Biljetter" <biljett@fysiksektionen.se>'
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
 
 	for image_to_embed in images_to_embed:
