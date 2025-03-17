@@ -111,6 +111,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'bittan.urls'
 
+LOGIN_URL = "/"
+if get_bittan_backend_url_path_prefix() == "/":
+    LOGIN_URL = "/accounts/login"
+else:
+    LOGIN_URL = "/" + get_bittan_backend_url_path_prefix() + "accounts/login"
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
