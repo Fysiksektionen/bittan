@@ -52,8 +52,7 @@ const Payment = () => {
       }
 
       if (sameDevice) {
-        const callbackurl = window.location.origin + basename + "/Payment"
-        window.location = `swish://paymentrequest?token=${token}&callbackurl=${callbackurl}`;
+        window.location = `swish://paymentrequest?token=${token}`;
       } else {
         const response = await generateQR(token);
         const blob = new Blob([response], { type: 'image/png' });
