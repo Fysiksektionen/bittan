@@ -29,9 +29,9 @@ const EventGrid = () => {
 							{/* If `event.image` is unavailable, display a placeholder */}
 							<Card.Img
 								variant="top"
-								src={event.image || basename + "/earhart_logga.png"}
+								src={event.image || basename + "/earhart_poster.png"}
 								alt={event.title}
-								style={{height: "auto", width: "2wv", backgroundColor: "transparent"}}
+								style={{height: "auto", width: "20vw", backgroundColor: "transparent"}}
 							/>
 							<Card.Body className="card-body">
 								<Card.Title className="card-title">{event.title}</Card.Title>
