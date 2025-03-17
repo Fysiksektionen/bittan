@@ -100,6 +100,7 @@ def send_bulk_mail(receiver_addresses: List[str], subject: str, message_content:
 	
 	message = MIMEMultipart("related")
 	message["Subject"] = subject
+	message["From"] = '"Fysiksektionen Biljetter" <biljett@fysiksektionen.se>'
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
 	message["Bcc"] = ", ".join(receiver_addresses)
 	
