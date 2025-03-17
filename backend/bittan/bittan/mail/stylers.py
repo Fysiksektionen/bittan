@@ -49,7 +49,21 @@ f"""
 <p><b>Datum</b>: {date_string}</p>
 <p><b>Dörrarna öppnas</b>: {doors_open}</p>
 <p><b>Föreställningen börjar</b>: {start_time}</p>
-<p><b>Plats</b>: Kulturhuset Dieselverkstaden, Marcusplatsen 17, 131 54 Nacka. <i>Fri placering under föreställningen!</i></p>
+<p><b>Plats</b>: Kulturhuset Dieselverkstaden, Marcusplatsen 17, 131 54 Nacka. </p>
+<p><b>Speltid:</b> Ca. 3 timmar, inkl två pauser
+<p><i>Observera att det är fri placering under föreställningen!</i></p>
+
+<div style="border: 2px solid black; padding: 8px">
+<b>Praktisk information</b>
+<ul>
+<li>Kollektivtrafik (buss och tvärbana) och parkering finns i anslutning till teatern.</li>
+<li>Fika, programblad och märken finns att köpa innan föreställningen och i pauserna.</li>
+<li>Toaletter finns på markplan och plan 2.</li>
+<li>Gåvor till spexare kan lämnas på ett bord utanför ingången. Skriv mottagarens namn på gåvan så delar vi ut den på scen!</li>
+</ul>
+
+</div>
+
 """
     if plural:
         message += f"<p>Du har köpt följande {len(tickets)} biljetter. Dessa finns även bifogade i detta mail.</p>"
@@ -72,6 +86,8 @@ f"""
 <th align="left">Moms</th>
 <th align="left">Totalt</th>
 </tr>
+
+<p>Länk till <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view?usp=drive_link">Köp- och leveransvillkor</a>
 """
         ticket_groups = (payment.ticket_set
             .values("ticket_type__title")
@@ -127,7 +143,9 @@ Momsnummer: SE802411-894801</p>
 
     message += \
 """
-<i>Har du frågor angående ditt köp? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i>
+<p><b>Vi ser fram emot att få spexa för dig!</b></p>
+<p><i>Har du frågor angående ditt köp? Kontakta <a href="mailto:biljettsupport@f.kth.se">biljettsupport@f.kth.se</a>!</i></p>
+<p><i>Nyfiken på Fyskalen? Du kan läsa mer om oss på <a href="https://fysikalen.se">fysikalen.se</a>.</i></p>
 </html>
 """
 
