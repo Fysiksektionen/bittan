@@ -112,6 +112,9 @@ const EventDetails = () => {
       else if (error === "no_mail") {
         setError("Du måste ange en mejladress")
       }
+      else if (error.response && error.response.data.error === "OutOfTickets") {
+        setError(`Endast ${error.response.data.tickets_left} biljetter kvar till denna föreställning.`)
+      }
       else {
         setError("Ett fel uppstod när biljetterna skulle reserveras. Prova igen.");
       }
