@@ -1,21 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-
 import QrScanner from "qr-scanner";
 const TicketScanner = () => {
-    const scanner = useRef<QrScanner>();
-    const videoEl = useRef<HTMLVideoElement>(null);
-    const qrBoxEl = useRef<HTMLDivElement>(null);
-    const [qrOn, setQrOn] = useState<boolean>(true);
-    const [scannedResult, setScannedResult] = useState<string | undefined>("");
+    const scanner = useRef();
+    const videoEl = useRef(null);
+    const qrBoxEl = useRef(null);
+    const [qrOn, setQrOn] = useState(true);
+    const [scannedResult, setScannedResult] = useState("");
 
-    const onSuccess = (result: QrScanner.ScanResult) => {
+    const onSuccess = (result) => {
         console.log(result);
         setScannedResult(result?.data);
         scanner?.current?.stop();
-        window.location.replace(result?.data);
     }
 
-    const onFail = (err: string | Error) => {
+    const onFail = (err) => {
         console.log(err)
     }
 
@@ -48,7 +46,7 @@ const TicketScanner = () => {
 
     return(
         <div className="qr-reader">
-             <video ref={videoEl}></video>
+             <video style={{width: "70wv", height: "auto"}} ref={videoEl}></video>
             {scannedResult && (
                 <p
                     style={{

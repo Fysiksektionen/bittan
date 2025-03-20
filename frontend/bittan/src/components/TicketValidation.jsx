@@ -1,6 +1,7 @@
 // src/components/TicketValidation.js
 import React, { useState } from 'react';
 import { validateTicket } from '../api/validateTicket';
+import TicketScanner from './QrScanner'
 
 const TicketValidation = () => {
   const [externalId, setExternalId] = useState('');
@@ -28,6 +29,7 @@ const TicketValidation = () => {
           onChange={(e) => setExternalId(e.target.value)}
         />
       </div>
+      <TicketScanner></TicketScanner>
       <button className="btn btn-primary" onClick={handleValidate}>
         Validate Ticket
       </button>
