@@ -10,7 +10,6 @@ const TicketScanner = () => {
     const onSuccess = (result) => {
         console.log(result);
         setScannedResult(result?.data);
-        scanner?.current?.stop();
     }
 
     const onFail = (err) => {
