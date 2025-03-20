@@ -61,6 +61,7 @@ class ValidateTicketTest(TestCase):
         self.assertEqual(r1.status_code, 200)
         self.assertEqual(r1.data["times_used"], 0) 
         self.assertEqual(r1.data["status"], "PAID") 
+        self.assertEqual(r1.data["chapter_event"], self.chapter_event1.title)
 
         r1 = self.client.put(
                 "/validate_ticket/",
@@ -73,6 +74,7 @@ class ValidateTicketTest(TestCase):
         self.assertEqual(r1.status_code, 200)
         self.assertEqual(r1.data["times_used"], 1) 
         self.assertEqual(r1.data["status"], "PAID") 
+
 
         r2 = self.client.put(
                 "/validate_ticket/",
