@@ -86,6 +86,7 @@ f"""
 f"""
 <p><b>Referensnummer: </b>{payment.swish_id}</p>
 
+<p>Länk till <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view?usp=drive_link">Köp- och leveransvillkor</a>
 <table style="border-spacing: 8px">
 <tr>
 <th align="left">Namn</th>
@@ -95,7 +96,6 @@ f"""
 <th align="left">Totalt</th>
 </tr>
 
-<p>Länk till <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view?usp=drive_link">Köp- och leveransvillkor</a>
 """
     ticket_groups = (payment.ticket_set
         .values("ticket_type__title")
