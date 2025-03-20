@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
-const TicketScanner = () => {
+const TicketScanner = ({ onScan }) => {
     const scanner = useRef();
     const videoEl = useRef(null);
     const qrBoxEl = useRef(null);
     const [qrOn, setQrOn] = useState(true);
     const [scannedResult, setScannedResult] = useState("");
 
-    const onSuccess = (result) => {
-        console.log(result);
-        setScannedResult(result?.data);
-    }
+    // const onSuccess = (result) => {
+    //     console.log(result);
+    //     setScannedResult(result?.data);
+    // }
 
-    const onFail = (err) => {
-        console.log(err)
-    }
+    // const onFail = (err) => {
+    //     console.log(err)
+    // }
 
     useEffect(() => {
         if(videoEl?.current && !scanner.current) {
-            scanner.current = new QrScanner(videoEl?.current, onSuccess, {
-                onDecodeError: onFail,
+            scanner.current = new QrScanner(videoEl?.current, onScan, {
+                onDecodeError: (_) => {},
                 preferredCamera: "environment",
                 highlightScanRegion: true,
                 highlightCodeOutline: true,
