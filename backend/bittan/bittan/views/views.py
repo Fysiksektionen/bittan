@@ -274,9 +274,10 @@ def validate_ticket(request: Request) -> Response:
     except Ticket.DoesNotExist:
         return Response({"times_used": -1, "status": "Ticket does not exist"})
 
+    chapter_event = ticket.chapter_event.title
     times_used = ticket.times_used
     ticket.times_used += 1 
     ticket.save()
 
-    return Response({"times_used": times_used, "status": ticket.payment.status})
+    return Response({"times_used": times_used, "chapter_event": chapter_event, "status": ticket.payment.status})
 
