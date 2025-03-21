@@ -45,7 +45,7 @@ const TicketScanner = ({ onScan }) => {
 
     return(
         <div className="qr-reader">
-             <video style={{width: "70wv", height: "auto"}} ref={videoEl}></video>
+             <video style={{width: "100%"}} ref={videoEl}></video>
             {scannedResult && (
                 <p
                     style={{

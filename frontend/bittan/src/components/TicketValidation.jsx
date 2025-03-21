@@ -12,21 +12,23 @@ const TicketValidation = () => {
   const onScan = async (scanResult) => {
     console.log(scanResult);
     const ticketId = scanResult?.data;
-    if(!ticketId) {
+    if (typeof ticketId != 'string' || ticketId.length != 6) {
       alert('Ogiltig biljett');
       return;
     }
-    const result = await validateTicket(ticketId);
-    setValidationResult(result);
-    setState("showTicket")
+    console.log("ticket id: " + ticketId)
+    handleValidate(ticketId);
   }
 
-  const handleValidate = async () => {
+  const handleValidate = async (ticketId) => {
     try {
-      const result = await validateTicket(externalId);
+      console.log(ticketId)
+      const result = await validateTicket(ticketId);
       setState("showTicket")
-      validationResult = setValidationResult(result);
+      setValidationResult(result);
+      console.log("Showing ticket!")
     } catch (error) {
+      console.log(error)
       alert('Error validating ticket.');
     }
   };
@@ -43,7 +45,6 @@ const TicketValidation = () => {
               name="password"
               placeholder="Skriv in lösenord"
               value={password}
-              // onChange={(e) => setPassword(new FormData(e.target).get("password");}
               className="border rounded-lg px-3 py-2 w-64"
             />
             <button
@@ -66,15 +67,16 @@ const TicketValidation = () => {
             onChange={(e) => setExternalId(e.target.value)}
           />
         </div>
-        <TicketScanner onScan={onScan} />
-        <button className="btn btn-primary" onClick={handleValidate}>
+        <button className="btn btn-primary" onClick={() => handleValidate(externalId)}>
           Validate Ticket
         </button>
+        <TicketScanner onScan={onScan} />
       </>}
-      {state == "showticket" &&
+      {state == "showTicket" &&
         <div className="mt-3">
-          <p>Status: {validationResult.status}</p>
-          <p>Times Used: {validationResult.times_used}</p>
+          <p>Status: {validationResult.status == "PAID" ? "Betalad" : "Ej betalad" }</p>
+          <p>Scannad {validationResult.times_used} gånger</p>
+          <button onClick={()=>setState("scanTicket")}>Scanna nästa</button>
         </div>
       }
     </div>
