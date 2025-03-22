@@ -7,37 +7,61 @@ const TicketValidation = () => {
   const [externalId, setExternalId] = useState('');
   const [validationResult, setValidationResult] = useState(null);
   const [state, setState]  = useState("enterPassword")
-  const [password, setPassword] = useState(null);
+  const [password, setPassword] = useState(undefined);
+  const [error, setError] = useState(null);
 
-  const onScan = async (scanResult) => {
-    console.log(scanResult);
+  const onScan = (scanResult) => {
     const ticketId = scanResult?.data;
+
     if (typeof ticketId != 'string' || ticketId.length != 6) {
-      alert('Ogiltig biljett');
+      setError('Inte en biljett qr-kod');
       return;
     }
-    console.log("ticket id: " + ticketId)
     handleValidate(ticketId);
   }
 
   const handleValidate = async (ticketId) => {
     try {
       console.log(ticketId)
-      const result = await validateTicket(ticketId);
+      const result = await validateTicket(ticketId, password);
       setState("showTicket")
       setValidationResult(result);
       console.log("Showing ticket!")
     } catch (error) {
       console.log(error)
-      alert('Error validating ticket.');
+
+      // The password was incorrect
+      if(error.response && error.response.status == 401) {
+        setPassword(undefined);
+        setError("Fel lösenord")
+        setState("enterPassword")
+      }
+      else if(error.response && error.response.status == 404) {
+        setError('Biljetten finns inte med i databasen')
+      }
+      else {
+        setError('Biljetten finns inte med i databasen')
+      }
     }
   };
 
   return (
     <div>
-      <h2>Validate Ticket</h2>
+      <h2>Biljett scanning</h2>
+      {error ? (
+      <div className="bg-red-100 text-red-800 border border-red-300 p-4 mb-4 rounded relative max-w-md mx-auto">
+        <p>{error}</p>
+        <button
+          onClick={() => setError(null)}
+          className="absolute top-1 right-2 text-xl font-bold leading-none hover:text-red-600"
+        >
+          &times;
+        </button>
+      </div>
+    ) : ( <>
       {state == "enterPassword" && <>
          <div className="flex flex-col items-center p-4">
+          {/* Password validation is handled when we scan the first ticket */}
           <form onSubmit={(e) => { e.preventDefault(); setState("scanTicket"); setPassword(new FormData(e.target).get("password")); }}
              className="space-y-4">
             <input
@@ -76,9 +100,11 @@ const TicketValidation = () => {
         <div className="mt-3">
           <p>Status: {validationResult.status == "PAID" ? "Betalad" : "Ej betalad" }</p>
           <p>Scannad {validationResult.times_used} gånger</p>
-          <button onClick={()=>setState("scanTicket")}>Scanna nästa</button>
+          <button onClick={()=>{setState("scanTicket");}}>Scanna nästa</button>
         </div>
       }
+      </>
+      )}
     </div>
   );
 };

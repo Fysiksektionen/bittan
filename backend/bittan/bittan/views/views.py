@@ -1,4 +1,3 @@
-from requests import api
 from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest, PaymentStatus as SwishPaymentStatus
 
@@ -6,6 +5,7 @@ from bittan.models import ChapterEvent, Ticket, TicketType, Payment
 from bittan.mail import mail_bittan_developers
 
 from bittan.services.swish.swish import Swish
+from bittan.settings import EnvVars, ENV_VAR_NAMES
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -254,6 +254,7 @@ def get_chapterevents(request: Request) -> Response:
 
 class ValidateTicketRequestSerializer(serializers.Serializer):
     external_id = serializers.CharField()
+    password = serializers.CharField()
 
 @api_view(['PUT'])
 def validate_ticket(request: Request) -> Response:
@@ -262,17 +263,21 @@ def validate_ticket(request: Request) -> Response:
     excluded from the current time. '''
     valid_ser = ValidateTicketRequestSerializer(data=request.data)
     if valid_ser.is_valid():
-        response_data = valid_ser.validated_data
+        request_data = valid_ser.validated_data
     else:
         return Response(
                 "InvalidRequestData",
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    # No hashing, not super important endpoint + HTTPS encrypts 
+    if request_data["password"] != EnvVars.get(ENV_VAR_NAMES.TICKET_VALIDATION_PASSWORD):
+        return Response("Incorrect password", status.HTTP_401_UNAUTHORIZED) 
     
     try:
-        ticket = Ticket.objects.get(external_id=response_data["external_id"])
+        ticket = Ticket.objects.get(external_id=request_data["external_id"])
     except Ticket.DoesNotExist:
-        return Response({"times_used": -1, "status": "Ticket does not exist"})
+        return Response({"times_used": -1, "status": "Ticket does not exist"}, status.HTTP_404_NOT_FOUND)
 
     chapter_event = ticket.chapter_event.title
     times_used = ticket.times_used

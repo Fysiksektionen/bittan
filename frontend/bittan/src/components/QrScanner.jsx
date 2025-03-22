@@ -7,10 +7,11 @@ const TicketScanner = ({ onScan }) => {
     const [qrOn, setQrOn] = useState(true);
     const [scannedResult, setScannedResult] = useState("");
 
-    // const onSuccess = (result) => {
-    //     console.log(result);
-    //     setScannedResult(result?.data);
-    // }
+    const onSuccess = (result) => {
+        // We have to stop the scanner because otherwise we will end up calling onScan multiple times with the same result
+        scanner?.current?.stop();
+        onScan(result);
+    }
 
     // const onFail = (err) => {
     //     console.log(err)
@@ -18,7 +19,7 @@ const TicketScanner = ({ onScan }) => {
 
     useEffect(() => {
         if(videoEl?.current && !scanner.current) {
-            scanner.current = new QrScanner(videoEl?.current, onScan, {
+            scanner.current = new QrScanner(videoEl?.current, onSuccess, {
                 onDecodeError: (_) => {},
                 preferredCamera: "environment",
                 highlightScanRegion: true,
