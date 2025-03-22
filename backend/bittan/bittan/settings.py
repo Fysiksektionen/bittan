@@ -40,6 +40,8 @@ class ENV_VAR_NAMES(Enum):
     SWISH_PAYEE_ALIAS="SWISH_PAYEE_ALIAS"
     SWISH_QR_GENERATOR_ENDPOINT="SWISH_QR_ENDPOINT" 
 
+    TICKET_VALIDATION_PASSWORD="TICKET_VALIDATION_PASSWORD" 
+
     DEBUG="DEBUG"
 
 class EnvVars:
@@ -50,7 +52,8 @@ class EnvVars:
             ENV_VAR_NAMES.SWISH_PAYEE_ALIAS.value:  "1234679304",
             ENV_VAR_NAMES.SWISH_QR_GENERATOR_ENDPOINT.value: "https://mpc.getswish.net/qrg-swish/api/v1/commerce",
             ENV_VAR_NAMES.BITTAN_FRONTEND_URL.value: "http://localhost:3000",
-            ENV_VAR_NAMES.BITTAN_BACKEND_URL.value: "http://localhost:8000"
+            ENV_VAR_NAMES.BITTAN_BACKEND_URL.value: "http://localhost:8000",
+            ENV_VAR_NAMES.TICKET_VALIDATION_PASSWORD.value: "bläckfiskarochtomtebloss",
     }
 
     @staticmethod
