@@ -98,7 +98,9 @@ const TicketValidation = () => {
       </>}
       {state == "showTicket" &&
         <div className="mt-3">
-          <p>Status: {validationResult.status == "PAID" ? "Betalad" : "Ej betalad" }</p>
+          <p>Biljett {validationResult.external_id}</p>
+          <p>Event {validationResult.chapter_event}</p>
+          <p>Status {validationResult.status == "PAID" ? "Betalad" : "Ej betalad" }</p>
           <p>Scannad {validationResult.times_used} gånger</p>
           <button onClick={()=>{setState("scanTicket");}}>Scanna nästa</button>
         </div>

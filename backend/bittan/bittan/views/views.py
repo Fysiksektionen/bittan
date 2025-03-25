@@ -284,5 +284,5 @@ def validate_ticket(request: Request) -> Response:
     ticket.times_used += 1 
     ticket.save()
 
-    return Response({"times_used": times_used, "chapter_event": chapter_event, "status": ticket.payment.status})
+    return Response({"external_id": ticket.external_id, "times_used": times_used, "chapter_event": chapter_event, "status": ticket.payment.status})
 
