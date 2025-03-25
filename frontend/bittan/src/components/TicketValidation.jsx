@@ -40,7 +40,7 @@ const TicketValidation = () => {
         setError('Biljetten finns inte med i databasen')
       }
       else {
-        setError('Biljetten finns inte med i databasen')
+        setError('Biljetten finns inte med i databasen' + (error.response || ""))
       }
     }
   };
