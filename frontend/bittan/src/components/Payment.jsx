@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { startPayment } from "../api/startPayment";
 import { sessionPaymentStatus } from "../api/sessionPaymentStatus";
 import { generateQR } from "../api/generateQR";
@@ -27,10 +27,16 @@ const Payment = () => {
         if (response.status === "PAID") {
           clearInterval(interval);
           navigate("/booking-confirmed", { state: { mail: response.mail, status: response.status, reference: response.reference } });
+          setStatus("paid")
         }
+        else if(response.status == "FAILED_EXPIRED_RESERVATION") {
+          clearInterval(interval);
+          setStatus("timed_out")
+        }
+        // The payment must have faild if it is neither reserved nor paid
         else if (response.status !== "RESERVED") {
           clearInterval(interval);
-          navigate("/booking-confirmed", { state: { mail: "", status: response.status, reference: "" } });
+          setStatus("failed")
         }
       } catch (error) {
         console.error("Error fetching payment status:", error);
@@ -87,35 +93,58 @@ const Payment = () => {
           </Col>
         </Row>
       
-      <Row>
-        <label>
-          <input type="checkbox" checked={isChecked} onChange={() => setIsChecked(!isChecked)} />
-          {" "}Jag godkänner <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">köpesvillkoren</a>{" "}och <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer">Personuppgiftspolicy</a>
-        </label>
-      </Row>
-        {!qrUrl && (
-          <div>
-            <Row className="py-1">
-              <button onClick={() => handlePayment(true)} className="btn btn-primary" disabled={!isChecked}>
-                Betala med Swish på denna enhet
-              </button>
+      {status != "pending" &&
+            <Row>
+              <p>Betalningen misslyckades</p>
+              {status == "timed_out" && <Container>Betalningen tog för lång tid eller så nekades betalningen</Container>}
+              <p>Gå tillbaka till <Link to="/">huvudsidan</Link> och försök beställa igen.</p>
             </Row>
-            <Row className="py-1">
-              <button onClick={() => handlePayment(false)} className="btn btn-primary" disabled={!isChecked}> 
-                Betala med Swish på annan enhet 
-              </button>
-            </Row>
-          </div>
-        )}
-        {qrUrl && (
-            <Row className="py-1">
-              <p>Skanna QR-koden i Swishappen:</p>
-              <img src={qrUrl} alt="Swish QR Code" />
-            </Row>
-        )}
+      }
+      
+      {status == "pending" && <Container>
         <Row>
-          <p>Du skickas tillbaka till denna sida efter att du betalat. Har du betalat omdirigeras du inom kort.</p>
+          <label>
+            <input type="checkbox" checked={isChecked} onChange={() => setIsChecked(!isChecked)} />
+            {" "}Jag godkänner <a href="https://drive.google.com/file/d/1biyd25AMdVJPcGlvS7PUojpc-Lj2jfDV/view" target="_blank" rel="noopener noreferrer">köpesvillkoren</a>{" "}och <a href="https://drive.google.com/file/d/1QmSgQAUfbS3sNTTLKmy2FBEiG3nloCSl/view" target="_blank" rel="noopener noreferrer">Personuppgiftspolicy</a>
+          </label>
         </Row>
+          { status != "pending" &&
+            <div>
+                <Row>
+                  Betalning misslyckades
+                </Row>
+                { status == "timed_out" && 
+                  <Row>
+                    Du var för trög din jäkel. Försök igen dumbom
+                  </Row>
+                }
+            </div>
+          }
+          {!qrUrl && (
+            <div>
+              <Row className="py-1">
+                <button onClick={() => handlePayment(true)} className="btn btn-primary" disabled={!isChecked || status != "pending"}>
+                  Betala med Swish på denna enhet
+                </button>
+              </Row>
+              <Row className="py-1">
+                <button onClick={() => handlePayment(false)} className="btn btn-primary" disabled={!isChecked || status != "pending"}> 
+                  Betala med Swish på annan enhet 
+                </button>
+              </Row>
+            </div>
+          )}
+          {qrUrl && (
+              <Row className="py-1">
+                <p>Skanna QR-koden i Swishappen:</p>
+                <img src={qrUrl} alt="Swish QR Code" />
+              </Row>
+          )}
+          <Row>
+            <p>Du skickas tillbaka till denna sida efter att du betalat. Har du betalat omdirigeras du inom kort.</p>
+          </Row>
+        </Container>
+      }
       </Container>
     </div>
   );

@@ -98,7 +98,7 @@ f"""
 <tr/>
 """
 
-        message += \
+    message += \
 f"""
 <tr>
 <td align="left">Summa</td>

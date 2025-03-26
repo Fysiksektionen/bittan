@@ -70,7 +70,7 @@ def staff_dashboard(request):
         query = search_bar.cleaned_data["query"]
         search_res = Payment.objects.filter(email=query)
         if search_res.count() == 0:
-            search_res = Payment.objects.filter(swish_id=query)
+            search_res = Payment.objects.filter(swish_id=query.upper())
 
         payment_forms = {payment.id: PaymentForm(instance=payment) for payment in search_res}
         ticket_forms = {ticket.id: TicketForm(instance=ticket, prefix=f"ticket_{ticket.id}") for payment in search_res for ticket in payment.ticket_set.all()}
