@@ -16,7 +16,13 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ["external_id", "payment", "ticket_type", "chapter_event"]
+    list_display = ["external_id", "payment", "ticket_type", "chapter_event", "payment_status", "times_used", "payment_email"]
+
+    def payment_status(self, obj):
+        return obj.payment.status if obj.payment else None
+
+    def payment_email(self, obj):
+        return obj.payment.email if obj.payment else None
 
 
 @admin.register(ChapterEvent)
