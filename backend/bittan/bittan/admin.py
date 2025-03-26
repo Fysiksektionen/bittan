@@ -12,6 +12,7 @@ admin.site.register(SwishPaymentRequestModel)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ["pk", "email", "status", "swish_id", "payment_method"]
     search_fields = ["pk", "email", "swish_id"]
+    list_filter = ["status"]
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
