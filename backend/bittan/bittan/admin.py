@@ -17,6 +17,7 @@ class PaymentAdmin(admin.ModelAdmin):
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
     list_display = ["external_id", "payment", "ticket_type", "chapter_event", "payment_status", "times_used", "payment_email"]
+    list_filter = ["payment__status"]
 
     def payment_status(self, obj):
         return obj.payment.status if obj.payment else None
