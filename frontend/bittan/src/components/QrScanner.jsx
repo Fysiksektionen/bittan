@@ -25,6 +25,7 @@ const TicketScanner = ({ onScan }) => {
                 highlightScanRegion: true,
                 highlightCodeOutline: true,
                 overlay: qrBoxEl?.current || undefined,
+                maxScansPerSecond: 4,
             });
 
             scanner?.current
