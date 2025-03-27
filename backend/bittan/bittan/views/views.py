@@ -279,6 +279,8 @@ def validate_ticket(request: Request) -> Response:
     except Ticket.DoesNotExist:
         return Response({"times_used": -1, "status": "Ticket does not exist"}, status.HTTP_404_NOT_FOUND)
 
+    logging.info(f"Scanned ticket {ticket.external_id}")
+
     chapter_event = ticket.chapter_event.title
     times_used = ticket.times_used
     ticket.times_used += 1 
