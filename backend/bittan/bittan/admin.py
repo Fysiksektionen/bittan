@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import TicketType, ChapterEvent, Payment, Ticket, SwishPaymentRequestModel
+from django.db.models import Sum
 
+from .models import TicketType, ChapterEvent, Payment, Ticket, SwishPaymentRequestModel
 
 @admin.register(TicketType)
 class TicketTypeAdmin(admin.ModelAdmin):
@@ -10,9 +11,12 @@ admin.site.register(SwishPaymentRequestModel)
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ["pk", "email", "status", "swish_id", "payment_method"]
+    list_display = ["pk", "email", "status", "swish_id", "payment_method", "payment_value"]
     search_fields = ["pk", "email", "swish_id"]
     list_filter = ["status"]
+
+    def payment_value(self, obj):
+        return obj.ticket_set.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
