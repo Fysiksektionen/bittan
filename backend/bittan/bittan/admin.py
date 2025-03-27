@@ -20,7 +20,7 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ["external_id", "payment", "ticket_type", "chapter_event", "payment_status", "times_used", "payment_email"]
+    list_display = ["external_id", "payment_link", "ticket_type", "chapter_event", "payment_status", "times_used", "payment_email"]
     list_filter = ["payment__status"]
     search_fields = ["payment__swish_id", "external_id", "payment__email"]
 
@@ -30,6 +30,11 @@ class TicketAdmin(admin.ModelAdmin):
     def payment_email(self, obj):
         return obj.payment.email if obj.payment else None
 
+    def payment_link(self, obj):
+        if obj.payment:
+            url = reverse("admin:bittan_payment_change", args=[obj.payment.pk])
+            return format_html('<a href="{}">{}</a>', url, obj.payment)
+    payment_link.short_description = "Payment"
 
 @admin.register(ChapterEvent)
 class ChapterEventAdmin(admin.ModelAdmin):
