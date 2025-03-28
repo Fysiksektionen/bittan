@@ -116,7 +116,7 @@ const EventDetails = () => {
         setError(`Endast ${error.response.data.tickets_left} biljetter kvar till denna föreställning.`)
       }
       else {
-        setError("Ett fel uppstod när biljetterna skulle reserveras. Prova igen.");
+        setError("Ett fel uppstod när biljetterna skulle reserveras. Prova igen, funkar det inte försök öppna i ett privat fönster eller rensa kakor. Går det fortfarande inte? Maila biljett support");
       }
     }
   };
