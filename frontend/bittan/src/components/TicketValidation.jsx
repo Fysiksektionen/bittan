@@ -47,7 +47,7 @@ const TicketValidation = () => {
 
   return (
     <div>
-      <h2>Biljett scanning</h2>
+      <h2 className="text-xl font-semibold mb-4 text-center">Biljettinformation</h2>
       {error ? (
       <div className="bg-red-100 text-red-800 border border-red-300 p-4 mb-4 rounded relative max-w-md mx-auto">
         <p>{error}</p>
@@ -96,17 +96,48 @@ const TicketValidation = () => {
         </button>
         <TicketScanner onScan={onScan} />
       </>}
-      {state == "showTicket" &&
-        <div className="mt-3">
-          <p>Biljett {validationResult.external_id}</p>
-          <p>Event {validationResult.chapter_event}</p>
-          <p>Status {validationResult.status == "PAID" ? "Betalad" : "Ej betalad" }</p>
-          <p>Scannad {validationResult.times_used} gånger</p>
+     {state === "showTicket" && (
+  <div className="mt-4 mx-auto p-4 border rounded shadow-sm bg-light" style={{ maxWidth: "500px" }}>
+    <h4 className="text-center mb-4">Biljettinformation</h4>
 
-          <button onClick={()=>{validateTicket(validationResult.external_id, password, true); setState("scanTicket");}}>Använd biljett och gå tillbaka</button>
-          <button onClick={()=>{setState("scanTicket");}}>Gå tillbaka till scanning</button>
-        </div>
-      }
+    <ul className="list-group mb-4">
+      <li className="list-group-item d-flex justify-content-between">
+        <strong>Biljett-ID:</strong>
+        <span>{validationResult.external_id}</span>
+      </li>
+      <li className="list-group-item d-flex justify-content-between">
+        <strong>Event:</strong>
+        <span>{validationResult.chapter_event}</span>
+      </li>
+      <li className={`list-group-item d-flex justify-content-between ${validationResult.status === "PAID" ? "text-success" : "text-danger"}`}>
+        <strong>Status:</strong>
+        <span>{validationResult.status === "PAID" ? "Betalad" : "Ej betalad"}</span>
+      </li>
+      <li className={`list-group-item d-flex justify-content-between ${validationResult.times_used > 0 ? "text-danger" : "text-sucess"}`}>
+        <strong>Tidigare scannad:</strong>
+        <span>{validationResult.times_used} gånger</span>
+      </li>
+    </ul>
+
+    <div className="d-grid gap-2 d-md-flex justify-content-md-between">
+      <button
+        className="btn btn-success"
+        onClick={() => {
+          validateTicket(validationResult.external_id, password, true);
+          setState("scanTicket");
+        }}
+      >
+        Använd biljett och gå tillbaka
+      </button>
+      <button
+        className="btn btn-secondary"
+        onClick={() => setState("scanTicket")}
+      >
+        Gå tillbaka till scanning
+      </button>
+    </div>
+  </div>
+)} 
       </>
       )}
     </div>
