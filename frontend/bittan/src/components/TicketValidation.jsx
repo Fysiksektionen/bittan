@@ -102,7 +102,9 @@ const TicketValidation = () => {
           <p>Event {validationResult.chapter_event}</p>
           <p>Status {validationResult.status == "PAID" ? "Betalad" : "Ej betalad" }</p>
           <p>Scannad {validationResult.times_used} gånger</p>
-          <button onClick={()=>{setState("scanTicket");}}>Scanna nästa</button>
+
+          <button onClick={()=>{validateTicket(validationResult.external_id, password, true); setState("scanTicket");}}>Använd biljett och gå tillbaka</button>
+          <button onClick={()=>{setState("scanTicket");}}>Gå tillbaka till scanning</button>
         </div>
       }
       </>
