@@ -43,6 +43,7 @@ class GetChaptereventsTest(TestCase):
 			self.assertEqual(ce['title'], corresponding_ce_db.title)
 			self.assertEqual(ce['description'], corresponding_ce_db.description)
 			self.assertEqual(ce['max_tickets_per_payment'], corresponding_ce_db.max_tickets_per_payment)
+			self.assertEqual(ce['tickets_left'], corresponding_ce_db.total_seats - corresponding_ce_db.alive_ticket_count)
 			self.assertEqual(type(ce['event_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
 			self.assertEqual(type(ce['sales_stop_at']), str) # We don't bother checking the exact content because it contains the datetime up to milliseconds
 			self.assertEqual(ce['ticket_types'], [ticket_type.id for ticket_type in corresponding_ce_db.ticket_types.all()])

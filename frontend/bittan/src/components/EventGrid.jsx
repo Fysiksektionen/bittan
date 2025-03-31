@@ -46,8 +46,8 @@ const EventGrid = () => {
 										hour12: false,
 										})}
 								</Card.Text>
-								<Button href={`${basename}/events/${event.id}`} className="button">
-									Se mer
+								<Button href={`${basename}/events/${event.id}`} disabled={event.tickets_left <= 0} className="button">
+									{event.tickets_left > 0 ? "Se mer" : "Slutsåld"}
 								</Button>
 							</Card.Body>
 						</Card>

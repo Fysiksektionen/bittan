@@ -238,9 +238,14 @@ class TicketTypeSerializer(serializers.ModelSerializer):
         fields = ["id", "price", "title", "description"]
 
 class ChapterEventSerializer(serializers.ModelSerializer):
+    tickets_left = serializers.SerializerMethodField()
+
     class Meta:
         model = ChapterEvent
-        fields = ["id", "title", "description", "event_at", "max_tickets_per_payment", "sales_stop_at", "ticket_types"]
+        fields = ["id", "title", "description", "event_at", "max_tickets_per_payment", "sales_stop_at", "ticket_types", "tickets_left"]
+
+    def get_tickets_left(self, obj):
+        return obj.total_seats - obj.alive_ticket_count
 
 @api_view(['GET'])
 def get_chapterevents(request: Request) -> Response:
@@ -255,6 +260,7 @@ def get_chapterevents(request: Request) -> Response:
 class ValidateTicketRequestSerializer(serializers.Serializer):
     external_id = serializers.CharField()
     password = serializers.CharField()
+    use_ticket = serializers.BooleanField()
 
 @api_view(['PUT'])
 def validate_ticket(request: Request) -> Response:
@@ -279,12 +285,14 @@ def validate_ticket(request: Request) -> Response:
     except Ticket.DoesNotExist:
         return Response({"times_used": -1, "status": "Ticket does not exist"}, status.HTTP_404_NOT_FOUND)
 
-    logging.info(f"Scanned ticket {ticket.external_id}")
+    logging.info(f"Scanned ticket {ticket.external_id}. Used? {request_data["use_ticket"]}")
 
     chapter_event = ticket.chapter_event.title
     times_used = ticket.times_used
-    ticket.times_used += 1 
-    ticket.save()
+
+    if request_data["use_ticket"]:
+        ticket.times_used += 1 
+        ticket.save()
 
     return Response({"external_id": ticket.external_id, "times_used": times_used, "chapter_event": chapter_event, "status": ticket.payment.status})
 
