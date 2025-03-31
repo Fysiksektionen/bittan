@@ -8,8 +8,6 @@ const TicketScanner = ({ onScan }) => {
     const [scannedResult, setScannedResult] = useState("");
 
     const onSuccess = (result) => {
-        // We have to stop the scanner because otherwise we will end up calling onScan multiple times with the same result
-        scanner?.current?.stop();
         onScan(result);
     }
 
