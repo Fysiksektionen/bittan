@@ -238,9 +238,14 @@ class TicketTypeSerializer(serializers.ModelSerializer):
         fields = ["id", "price", "title", "description"]
 
 class ChapterEventSerializer(serializers.ModelSerializer):
+    tickets_left = serializers.SerializerMethodField()
+
     class Meta:
         model = ChapterEvent
-        fields = ["id", "title", "description", "event_at", "max_tickets_per_payment", "sales_stop_at", "ticket_types"]
+        fields = ["id", "title", "description", "event_at", "max_tickets_per_payment", "sales_stop_at", "ticket_types", "tickets_left"]
+
+    def get_tickets_left(self, obj):
+        return obj.total_seats - obj.alive_ticket_count
 
 @api_view(['GET'])
 def get_chapterevents(request: Request) -> Response:
