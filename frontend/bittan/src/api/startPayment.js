@@ -12,10 +12,13 @@ import axiosInstance from './axiosConfig';
  */
 export const startPayment = async (emailAddress, sessionId) => {
   try {
+
+    const csrf = document.querySelector('meta[name="csrf-token"]');
+
     const response = await axiosInstance.post(
       '/start_payment/',
       { email_address: emailAddress },
-      { headers: { Cookie: `sessionid=${sessionId}` } } // Attach session ID in the request
+      { headers: { Cookie: `sessionid=${sessionId}`, 		'X-CSRF-TOKEN': csrf } } // Attach session ID in the request
     );
 
     return response.data; // Returns the Swish token

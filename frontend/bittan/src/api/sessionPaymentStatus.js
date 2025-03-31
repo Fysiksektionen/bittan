@@ -9,7 +9,13 @@ import axiosInstance from "./axiosConfig";
 
 export const sessionPaymentStatus = async () => {
     try {
-      const response = await axiosInstance.get(`/session_payment_status/`);
+
+      const csrf = document.querySelector('meta[name="csrf-token"]');
+
+
+      const response = await axiosInstance.get(`/session_payment_status/`, {headers: {
+        'X-CSRF-TOKEN': csrf
+      }});
       return response.data; 
     } catch (error) {
       console.error('Unable to get current payment status', error);

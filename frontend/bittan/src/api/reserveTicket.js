@@ -13,9 +13,15 @@ export const reserveTicket = async (requestBody) => {
   try {
     // Function to get CSRF token from cookies
 
+    const csrf = document.querySelector('meta[name="csrf-token"]');
+
+
     const response = await axiosInstance.post('/reserve_ticket/', {
       chapter_event: requestBody.chapter_event,
       tickets: requestBody.tickets,
+      headers: {
+        'X-CSRF-TOKEN': csrf
+      }
     });
 
     // Extract session ID from cookies
