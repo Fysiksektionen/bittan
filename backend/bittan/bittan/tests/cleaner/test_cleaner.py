@@ -106,25 +106,25 @@ class RunCleanerTest(TestCase):
 		# TODO use Gabriel's function to create payments
 		self.payment_expires_now_id = Payment.objects.create(
 			expires_at = NOW,
-			swish_id = "abc",
+			swish_id = "a",
 			status = PaymentStatus.RESERVED,
 			email = "abc"
 		).id
 		self.payment_expires_future_id = Payment.objects.create(
 			expires_at = NOW + datetime.timedelta(minutes=5),
-			swish_id = "abc",
+			swish_id = "b",
 			status = PaymentStatus.RESERVED,
 			email = "abc"
 		).id
 		self.payment_paid_id = Payment.objects.create(
 			expires_at = NOW,
-			swish_id = "abc",
+			swish_id = "c",
 			status = PaymentStatus.PAID,
 			email = "abc"
 		).id
 		self.payment_started_id = Payment.objects.create(
 			expires_at = NOW,
-			swish_id = "abc",
+			swish_id = "d",
 			status = PaymentStatus.RESERVED,
 			email = "abc",
 			payment_started=True
