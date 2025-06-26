@@ -8,8 +8,10 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
-from bittan.models import TicketType, ChapterEvent, Payment, Ticket, chapter_event
+from bittan.models import TicketType, ChapterEvent, Payment, Ticket, Question, QuestionOption, Answer, AnswerSelectedOptions
 from bittan.models.payment import PaymentMethod, PaymentStatus
+from bittan.models.question import QuestionType
+from bittan.models.question_option import FieldOptions
 import datetime
 
 User.objects.create_superuser("admin", None, "admin")
@@ -43,3 +45,16 @@ ticket1 = Ticket.objects.create(
 
 chapter_event2 = ChapterEvent.objects.create(title="Fysikalen Dag 2", description="Andra dagen av Fysikalen.", total_seats=10, sales_stop_at=NOW+datetime.timedelta(days=365), event_at=NOW+datetime.timedelta(days=366))
 chapter_event2.ticket_types.add(standardbiljett, studentbiljett)
+
+q1 = Question.objects.create(
+                title = "Namn", 
+                question_type = QuestionType.RADIO,
+                chapter_event = chapter_event1
+        )
+
+q1opt = QuestionOption.objects.create(
+                price = 0,
+                name = "Namn",
+                text = FieldOptions.MANDATORY,
+                question = q1
+        )
