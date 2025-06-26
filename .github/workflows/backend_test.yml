@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - fkm/main
   pull_request:
     branches:
       - main
+      - fkm/main
 
 jobs:
   build-and-test:
