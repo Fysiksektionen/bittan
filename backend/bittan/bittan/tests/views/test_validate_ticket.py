@@ -1,5 +1,4 @@
 from django.test import TestCase, Client
-
 from django.utils import timezone
 
 from bittan.models import ChapterEvent, TicketType, Ticket, Payment, chapter_event
@@ -53,7 +52,9 @@ class ValidateTicketTest(TestCase):
         r1 = self.client.put(
                 "/validate_ticket/",
                 {
-                    "external_id": "AAAAAA"
+                    "external_id": "AAAAAA",
+                    "password": "bläckfiskarochtomtebloss",
+                    "use_ticket": False
                 },
                 content_type="application/json"
         )
@@ -61,12 +62,29 @@ class ValidateTicketTest(TestCase):
         self.assertEqual(r1.status_code, 200)
         self.assertEqual(r1.data["times_used"], 0) 
         self.assertEqual(r1.data["status"], "PAID") 
-        self.assertEqual(r1.data["chapter_event"], self.chapter_event1.title)
+        self.assertEqual(r1.data["chapter_event"], self.test_event.title)
 
         r1 = self.client.put(
                 "/validate_ticket/",
                 {
-                    "external_id": "AAAAAA"
+                    "external_id": "AAAAAA",
+                    "password": "bläckfiskarochtomtebloss",
+                    "use_ticket": True
+                },
+                content_type="application/json"
+        )
+
+        self.assertEqual(r1.status_code, 200)
+        self.assertEqual(r1.data["times_used"], 0) 
+        self.assertEqual(r1.data["status"], "PAID") 
+        self.assertEqual(r1.data["chapter_event"], self.test_event.title)
+
+        r1 = self.client.put(
+                "/validate_ticket/",
+                {
+                    "external_id": "AAAAAA",
+                    "password": "bläckfiskarochtomtebloss",
+                    "use_ticket": True
                 },
                 content_type="application/json"
         )
@@ -79,7 +97,9 @@ class ValidateTicketTest(TestCase):
         r2 = self.client.put(
                 "/validate_ticket/",
                 {
-                    "external_id": "BBBBBB"
+                    "external_id": "BBBBBB",
+                    "password": "bläckfiskarochtomtebloss",
+                    "use_ticket": True
                 },
                 content_type="application/json"
         )
@@ -92,14 +112,30 @@ class ValidateTicketTest(TestCase):
         r1 = self.client.put(
                 "/validate_ticket/",
                 {
-                    "external_id": "QWERTY"
+                    "external_id": "QWERTY",
+                    "password": "bläckfiskarochtomtebloss",
+                    "use_ticket": False
                 },
                 content_type="application/json"
         )
 
-        self.assertEqual(r1.status_code, 200)
+        self.assertEqual(r1.status_code, 404)
         self.assertEqual(r1.data["times_used"], -1) 
         self.assertEqual(r1.data["status"], "Ticket does not exist") 
+
+    def test_wrong_password(self):
+        r1 = self.client.put(
+                "/validate_ticket/",
+                {
+                    "external_id": "AAAAAA",
+                    "password": "tomtefiskarochbläckbloss",
+                    "use_ticket": False
+                },
+                content_type="application/json"
+        )
+
+        self.assertEqual(r1.status_code, 401)
+
 
     def test_invalid_request(self):
         r1 = self.client.put(
