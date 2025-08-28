@@ -150,14 +150,13 @@ class StartPaymentTest(TestCase):
         self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
         self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
 
-    def test_double_payment(self):
+    def test_already_paid_payment(self):
         mail_address = "mail@mail.com"
-        response = self.client.post(
-            "/start_payment/",
-            {
-                "email_address": mail_address
-            }
-        )
+
+        payment_id = self.client.session["reserved_payment"]
+        payment = Payment.objects.get(pk=payment_id)
+        payment.status = PaymentStatus.PAID
+        payment.save()
 
         response = self.client.post(
             "/start_payment/",
@@ -167,12 +166,3 @@ class StartPaymentTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
-
-        payment_id = self.client.session["reserved_payment"]
-        payment = Payment.objects.get(pk=payment_id)
-        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
-
-        self.assertEqual(payment.payment_started, True)
-        self.assertEqual(payment.email, mail_address)
-        self.assertEqual(payment.status, PaymentStatus.RESERVED)
-        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
