@@ -9,6 +9,16 @@ const TicketValidation = () => {
   const [state, setState] = useState("enterPassword");
   const [password, setPassword] = useState(undefined);
   const [error, setError] = useState(null);
+  const [showLove, setShowLove] = useState(false);
+  const [loveIndex, setLoveIndex] = useState(0);
+
+
+  const loveContent = [
+    { type: "text", content: "BitTan <3 Mattias Repetto" },
+    { type: "image", content: "https://lh3.googleusercontent.com/d/1I7mf79CbjkNxWzJI6FpLzhbuNNn2o49b" },
+    { type: "gif", content: "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWxic2YwMmZnZmkwcWh6Y2k2eXRjam1maHM2YmY1YXdidWt3cmhwYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XsNAXQl1E8ig8MHAhf/giphy.gif" },
+    { type: "text", content: "Ni skannar bäst! (bästare än SL)" },
+  ];
 
   const onScan = (scanResult) => {
     const ticketId = scanResult?.data;
@@ -20,6 +30,13 @@ const TicketValidation = () => {
   };
 
   const handleValidate = async (ticketId) => {
+    const rand = Math.random();
+    if (rand < 0.33) {
+      setShowLove(true);
+      setLoveIndex(Math.floor(Math.random()*loveContent.length));
+    } else if (rand > 0.33 && rand < 0.67) {
+      setShowLove(false)
+    } 
     try {
       const result = await validateTicket(ticketId, password);
       setValidationResult(result);
@@ -151,12 +168,66 @@ const TicketValidation = () => {
     </div>
   );
 
+  const renderLove = () => {
+    const currentItem = loveContent[loveIndex];
+    return (
+        <div
+      className="position-absolute top-0 end-0 m-3"
+      style={{
+        zIndex: 1000,
+        width: "300px",
+        height: "150px",
+        pointerEvents: "none"
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {currentItem.type === "text" && (
+          <p
+            style={{
+              color: "#333",
+              textShadow: "1px 1px 2px rgba(255, 255, 255, 0.8)",
+              textAlign: "center",
+              margin: 0,
+              padding: "0 10px",
+              maxWidth: "100%",
+              maxHeight: "100%",
+            }}
+          >
+            {currentItem.content}
+          </p>
+        )}
+        {(currentItem.type === "image" || currentItem.type === "gif") && (
+          <img
+            src={currentItem.content}
+            alt="Love content"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain", 
+              borderRadius: "0.5rem",
+            }}
+          />
+        )}
+      </div>
+    </div>    
+    )
+  }
+
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 " >
       {error && renderError()}
       {state === "enterPassword" && renderPasswordInput()}
       {state === "scanTicket" && renderScanner()}
       {state === "showTicket" && renderResult()}
+      {(showLove && state !== "enterPassword") && renderLove()}
     </div>
   );
 };
