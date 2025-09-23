@@ -16,20 +16,23 @@ export const reserveTicket = async (requestBody) => {
     const response = await axiosInstance.post('/reserve_ticket/', {
       chapter_event: requestBody.chapter_event,
       tickets: requestBody.tickets,
+      ...(localStorage.getItem("session_id") ? { session_id: localStorage.getItem("session_id") } : {}) 
     });
 
     // Extract session ID from cookies
-    const setCookieHeader = response.headers['set-cookie'];
-    let sessionId = null;
+    // const setCookieHeader = response.headers['set-cookie'];
+    // let sessionId = null;
 
-    if (setCookieHeader) {
-      const sessionCookie = setCookieHeader.find(cookie => cookie.startsWith('sessionid='));
-      if (sessionCookie) {
-        sessionId = sessionCookie.split(';')[0].split('=')[1];
-      }
-    }
+    // if (setCookieHeader) {
+    //  const sessionCookie = setCookieHeader.find(cookie => cookie.startsWith('sessionid='));
+    //  if (sessionCookie) {
+    //    sessionId = sessionCookie.split(';')[0].split('=')[1];
+    //  }
+    //}
 
-    return { data: response.data, sessionId };
+    localStorage.setItem("session_id", response.data)
+    
+    return response.data;
   } catch (error) {
     console.error('Error reserving tickets:', error);
     throw error;

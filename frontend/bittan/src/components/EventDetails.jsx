@@ -97,10 +97,11 @@ const EventDetails = () => {
       };
       
       // Call the API
-      await reserveTicket(requestBody);
+      var session_id = await reserveTicket(requestBody);
+
 
       // Navigate to confirmation page
-      navigate("/Payment", { state: { email, totalAmount, chosenTickets, event } });
+      navigate(`/Payment/${session_id}`, { state: { email, totalAmount, chosenTickets, event } });
     } catch (error) {
 
       if(error === "mail") {

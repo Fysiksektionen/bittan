@@ -14,8 +14,10 @@ export const startPayment = async (emailAddress, sessionId) => {
   try {
     const response = await axiosInstance.post(
       '/start_payment/',
-      { email_address: emailAddress },
-      { headers: { Cookie: `sessionid=${sessionId}` } } // Attach session ID in the request
+      { 
+        email_address: emailAddress,
+        session_id: sessionId,
+      }
     );
 
     return response.data; // Returns the Swish token
