@@ -18,12 +18,11 @@ import logging
 
 class StartPaymentRequestSerializer(serializers.Serializer):
     email_address = serializers.EmailField(max_length=255)
+    session_id = serializers.CharField(required=True)
 
 @api_view(['POST'])
 def start_payment(request):
     response_data: dict
-    
-
     valid_ser = StartPaymentRequestSerializer(data=request.data)
     if valid_ser.is_valid():
         response_data = valid_ser.validated_data
@@ -33,14 +32,15 @@ def start_payment(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    payment_id = request.session.get("reserved_payment")
-    if payment_id == None:
-        return Response(
-                "InvalidSession",
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    payment_id = response_data["session_id"]
 
-    payment = Payment.objects.get(pk=payment_id)
+    try:
+        payment = Payment.objects.get(pk=payment_id)
+    except Payment.DoesNotExist:
+        return Response(
+                "CouldNotFindSession",
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     if payment.status == PaymentStatus.PAID:
         return Response(
@@ -91,3 +91,4 @@ def start_payment(request):
     logging.info(f"Sucessfully initialised payment for payment with id {payment_id} with Swish.")
      
     return Response(payment_request.token)
+

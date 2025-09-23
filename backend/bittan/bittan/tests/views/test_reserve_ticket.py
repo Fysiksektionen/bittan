@@ -42,8 +42,10 @@ class ReserveTicketTest(TestCase):
             },
             content_type="application/json"
         )
+        payment_pk = Payment.objects.first().pk
         self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 201 correctly. ")
-        self.assertIsNotNone(response.cookies.get("sessionid", None), "/reserve_ticket/ did not give a session cookie. ")
+        self.assertEqual(response.data, payment_pk)
+#         self.assertIsNotNone(response.cookies.get("sessionid", None), "/reserve_ticket/ did not give a session cookie. ")
 
     def test_too_many_tickets(self):
         response = self.client.post(
@@ -170,13 +172,15 @@ class ReserveTicketTest(TestCase):
         if r1.status_code != 201:
             raise Exception("Failed to perform reservation of tickets in preparation for testing test_double_reservation.")
 
-        s1 = r1.cookies.get("sessionid")
-        p1_id = self.client.session["reserved_payment"]
+        # s1 = r1.cookies.get("sessionid")
+        # p1_id = self.client.session["reserved_payment"]
+        p1_id = r1.data
 
         r2 = self.client.post(
                "/reserve_ticket/", 
             {
                 "chapter_event": self.test_event.pk,
+                "session_id": p1_id,
                 "tickets": [
                     {
                         "ticket_type": self.test_ticket.pk,
@@ -192,11 +196,12 @@ class ReserveTicketTest(TestCase):
         )
         self.assertEqual(r2.status_code, 201)
         p1 = Payment.objects.get(pk=p1_id)
-        s2 = r2.cookies.get("sessionid")
-        p2_id = self.client.session["reserved_payment"]
+        # s2 = r2.cookies.get("sessionid")
+        # p2_id = self.client.session["reserved_payment"]
+        p2_id = r2.data
         p2 = Payment.objects.get(pk=p2_id)
 
-        self.assertNotEqual(s1, s2, "/reserve_ticket/ did not replace the old session when double booking.")
+        self.assertNotEqual(p1_id, p2_id, "/reserve_ticket/ did not replace the old session when double booking.")
         self.assertEqual(p1.status, PaymentStatus.FAILED_EXPIRED_RESERVATION)
         self.assertEqual(p2.status, PaymentStatus.RESERVED)
 

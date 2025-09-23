@@ -129,11 +129,11 @@ def filter_ticket_type_from_chapter_event(request, chapter_event_id) -> Response
 
 @require_POST
 @user_passes_test(lambda u: u.groups.filter(name="organisers").count())
-def update_tickets(request, payment_id):
+def update_tickets(request, payment_id: str):
     """
     Takes form input from the staff page and updates tickets associated with a payment accordingly. 
     """
-    payment = get_object_or_404(Payment, id=payment_id)
+    payment = get_object_or_404(Payment, pk=payment_id)
     tickets = payment.ticket_set.all()
     forms = []
     errors = False

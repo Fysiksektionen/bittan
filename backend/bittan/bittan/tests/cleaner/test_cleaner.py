@@ -51,7 +51,9 @@ class CleanerTicketReservationIntegrationTest(TestCase):
 
 		call_command("run_cleaner")
 
-		payment_id = self.client.session["reserved_payment"]
+# 		payment_id = self.client.session["reserved_payment"]
+
+		payment_id = reservation_res.data
 		payment = Payment.objects.get(pk=payment_id)
 
 		self.assertEqual(payment.status, PaymentStatus.RESERVED, "Payment was cleaned when still alive. ")
@@ -80,12 +82,15 @@ class CleanerTicketReservationIntegrationTest(TestCase):
 		if reservation_res.status_code != 201:
 			raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
 
-		payment_id = self.client.session["reserved_payment"]
+# 		payment_id = self.client.session["reserved_payment"]
+
+		payment_id = reservation_res.data
 
 		_ = self.client.post(
             "/start_payment/",
             {
-				"email_address": "mail@mail.com"
+				"email_address": "mail@mail.com",
+				"session_id": payment_id
 			}
 		)
 
@@ -109,26 +114,26 @@ class RunCleanerTest(TestCase):
 			swish_id = "a",
 			status = PaymentStatus.RESERVED,
 			email = "abc"
-		).id
+		).pk
 		self.payment_expires_future_id = Payment.objects.create(
 			expires_at = NOW + datetime.timedelta(minutes=5),
 			swish_id = "b",
 			status = PaymentStatus.RESERVED,
 			email = "abc"
-		).id
+		).pk
 		self.payment_paid_id = Payment.objects.create(
 			expires_at = NOW,
 			swish_id = "c",
 			status = PaymentStatus.PAID,
 			email = "abc"
-		).id
+		).pk
 		self.payment_started_id = Payment.objects.create(
 			expires_at = NOW,
 			swish_id = "d",
 			status = PaymentStatus.RESERVED,
 			email = "abc",
 			payment_started=True
-		).id
+		).pk
 
 	def test_disables_expired(self):
 		self.assertEqual(
