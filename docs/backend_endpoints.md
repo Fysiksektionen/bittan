@@ -66,6 +66,8 @@ Reserves ticket for later payment.
 ### Request body
 * `chapter_event` `string` *Required*</span> <br>
     The id of the chapter event tickets are being booked for. 
+* `email_address` `string` *Required* <br>
+    The email address of the one booking the tickets. 
 
 * `tickets` `Array<Object>` *Required* <br>
     A list of objects that contains information about the ticket type to reserve as well as how many of each ticket type to reserve. 
@@ -75,7 +77,7 @@ Reserves ticket for later payment.
         How many of the ticket type to reserve. Minimum value is $1$. 
 
 ### Response
-If successful a session cookie will be returned. 
+A string containing the session id of the current ticket booking session. 
 
 ### Response codes 
 
@@ -93,10 +95,11 @@ If successful a session cookie will be returned.
 
 Request using curl.
 ```bash
-curl --cookie-jar cookies.utf8 -v POST <Your URL>/reserve-ticket/ \
+curl -v POST <Your URL>/reserve_ticket/ \
         --header "Content-Type:application/json" \
         --data '{
                 "chapter_event": "<Event_Id>",
+                "email_address": "<Email address>",
                 "tickets":
                 [
                         {
@@ -104,28 +107,17 @@ curl --cookie-jar cookies.utf8 -v POST <Your URL>/reserve-ticket/ \
                                 "count": <Count1>
                         },
                         {
-                                "ticket_type": "<Ticket Type2>"
+                                "ticket_type": "<Ticket Type2>",
                                 "count": <Count2>
                         }
                 ]
         }'
 ```
-Response
+Example response
 ```bash
-< HTTP/1.1 201 Created
-< Date: Sat, 29 Jun 2024 08:19:21 GMT
-< Server: WSGIServer/0.2 CPython/3.12.3
-< Vary: Accept, Cookie
-< Allow: POST, OPTIONS
-< X-Frame-Options: DENY
-< Content-Length: 0
-< X-Content-Type-Options: nosniff
-< Referrer-Policy: same-origin
-< Cross-Origin-Opener-Policy: same-origin
-* Added cookie sessionid="eyJyZXNlcnZlZF9wYXltZW50IjoxMn0:1sNTIn:oqSXzVkzxHF4VCBvXiN8qkEispZdb11Y76Xcmo7ckAo" for domain localhost, path /, expire 1720858761
-< Set-Cookie:  sessionid=eyJyZXNlcnZlZF9wYXltZW50IjoxMn0:1sNTIn:oqSXzVkzxHF4VCBvXiN8qkEispZdb11Y76Xcmo7ckAo; expires=Sat, 13 Jul 2024 08:19:21 GMT; HttpOnly; Max-Age=1209600; Path=/; SameSite=Lax
+"hRcAKTANoOWQ"
 ```
-Reserves tickets to the event with event_id. Reserves Count1 of Type1 tickets and Count2 of Type2 tickets. Saves the response cookie in the file cookies.utf8.
+Reserves tickets to the event with event_id. Reserves Count1 of Type1 tickets and Count2 of Type2 tickets. Returns the session id which is used to interact with the payment in the future.
 
 
 ## Start payment
@@ -136,8 +128,8 @@ Starts the swish payment process.
 
 
 ### Request body
-* `email_address` `string` *Required*</span> <br>
-    The email address of the customer where the tickets are going to be sent.  
+* `session_id` `string` *Required*</span> <br>
+    The session id of the payment to start. 
 
 ### Response
 If successful a swish token is sent. This token is used to interact with the users swish app. 
@@ -154,12 +146,12 @@ If successful a swish token is sent. This token is used to interact with the use
 |500 INTERNAL SERVER ERROR|There is an error with the server. Check the logs.|
 
 ### Example request
-Request using curl. The cookie.utf8 file is the same file that the request in reserve ticket created. 
+Request using curl.  
 ```bash
 curl -v --cookie cookies.utf8 <Your URL>/start-payment/ \
         --header "Content-Type:application/json" \
         --data '{
-                "email_address": "<EMAIL>"
+                "session_id": "Session Id"
         }'
 ```
 Response
