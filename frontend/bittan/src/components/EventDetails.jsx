@@ -93,7 +93,8 @@ const EventDetails = () => {
       // Prepare request body
       const requestBody = {
         chapter_event: id, // The ID of the chapter event
-        tickets: chosenTickets
+        tickets: chosenTickets,
+        email: email
       };
       
       // Call the API

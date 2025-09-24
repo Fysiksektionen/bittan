@@ -17,7 +17,6 @@ from django.db.models import Sum
 import logging
 
 class StartPaymentRequestSerializer(serializers.Serializer):
-    email_address = serializers.EmailField(max_length=255)
     session_id = serializers.CharField(required=True)
 
 @api_view(['POST'])
@@ -69,8 +68,6 @@ def start_payment(request):
         payment.save()
 
     payment.payment_started = True
-    payment.email = response_data["email_address"]
-    payment.save()
     logging.info(f"Started payment for payment with id {payment_id}")
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]

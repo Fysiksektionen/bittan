@@ -29,6 +29,7 @@ class StartPaymentTest(TestCase):
             "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
+                "email_address": "mail@mail.com",
                 "tickets": [
                     {
                         "ticket_type": self.test_ticket.pk,
@@ -47,14 +48,11 @@ class StartPaymentTest(TestCase):
         response = self.client.post(
             "/start_payment/",
             {
-                "email_address": mail_address,
                 "session_id": self.session_id
             }
         )
 
         self.assertEqual(response.status_code, 200)
-
-#         payment_id = self.client.session["reserved_payment"]
 
         payment = Payment.objects.get(pk=self.session_id)
         swish_payment_request = self.swish.get_payment_request(payment.swish_id)
@@ -65,28 +63,6 @@ class StartPaymentTest(TestCase):
         self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
         self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
     
-    def test_invalid_mail(self):
-        response = self.client.post(
-            "/start_payment/",
-            {
-                "email_address": "dsjklasdfljka",
-                "session_id": self.session_id
-            }
-        )
-
-        self.assertEqual(response.status_code, 400)
-
-#     def test_invalid_session_token(self):
-#         new_client = Client()
-#         response = new_client.post(
-#             "/start_payment/",
-#             {
-#                 "email_address": "mail@mail.com",
-#             }
-#         )
-# 
-#         self.assertEqual(response.status_code, 400)
-
     def test_no_session_id(self):
         response = self.client.post(
             "/start_payment/",
@@ -107,9 +83,6 @@ class StartPaymentTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_expired_session_out_of_tickets(self):
-
-#         payment_id = self.client.session["reserved_payment"]
-
         payment = Payment.objects.get(pk=self.session_id)
         payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
         payment.save()
@@ -119,6 +92,7 @@ class StartPaymentTest(TestCase):
             "/reserve_ticket/", 
             {
                 "chapter_event": str(self.test_event.pk),
+                "email_address": "mail@mail.com",
                 "tickets": [
                     {
                         "ticket_type": self.test_ticket.pk,
@@ -135,13 +109,10 @@ class StartPaymentTest(TestCase):
         response = self.client.post(
             "/start_payment/",
             {
-                "email_address": "mail@mail.com",
                 "session_id": self.session_id
             }
         )
         self.assertEqual(response.status_code, 408) 
-
-#         payment_id = self.client.session["reserved_payment"]
 
         payment = Payment.objects.get(pk=self.session_id)
         self.assertEqual(payment.status, PaymentStatus.FAILED_EXPIRED_RESERVATION)
@@ -152,8 +123,6 @@ class StartPaymentTest(TestCase):
         now = datetime(1970, 1, 1, tzinfo=timezone.timezone.utc)
         mock_now.return_value = now
 
-#         payment_id = self.client.session["reserved_payment"]
-
         payment = Payment.objects.get(pk=self.session_id)
         payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
         payment.save()
@@ -162,14 +131,11 @@ class StartPaymentTest(TestCase):
         response = self.client.post(
             "/start_payment/",
             {
-                "email_address": mail_address,
                 "session_id": self.session_id
             }
         )
 
         self.assertEqual(response.status_code, 200)
-
-#         payment_id = self.client.session["reserved_payment"]
 
         payment = Payment.objects.get(pk=self.session_id)
         swish_payment_request = self.swish.get_payment_request(payment.swish_id)
@@ -184,7 +150,6 @@ class StartPaymentTest(TestCase):
     def test_already_paid_payment(self):
         mail_address = "mail@mail.com"
 
-#         payment_id = self.client.session["reserved_payment"]
         payment = Payment.objects.get(pk=self.session_id)
         payment.status = PaymentStatus.PAID
         payment.save()
@@ -192,7 +157,6 @@ class StartPaymentTest(TestCase):
         response = self.client.post(
             "/start_payment/",
             {
-                "email_address": mail_address,
                 "session_id": self.session_id
             }
         )

@@ -15,7 +15,6 @@ export const startPayment = async (emailAddress, sessionId) => {
     const response = await axiosInstance.post(
       '/start_payment/',
       { 
-        email_address: emailAddress,
         session_id: sessionId,
       }
     );

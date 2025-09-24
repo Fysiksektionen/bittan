@@ -36,6 +36,7 @@ class CleanerTicketReservationIntegrationTest(TestCase):
             "/reserve_ticket/", 
             {
                 "chapter_event": str(self.ce1.pk),
+                "email_address": "mail@mail.com",
                 "tickets": [
                     {
                         "ticket_type": self.test_ticket.pk,
@@ -50,8 +51,6 @@ class CleanerTicketReservationIntegrationTest(TestCase):
 			raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
 
 		call_command("run_cleaner")
-
-# 		payment_id = self.client.session["reserved_payment"]
 
 		payment_id = reservation_res.data
 		payment = Payment.objects.get(pk=payment_id)
@@ -69,6 +68,7 @@ class CleanerTicketReservationIntegrationTest(TestCase):
             "/reserve_ticket/", 
             {
                 "chapter_event": str(self.ce1.pk),
+                "email_address": "mail@mail.com",
                 "tickets": [
                     {
                         "ticket_type": self.test_ticket.pk,
@@ -82,14 +82,11 @@ class CleanerTicketReservationIntegrationTest(TestCase):
 		if reservation_res.status_code != 201:
 			raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
 
-# 		payment_id = self.client.session["reserved_payment"]
-
 		payment_id = reservation_res.data
 
 		_ = self.client.post(
             "/start_payment/",
             {
-				"email_address": "mail@mail.com",
 				"session_id": payment_id
 			}
 		)

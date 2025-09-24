@@ -27,6 +27,7 @@ class TicketsSerializer(serializers.Serializer):
 class ReserveTicketRequestSerializer(serializers.Serializer):
     chapter_event = serializers.CharField(required = True)
     tickets = serializers.ListField(child=TicketsSerializer())
+    email_address = serializers.EmailField(max_length=255)
     session_id = serializers.CharField(required=False)
 
 @api_view(['POST'])
@@ -95,7 +96,7 @@ def reserve_ticket(request: Request) -> Response:
         expires_at = timezone.now() + chapter_event.reservation_duration,
         swish_id = None, 
         status = PaymentStatus.RESERVED,
-        email = None, 
+        email = response_data["email_address"], 
     )
 
     for ticket in tickets:
