@@ -216,7 +216,7 @@ const TicketValidation = () => {
             {currentItem.content}
           </p>
         )}
-        {(!specialLove && currentItem.type === "image" || currentItem.type === "gif") && (
+        {(!specialLove && (currentItem.type === "image" || currentItem.type === "gif")) && (
           <img
             src={currentItem.content}
             alt="Love content"
@@ -239,7 +239,7 @@ const TicketValidation = () => {
               maxWidth: "100%",
               maxHeight: "100%",
               fontWeight: "bold",
-              fontSize: "1.2rem",
+              fontSize: "1.5rem",
             }}
           >
             {"LEGENDARY TICKET"}
