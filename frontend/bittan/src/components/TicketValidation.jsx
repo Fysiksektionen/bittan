@@ -1,5 +1,5 @@
 // src/components/TicketValidation.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { validateTicket } from '../api/validateTicket';
 import TicketScanner from './QrScanner';
 
@@ -14,6 +14,15 @@ const TicketValidation = () => {
   const [specialLove, setSpecialLove] = useState(false);
   const [specialLoveID, setSpecialLoveID] = useState("");
 
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSpecialLove(false);
+      setShowLove(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [specialLove]);
 
   const loveContent = [
     { type: "text", content: "BitTan <3 Mattias Repetto" },
@@ -125,7 +134,7 @@ const TicketValidation = () => {
         <button
           className="btn btn-primary w-100 mb-4"
           onClick={() => handleValidate(externalId)}
-          disabled={!isValidTicketId}
+          disabled={specialLove || !isValidTicketId}
         >
           Visa biljett
         </button>
@@ -185,12 +194,26 @@ const TicketValidation = () => {
     return (
         <div
       className="position-absolute top-0 end-0 m-3"
-      style={{
+      style={specialLove ? {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        zIndex: 1000,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        pointerEvents: "none",
+        background: "radial-gradient(circle closest-side, #ff49ff 0%, transparent 100%)",
+
+      } : {
         zIndex: 1000,
         width: "300px",
         height: "150px",
         pointerEvents: "none"
-      }}
+      }
+    }
     >
       <div
         style={{
@@ -239,97 +262,85 @@ const TicketValidation = () => {
               maxWidth: "100%",
               maxHeight: "100%",
               fontWeight: "bold",
-              fontSize: "1.5rem",
+              fontSize: "2rem",
             }}
           >
-            {"LEGENDARY TICKET"}
+          LEGENDARY TICKET
+            {[...Array(10)].map((_, i) => (
+    <span key={i} className="sparkle" style={{ "--i": i }}>✨</span>
+  ))}
           </p>
         )}
       </div>
 
       {/* CSS for rainbow animation */}
-      <style>
-        {`
-          @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
 
-          .rainbow-text {
-            background: linear-gradient(
-              270deg,
-              red,
-              orange,
-              yellow,
-              green,
-              blue,
-              indigo,
-              violet
-            );
-            background-size: 400% 400%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: rainbow 5s ease infinite;
-          }
-        `}
-      </style>
+<style>
+  {`
+    @keyframes rainbow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 10px gold, 0 0 20px orange;
+      }
+      50% {
+        transform: scale(1.2);
+        text-shadow: 0 0 20px white, 0 0 40px gold, 0 0 60px red;
+      }
+    }
+
+    @keyframes sparkle {
+      0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+      50% { opacity: 1; transform: translate(var(--dx, 0px), var(--dy, -20px)) scale(1.2) rotate(45deg); }
+      100% { opacity: 0; transform: translate(var(--dx, 0px), var(--dy, -40px)) scale(0.5) rotate(90deg); }
+    }
+
+    .rainbow-text {
+      position: relative;
+      display: inline-block;
+      background: linear-gradient(
+        270deg,
+        red,
+        orange,
+        yellow,
+        green,
+        blue,
+        indigo,
+        violet
+      );
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: rainbow 5s ease infinite, pulse 2s ease-in-out infinite;
+    }
+
+    .sparkle {
+      position: absolute;
+      font-size: 1.5rem;
+      pointer-events: none;
+
+      /* Randomized positions around text */
+      top: calc(50% + (var(--i) * 5px - 25px));
+      left: calc(50% + (var(--i) * 10px - 50px));
+
+      /* Custom offsets for more chaotic motion */
+      --dx: calc((var(--i) - 5) * 30px);
+      --dy: calc(-20px - var(--i) * 3px);
+
+      animation: sparkle 2s infinite ease-in-out;
+      animation-delay: calc(var(--i) * 0.2s);
+    }
+  `}
+</style>
+
     </div>
   );
 };
-
-  // const renderLove = () => {
-  //   const currentItem = loveContent[loveIndex];
-  //   return (
-  //       <div
-  //     className="position-absolute top-0 end-0 m-3"
-  //     style={{
-  //       zIndex: 1000,
-  //       width: "300px",
-  //       height: "150px",
-  //       pointerEvents: "none"
-  //     }}
-  //   >
-  //     <div
-  //       style={{
-  //         width: "100%",
-  //         height: "100%",
-  //         display: "flex",
-  //         alignItems: "center",
-  //         justifyContent: "center",
-  //       }}
-  //     >
-  //       {currentItem.type === "text" && (
-  //         <p
-  //           style={{
-  //             color: "#333",
-  //             textShadow: "1px 1px 2px rgba(255, 255, 255, 0.8)",
-  //             textAlign: "center",
-  //             margin: 0,
-  //             padding: "0 10px",
-  //             maxWidth: "100%",
-  //             maxHeight: "100%",
-  //           }}
-  //         >
-  //           {currentItem.content}
-  //         </p>
-  //       )}
-  //       {(currentItem.type === "image" || currentItem.type === "gif") && (
-  //         <img
-  //           src={currentItem.content}
-  //           alt="Love content"
-  //           style={{
-  //             maxWidth: "100%",
-  //             maxHeight: "100%",
-  //             objectFit: "contain", 
-  //             borderRadius: "0.5rem",
-  //           }}
-  //         />
-  //       )}
-  //     </div>
-  //   </div>    
-  //   )
-  // }
 
   return (
     <div className="container mt-4 " >
