@@ -11,6 +11,8 @@ const TicketValidation = () => {
   const [error, setError] = useState(null);
   const [showLove, setShowLove] = useState(false);
   const [loveIndex, setLoveIndex] = useState(0);
+  const [specialLove, setSpecialLove] = useState(false);
+  const [specialLoveID, setSpecialLoveID] = useState("");
 
 
   const loveContent = [
@@ -18,6 +20,10 @@ const TicketValidation = () => {
     { type: "image", content: "https://lh3.googleusercontent.com/d/1I7mf79CbjkNxWzJI6FpLzhbuNNn2o49b" },
     { type: "gif", content: "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWxic2YwMmZnZmkwcWh6Y2k2eXRjam1maHM2YmY1YXdidWt3cmhwYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XsNAXQl1E8ig8MHAhf/giphy.gif" },
     { type: "text", content: "Ni skannar bäst! (bästare än SL)" },
+  ];
+
+  const specialIDS = [
+    "BITTAN",
   ];
 
   const onScan = (scanResult) => {
@@ -31,11 +37,17 @@ const TicketValidation = () => {
 
   const handleValidate = async (ticketId) => {
     const rand = Math.random();
-    if (rand < 0.33) {
+    if (specialIDS.includes(ticketId)) {
+      setShowLove(true);
+      setSpecialLove(true);
+      setSpecialLoveID(ticketId);
+    }
+    else if (rand < 0.33) {
       setShowLove(true);
       setLoveIndex(Math.floor(Math.random()*loveContent.length));
     } else if (rand > 0.33 && rand < 0.67) {
-      setShowLove(false)
+      setShowLove(false);
+      setSpecialLove(false);
     } 
     try {
       const result = await validateTicket(ticketId, password);
@@ -189,7 +201,7 @@ const TicketValidation = () => {
           justifyContent: "center",
         }}
       >
-        {currentItem.type === "text" && (
+        {!specialLove && currentItem.type === "text" && (
           <p
             style={{
               color: "#333",
@@ -204,7 +216,7 @@ const TicketValidation = () => {
             {currentItem.content}
           </p>
         )}
-        {(currentItem.type === "image" || currentItem.type === "gif") && (
+        {(!specialLove && currentItem.type === "image" || currentItem.type === "gif") && (
           <img
             src={currentItem.content}
             alt="Love content"
@@ -216,10 +228,108 @@ const TicketValidation = () => {
             }}
           />
         )}
+
+        {specialLove && specialLoveID === "BITTAN" && (
+          <p
+            className="rainbow-text"
+            style={{
+              textAlign: "center",
+              margin: 0,
+              padding: "0 10px",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              fontWeight: "bold",
+              fontSize: "1.2rem",
+            }}
+          >
+            {"LEGENDARY TICKET"}
+          </p>
+        )}
       </div>
-    </div>    
-    )
-  }
+
+      {/* CSS for rainbow animation */}
+      <style>
+        {`
+          @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+
+          .rainbow-text {
+            background: linear-gradient(
+              270deg,
+              red,
+              orange,
+              yellow,
+              green,
+              blue,
+              indigo,
+              violet
+            );
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 5s ease infinite;
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
+  // const renderLove = () => {
+  //   const currentItem = loveContent[loveIndex];
+  //   return (
+  //       <div
+  //     className="position-absolute top-0 end-0 m-3"
+  //     style={{
+  //       zIndex: 1000,
+  //       width: "300px",
+  //       height: "150px",
+  //       pointerEvents: "none"
+  //     }}
+  //   >
+  //     <div
+  //       style={{
+  //         width: "100%",
+  //         height: "100%",
+  //         display: "flex",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //       }}
+  //     >
+  //       {currentItem.type === "text" && (
+  //         <p
+  //           style={{
+  //             color: "#333",
+  //             textShadow: "1px 1px 2px rgba(255, 255, 255, 0.8)",
+  //             textAlign: "center",
+  //             margin: 0,
+  //             padding: "0 10px",
+  //             maxWidth: "100%",
+  //             maxHeight: "100%",
+  //           }}
+  //         >
+  //           {currentItem.content}
+  //         </p>
+  //       )}
+  //       {(currentItem.type === "image" || currentItem.type === "gif") && (
+  //         <img
+  //           src={currentItem.content}
+  //           alt="Love content"
+  //           style={{
+  //             maxWidth: "100%",
+  //             maxHeight: "100%",
+  //             objectFit: "contain", 
+  //             borderRadius: "0.5rem",
+  //           }}
+  //         />
+  //       )}
+  //     </div>
+  //   </div>    
+  //   )
+  // }
 
   return (
     <div className="container mt-4 " >
