@@ -59,12 +59,12 @@ const TicketValidation = () => {
   const handleValidate = async (ticketId) => {
     const rand = Math.random();
     if (pkmCards.hasOwnProperty(ticketId)) {
-      setShowLove(true);
       setSpecialLove(true);
       setSpecialLoveID(ticketId);
+      setShowLove(true);
       foundPkmCards.push(ticketId);
     }
-    if (rand < 0.5) {
+    else if (rand < 0.5) {
       setLoveIndex(Math.floor(Math.random()*loveContent.length));
       setShowLove(true);
     } 
