@@ -35,7 +35,10 @@ const TicketValidation = () => {
     { type: "gif", content: "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXcyaHA3d2k3cDJ6MDFocW14c2l3enNkNXdnMjJpaGhzMXQ2bmd6aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/tFH0DeoATug9eIDkwl/giphy.gif" },
     { type: "text", content: "Ni skannar bäst! (bästare än SL)" },
     { type: "gif", content: "https://lh3.googleusercontent.com/d/1kMqapo8lUrapYzrwCyoMZTgaLP-Z82GA" },
-    { type: "gif", content: "https://judoinfo.com/wp-content/uploads/2016/07/animations//seoinage.gif"}
+    { type: "gif", content: "https://judoinfo.com/wp-content/uploads/2016/07/animations//seoinage.gif"},
+    { type: "text", content: "BitTan <3 FoM!" },
+    { type: "image", content: "https://static.wikitide.net/italianbrainrotwiki/a/a0/Shimpanzini_cocosini.png" },
+    { type: "image", content: "https://cookingwithnonna.com/images/stories/rapidrecipe/th/cropped-1978-pappardelle-alla-bolognese-1000.jpg" },
   ];
 
   const pkmCards = {
@@ -61,13 +64,13 @@ const TicketValidation = () => {
       setSpecialLoveID(ticketId);
       foundPkmCards.push(ticketId);
     }
-    if (rand < 1) {
-      setShowLove(true);
+    if (rand < 0.5) {
       setLoveIndex(Math.floor(Math.random()*loveContent.length));
-    } else if (rand > 0.33 && rand < 0.67) {
-      setShowLove(false);
-      setSpecialLove(false);
+      setShowLove(true);
     } 
+    else {
+      setShowLove(false); 
+    }
     try {
       const result = await validateTicket(ticketId, password);
       setValidationResult(result);
@@ -220,7 +223,7 @@ const TicketValidation = () => {
       } : {
         zIndex: 1000,
         width: "300px",
-        height: "150px",
+        height: "100px",
         pointerEvents: "none"
       }
     }
@@ -244,6 +247,7 @@ const TicketValidation = () => {
               padding: "0 10px",
               maxWidth: "100%",
               maxHeight: "100%",
+              fontSize: "1.5rem",
             }}
           >
             {currentItem.content}
@@ -252,7 +256,6 @@ const TicketValidation = () => {
         {(!specialLove && (currentItem.type === "image" || currentItem.type === "gif")) && (
           <img
             src={currentItem.content}
-            alt="Love content"
             style={{
               maxWidth: "100%",
               maxHeight: "100%",
