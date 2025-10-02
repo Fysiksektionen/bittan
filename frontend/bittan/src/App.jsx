@@ -7,6 +7,7 @@ import EventDetails from './components/EventDetails';
 import Payment from './components/Payment';
 import BookingConfirmed from './components/BookingConfirmed';
 import TicketValidation from './components/TicketValidation';
+import AdminPage from './components/AdminPage.jsx'
 
 const basename = process.env.PUBLIC_URL || "/";
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/payment/:session_id" element={<Payment />} />
           <Route path="/booking-confirmed" element={<BookingConfirmed />} />
           <Route path="/validate-ticket" element={<TicketValidation />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </Layout>
     </Router>
