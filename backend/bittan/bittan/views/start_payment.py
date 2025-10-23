@@ -56,6 +56,7 @@ def start_payment(request):
     chapter_event = tickets.first().chapter_event
 
     if payment.status != PaymentStatus.RESERVED:
+        # TODO This comparison and update should also happen on the database 
         if tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
              payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
              payment.save()
@@ -67,7 +68,19 @@ def start_payment(request):
         payment.status = PaymentStatus.RESERVED
         payment.save()
 
-    payment.payment_started = True
+
+    # "Atomically" update the payment status.  
+    Payment.objects.filter(
+        pk = payment_id,
+        status = PaymentStatus.RESERVED, # These are just so that we are sure that the payment is in the required status. If it is not get will throw an error and that should be OK. 
+        payment_started = False
+    ).update(
+        payment_started = True
+    )
+
+    payment.refresh_from_db()
+
+    # payment.payment_started = True
     logging.info(f"Started payment for payment with id {payment_id}")
 
     total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
