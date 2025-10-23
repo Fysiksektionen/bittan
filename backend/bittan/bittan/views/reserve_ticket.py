@@ -27,6 +27,8 @@ class TicketsSerializer(serializers.Serializer):
 class ReserveTicketRequestSerializer(serializers.Serializer):
     chapter_event = serializers.CharField(required = True)
     tickets = serializers.ListField(child=TicketsSerializer())
+    email_address = serializers.EmailField(max_length=255)
+    session_id = serializers.CharField(required=False)
 
 @api_view(['POST'])
 def reserve_ticket(request: Request) -> Response:
@@ -55,10 +57,10 @@ def reserve_ticket(request: Request) -> Response:
         )
     
     # Check if the current session already has a payment with associated tickets. 
-    payment_id = request.session.get("reserved_payment")
+    payment_id = response_data.get("session_id", None)
     if payment_id != None:
         try: 
-            payment = Payment.objects.get(pk=payment_id)
+            payment = Payment.objects.get(pk=payment_id, status=PaymentStatus.RESERVED)
             # If the payment is already started then attempt to cancel it. 
             if payment.payment_started:
                 swish = Swish.get_instance() 
@@ -73,8 +75,6 @@ def reserve_ticket(request: Request) -> Response:
                 payment.save()
         except Payment.DoesNotExist:
             pass
-        
-        request.session.delete()
 
     
     if reservation_count > chapter_event.max_tickets_per_payment:
@@ -96,7 +96,7 @@ def reserve_ticket(request: Request) -> Response:
         expires_at = timezone.now() + chapter_event.reservation_duration,
         swish_id = None, 
         status = PaymentStatus.RESERVED,
-        email = None, 
+        email = response_data["email_address"], 
     )
 
     for ticket in tickets:
@@ -128,5 +128,6 @@ def reserve_ticket(request: Request) -> Response:
                     "Failed to generate ticket external id. "
                 ) 
                 return Response(status=500) # Returns status internal server error. 
-    request.session["reserved_payment"] = payment.pk
-    return Response(status=status.HTTP_201_CREATED)
+    
+    return Response(payment.pk, status=status.HTTP_201_CREATED)
+

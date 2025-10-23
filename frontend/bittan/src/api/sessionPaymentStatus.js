@@ -7,9 +7,9 @@ import axiosInstance from "./axiosConfig";
  * @throws {Error} If the request fails.
  */
 
-export const sessionPaymentStatus = async () => {
+export const sessionPaymentStatus = async (session_id) => {
     try {
-      const response = await axiosInstance.get(`/session_payment_status/`);
+      const response = await axiosInstance.get(`/session_payment_status/${session_id}`);
       return response.data; 
     } catch (error) {
       console.error('Unable to get current payment status', error);

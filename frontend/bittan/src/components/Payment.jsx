@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { startPayment } from "../api/startPayment";
@@ -10,6 +10,7 @@ const basename = process.env.PUBLIC_URL || "";
 
 const Payment = () => {
   const location = useLocation();
+  const { session_id } = useParams();
   const { email, totalAmount, chosenTickets, event } = location.state || {};
   const [swishToken, setSwishToken] = useState(null);
   const [qrUrl, setQrUrl] = useState(null);
@@ -23,7 +24,7 @@ const Payment = () => {
 
     const fetchStatus = async () => {
       try {
-        const response = await sessionPaymentStatus();
+        const response = await sessionPaymentStatus(session_id);
         if (response.status === "PAID") {
           clearInterval(interval);
           navigate("/booking-confirmed", { state: { mail: response.mail, status: response.status, reference: response.reference } });
@@ -57,7 +58,7 @@ const Payment = () => {
     try {
       let token = swishToken;
       if(!swishToken) {
-        token = await startPayment(email);
+        token = await startPayment(email, session_id);
         setSwishToken(token);
       }
 
