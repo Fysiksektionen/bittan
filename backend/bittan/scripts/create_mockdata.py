@@ -11,7 +11,6 @@ from django.contrib.auth.models import User
 from bittan.models import TicketType, ChapterEvent, Payment, Ticket, Question, QuestionOption, Answer, AnswerSelectedOptions
 from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.models.question import QuestionType
-from bittan.models.question_option import FieldOptions
 import datetime
 
 User.objects.create_superuser("admin", None, "admin")
@@ -55,7 +54,7 @@ q1 = Question.objects.create(
 opt1_1 = QuestionOption.objects.create(
                 price = 0,
                 name = "Namn",
-                text = FieldOptions.MANDATORY,
+                has_text = True,
                 question = q1
         )
 
@@ -68,19 +67,19 @@ q2 = Question.objects.create(
 opt2_1 = QuestionOption.objects.create(
                 price = 0,
                 name = "Gluten",
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q2
         )
 opt2_2 = QuestionOption.objects.create(
                 price = 0,
                 name = "Laktos",
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q2
         )
 opt2_3 = QuestionOption.objects.create(
                 price = 0,
                 name = "Övrigt",
-                text = FieldOptions.MANDATORY,
+                has_text = True,
                 question = q2
         )
 
@@ -92,13 +91,13 @@ q3 = Question.objects.create(
 opt3_1 = QuestionOption.objects.create(
                 price = 0,
                 name = "Gött",
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q3
         )
 opt3_2 = QuestionOption.objects.create(
                 price = 0,
                 name = "Nött",
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q3
         )
 
@@ -110,13 +109,13 @@ q4 = Question.objects.create(
 opt4_1 = QuestionOption.objects.create(
                 name = "Extra punsch",
                 price = 20,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q4
         )
 opt4_2 = QuestionOption.objects.create(
                 name = "Extra nubbe",
                 price = 20,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q4
         )
 
@@ -128,7 +127,7 @@ q5 = Question.objects.create(
 opt5_1 = QuestionOption.objects.create(
                 name = "Ja",
                 price = 0,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q5
         )
 
@@ -140,7 +139,7 @@ q6 = Question.objects.create(
 opt6_1 = QuestionOption.objects.create(
                 name = "Ja",
                 price = 0,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q6
         )
 
@@ -153,30 +152,30 @@ q7 = Question.objects.create(
 opt7_1 = QuestionOption.objects.create(
                 name = "F-24",
                 price = 0,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q7
         )
 opt7_2 = QuestionOption.objects.create(
                 name = "F-23",
                 price = 0,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q7
         )
 opt7_3 = QuestionOption.objects.create(
                 name = "F-22",
                 price = 0,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q7
         )
 opt7_4 = QuestionOption.objects.create(
                 name = "F-21",
                 price = 0,
-                text = FieldOptions.NO_TEXT,
+                has_text = False,
                 question = q7
         )
 opt7_5 = QuestionOption.objects.create(
                 name = "Annan: ",
                 price = 0,
-                text = FieldOptions.MANDATORY,
+                has_text = True,
                 question = q7
         )
