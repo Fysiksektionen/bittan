@@ -83,7 +83,7 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_403_FORBIDDEN
         )
 
-    if reservation_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
+    if chapter_event.fcfs and reservation_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
         return Response(
             {
                 "error": "OutOfTickets", 
