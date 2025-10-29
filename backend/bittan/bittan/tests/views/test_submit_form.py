@@ -3,6 +3,10 @@ from django.test import TestCase, Client
 from django.utils import timezone
 from django.db.models import Max
 
+from datetime import datetime
+
+from unittest.mock import patch
+
 from bittan.models import Answer, AnswerSelectedOptions, ChapterEvent, Payment, Ticket, TicketType, Question, QuestionOption
 from bittan.models.question import QuestionType
 
@@ -72,7 +76,7 @@ class SubmitFormTest(TestCase):
 				max_tickets_per_payment = 8,
 				sales_stop_at=NOW+timezone.timedelta(days=365), 
 				event_at=NOW+timezone.timedelta(days=366),
-				fcfs=True
+				fcfs=False
 				)
 		self.test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
 		self.test_event.ticket_types.add(self.test_ticket)
@@ -270,8 +274,6 @@ class SubmitFormTest(TestCase):
 		p = Payment.objects.get(id=self.session_id)
 		self.assertEqual(p.status, PaymentStatus.RESERVED)
 
-		pass
-
 	def test_non_existing_question(self):
 		form_submission = {
 				'session_id': self.session_id, 
@@ -315,9 +317,12 @@ class SubmitFormTest(TestCase):
 		self.assertEqual(r.data, "QuestionOptionNotFound")
 		p = Payment.objects.get(id=self.session_id)
 		self.assertEqual(p.status, PaymentStatus.RESERVED)
+	
+	@patch('django.utils.timezone.now')
+	def test_expired_session_rebook(self, mock_now):
+		now = datetime(1970, 1, 1, tzinfo=timezone.timezone.utc)
+		mock_now.return_value = now
 
-
-	def test_expired_session(self):
 		form_submission = self.generateFormSubmission()
 		p = Payment.objects.get(id=self.session_id)
 		p.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
@@ -330,10 +335,11 @@ class SubmitFormTest(TestCase):
 			},
             content_type="application/json"
 		)
-		self.assertEqual(r.status_code, 403)
-		self.assertEqual(r.data, "SessionExpired")
-		self.assertEqual(p.status, PaymentStatus.FAILED_EXPIRED_RESERVATION)
 
+		p = Payment.objects.get(id=self.session_id)
+		self.assertEqual(r.status_code, 200)
+		self.assertEqual(p.status, PaymentStatus.FORM_SUBMITTED)
+		self.assertEqual(p.expires_at, now + self.test_event.reservation_duration)
 
 	def test_invalid_session(self):
 		form_submission = self.generateFormSubmission()
@@ -347,4 +353,36 @@ class SubmitFormTest(TestCase):
 		)
 		self.assertEqual(r.status_code, 404)
 		self.assertEqual(r.data, "NoSessionFound")
-
+	
+	def test_paid_payment(self):
+		payment = Payment.objects.get(id=self.session_id)
+		payment.status = PaymentStatus.PAID
+		payment.save()
+		form_submission = self.generateFormSubmission()
+		r = self.client.post(
+			f"/submit_form/",
+			{
+				"session_id": self.session_id,
+				"form_data": list(form_submission.values()),
+			},
+			content_type="application/json"
+		)
+		self.assertEqual(r.status_code, 403)
+		self.assertEqual(r.data, "AlreadyPaidPayment")
+	
+	def test_confirmed_payment(self):
+		payment = Payment.objects.get(id=self.session_id)
+		payment.status = PaymentStatus.CONFIRMED
+		payment.save()
+		form_submission = self.generateFormSubmission()
+		r = self.client.post(
+			f"/submit_form/",
+			{
+				"session_id": self.session_id,
+				"form_data": list(form_submission.values()),
+			},
+			content_type="application/json"
+		)
+		self.assertEqual(r.status_code, 403)
+		self.assertEqual(r.data, "FormClosed")
+	
