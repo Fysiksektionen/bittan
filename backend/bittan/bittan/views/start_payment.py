@@ -57,7 +57,7 @@ def start_payment(request):
 
     if payment.status not in (PaymentStatus.RESERVED, PaymentStatus.FORM_SUBMITTED, PaymentStatus.CONFIRMED):
         # TODO This comparison and update should also happen on the database 
-        if tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
+        if chapter_event.fcfs and tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
              payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
              payment.save()
              return Response(
