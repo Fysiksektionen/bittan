@@ -1,12 +1,13 @@
 from bittan.models.payment import PaymentStatus, PaymentMethod
 from unittest.mock import patch
+from bittan.models.question import QuestionType
 from django.test import TestCase, Client
 
 
 from datetime import datetime
 from django.utils import timezone
 
-from bittan.models import TicketType, ChapterEvent, Payment
+from bittan.models import TicketType, ChapterEvent, Payment, Question
 from bittan.services.swish.swish import Swish
 
 class StartPaymentTest(TestCase):
@@ -44,7 +45,6 @@ class StartPaymentTest(TestCase):
         self.swish = Swish.get_instance()
 
     def test_start_payment(self):
-        mail_address = "mail@mail.com"
         response = self.client.post(
             "/start_payment/",
             {
@@ -58,10 +58,143 @@ class StartPaymentTest(TestCase):
         swish_payment_request = self.swish.get_payment_request(payment.swish_id)
 
         self.assertEqual(payment.payment_started, True)
-        self.assertEqual(payment.email, mail_address)
         self.assertEqual(payment.status, PaymentStatus.RESERVED)
         self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
         self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
+
+    def test_start_payment_non_fcfs_non_confirmed(self):
+        self.test_event.fcfs = False
+        self.test_event.save()
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, "PaymentNotPayable")
+
+        payment = Payment.objects.get(pk=self.session_id)
+        self.assertEqual(payment.payment_started, False)
+        self.assertEqual(payment.status, PaymentStatus.RESERVED)
+
+    def test_start_payment_non_fcfs_confirmed(self):
+        self.test_event.fcfs = False
+        self.test_event.save()
+        payment = Payment.objects.get(pk=self.session_id)
+        payment.status = PaymentStatus.CONFIRMED
+        payment.save()
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        payment = Payment.objects.get(pk=self.session_id)
+        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
+
+        self.assertEqual(payment.payment_started, True)
+        self.assertEqual(payment.status, PaymentStatus.CONFIRMED)
+        self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
+        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
+
+    def test_start_payment_form_fcfs(self):
+        q1 = Question.objects.create(
+            title="Test question",
+            question_type=QuestionType.RADIO,
+            chapter_event=self.test_event
+        )
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, "PaymentNotPayable")
+
+        payment = Payment.objects.get(pk=self.session_id)
+        self.assertEqual(payment.payment_started, False)
+        self.assertEqual(payment.status, PaymentStatus.RESERVED)
+
+        payment.status = PaymentStatus.FORM_SUBMITTED
+        payment.save()
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+        payment = Payment.objects.get(pk=self.session_id)
+        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
+
+        self.assertEqual(payment.payment_started, True)
+        self.assertEqual(payment.status, PaymentStatus.FORM_SUBMITTED)
+        self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
+        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
+
+    def test_start_payment_form_non_fcfs(self):
+        q1 = Question.objects.create(
+            title="Test question",
+            question_type=QuestionType.RADIO,
+            chapter_event=self.test_event
+        )
+        self.test_event.fcfs = False
+        self.test_event.save()
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, "PaymentNotPayable")
+
+        payment = Payment.objects.get(pk=self.session_id)
+        self.assertEqual(payment.payment_started, False)
+        self.assertEqual(payment.status, PaymentStatus.RESERVED)
+
+        payment.status = PaymentStatus.FORM_SUBMITTED
+        payment.save()
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data, "PaymentNotPayable")
+
+        payment = Payment.objects.get(pk=self.session_id)
+        self.assertEqual(payment.payment_started, False)
+        self.assertEqual(payment.status, PaymentStatus.FORM_SUBMITTED)
+
+        payment.status = PaymentStatus.CONFIRMED
+        payment.save()
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+        payment = Payment.objects.get(pk=self.session_id)
+        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
+
+        self.assertEqual(payment.payment_started, True)
+        self.assertEqual(payment.status, PaymentStatus.CONFIRMED)
+        self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
+        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price)
+
     
     def test_no_session_id(self):
         response = self.client.post(

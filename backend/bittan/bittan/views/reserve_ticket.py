@@ -83,7 +83,7 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_403_FORBIDDEN
         )
 
-    if reservation_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
+    if chapter_event.fcfs and reservation_count > chapter_event.total_seats - chapter_event.alive_ticket_count:
         return Response(
             {
                 "error": "OutOfTickets", 
@@ -92,10 +92,17 @@ def reserve_ticket(request: Request) -> Response:
             status=status.HTTP_403_FORBIDDEN
         )
 
+    creation_status = PaymentStatus.RESERVED
+    if not chapter_event.fcfs and not chapter_event.question_set.exists():
+        # We set creation_status directly to FORM_SUBMITTED if we have no form 
+        # and the event is not first come first serve. This is to ensure that the 
+        # tickets are not cleaned. 
+        creation_status = PaymentStatus.FORM_SUBMITTED
+
     payment = Payment.objects.create(
         expires_at = timezone.now() + chapter_event.reservation_duration,
         swish_id = None, 
-        status = PaymentStatus.RESERVED,
+        status = creation_status,
         email = response_data["email_address"], 
     )
 
@@ -112,7 +119,6 @@ def reserve_ticket(request: Request) -> Response:
             for _ in range(1000):
                 try:
                     Ticket.objects.create(
-                            external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                             time_created=timezone.now(),
                             payment=payment,
                             ticket_type=ticket_type,

@@ -55,9 +55,9 @@ def start_payment(request):
 
     chapter_event = tickets.first().chapter_event
 
-    if payment.status != PaymentStatus.RESERVED:
+    if payment.status not in (PaymentStatus.RESERVED, PaymentStatus.FORM_SUBMITTED, PaymentStatus.CONFIRMED):
         # TODO This comparison and update should also happen on the database 
-        if tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
+        if chapter_event.fcfs and tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
              payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
              payment.save()
              return Response(
@@ -67,11 +67,23 @@ def start_payment(request):
         payment.expires_at = timezone.now() + chapter_event.reservation_duration
         payment.status = PaymentStatus.RESERVED
         payment.save()
+    
+    good_status = PaymentStatus.RESERVED
+    if not chapter_event.fcfs:
+        good_status = PaymentStatus.CONFIRMED
+    elif chapter_event.question_set.exists():
+        good_status = PaymentStatus.FORM_SUBMITTED
 
+    if payment.status != good_status:
+        return Response(
+            "PaymentNotPayable",
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
     # "Atomically" update the payment status.  
     Payment.objects.filter(
         pk = payment_id,
-        status = PaymentStatus.RESERVED, # These are just so that we are sure that the payment is in the required status. If it is not get will throw an error and that should be OK. 
+        status = good_status, # These are just so that we are sure that the payment is in the required status. If it is not get will throw an error and that should be OK. 
         payment_started = False
     ).update(
         payment_started = True

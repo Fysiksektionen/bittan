@@ -15,7 +15,8 @@ class ChapterEvent(models.Model):
 	event_at = models.DateTimeField()
 	door_open_before = models.DurationField(default=timezone.timedelta(hours=1))
 
-	fcfs = models.BooleanField(default=False) # First come first serve
+    # First come first serve. 
+	fcfs = models.BooleanField(default=True)
 
 	def save(self, *args, **kwargs):
 		if not self.swish_message:
