@@ -112,7 +112,6 @@ def reserve_ticket(request: Request) -> Response:
             for _ in range(1000):
                 try:
                     Ticket.objects.create(
-                            external_id=''.join(random.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(6)),
                             time_created=timezone.now(),
                             payment=payment,
                             ticket_type=ticket_type,
