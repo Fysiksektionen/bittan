@@ -81,22 +81,6 @@ class SubmitFormTest(TestCase):
 		self.test_ticket = TicketType.objects.create(price=200, title="Test Ticket", description="A ticket for testing.")
 		self.test_event.ticket_types.add(self.test_ticket)
 
-		self.client = Client()
-
-		self.session_id = self.client.post(
-            "/reserve_ticket/", 
-            {
-                "chapter_event": str(self.test_event.pk),
-                "email_address": "mail@mail.com",
-                "tickets": [
-                    {
-                        "ticket_type": self.test_ticket.pk,
-                        "count": 1
-                    }
-                ]
-            },
-            content_type="application/json"
-        ).data
 		self.questions = []
 		self.question_options = {}
 
@@ -122,6 +106,22 @@ class SubmitFormTest(TestCase):
 			self.question_options[question.pk] = options
 			self.questions.append(question)
 
+		self.client = Client()
+		self.session_id = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.test_event.pk),
+                "email_address": "mail@mail.com",
+                "tickets": [
+                    {
+                        "ticket_type": self.test_ticket.pk,
+                        "count": 1
+                    }
+                ]
+            },
+            content_type="application/json"
+        ).data
+
 	def generateFormSubmission(self):
 		''' 
 			Generates a correct submit form data dictionary. Submits "Some text" to all textboxes and chooses 
@@ -146,6 +146,7 @@ class SubmitFormTest(TestCase):
 
 	def test_correct_form(self):
 		form_submission = self.generateFormSubmission()
+		p = Payment.objects.get(id=self.session_id)
 		r = self.client.post(
 			f"/submit_form/",
 			{
@@ -154,7 +155,7 @@ class SubmitFormTest(TestCase):
 			},
             content_type="application/json"
 		)
-
+		
 		self.assertEqual(r.status_code, 200)
 
 		ticket = Ticket.objects.get(payment_id=self.session_id)
