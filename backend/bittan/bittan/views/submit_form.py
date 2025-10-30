@@ -17,8 +17,8 @@ CODE_MAPPINGS = {
         "UnansweredMandatory": status.HTTP_400_BAD_REQUEST,
         "TooManyOptions": status.HTTP_400_BAD_REQUEST,
         "SessionExpired": status.HTTP_403_FORBIDDEN,
-		"FormClosed": status.HTTP_403_FORBIDDEN,
-		"AlreadyPaidPayment": status.HTTP_403_FORBIDDEN,
+        "FormClosed": status.HTTP_403_FORBIDDEN,
+        "AlreadyPaidPayment": status.HTTP_403_FORBIDDEN,
         "NoSessionFound": status.HTTP_404_NOT_FOUND,
         "QuestionNotFound": status.HTTP_404_NOT_FOUND,
         "QuestionOptionNotFound": status.HTTP_404_NOT_FOUND
@@ -55,7 +55,7 @@ def submit_form(request: Request) -> Response:
 	if payment.status == "PAID":
 		return error_helper("AlreadyPaidPayment")		
     
-    # Only supports forms if there are one ticket. 
+    # Only supports forms if there are one ticket (for now). 
 	ticket = payment.ticket_set.first()
 	chapter_event = ticket.chapter_event
 	
