@@ -44,10 +44,36 @@ class ReserveTicketTest(TestCase):
             content_type="application/json"
         )
         payment_pk = Payment.objects.first().pk
-        payment_email = Payment.objects.first().email
         self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 201 correctly. ")
         self.assertEqual(response.data, payment_pk)
-        self.assertEqual(payment_email, "mail@mail.com")
+        payment = Payment.objects.get(id=payment_pk)
+        self.assertEqual(payment.status, PaymentStatus.RESERVED)
+        self.assertEqual(payment.email, "mail@mail.com")
+
+    def test_reserve_ticket_no_form_no_fcfs(self):
+        self.test_event.fcfs = False
+        self.test_event.save()
+        response = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.test_event.pk),
+                "email_address": "mail@mail.com",
+                "tickets": [
+                    {
+                        "ticket_type": self.test_ticket.pk,
+                        "count": 1
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+        payment_pk = Payment.objects.first().pk
+        self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 201 correctly. ")
+        self.assertEqual(response.data, payment_pk)
+        payment = Payment.objects.get(id=payment_pk)
+        self.assertEqual(payment.status, PaymentStatus.FORM_SUBMITTED)
+        self.assertEqual(payment.email, "mail@mail.com")
+
 
     def test_too_many_tickets(self):
         response = self.client.post(
@@ -103,6 +129,52 @@ class ReserveTicketTest(TestCase):
         )
         self.assertEqual(response.status_code, 403)
         
+    def test_out_of_tickets_non_fcfs(self):
+        self.test_event.max_tickets_per_payment = 10
+        self.test_event.fcfs = False
+        self.test_event.save()
+        prep_res = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.test_event.pk),
+                "email_address": "mail@mail.com",
+                "tickets": [
+                    {
+                        "ticket_type": self.test_ticket.pk,
+                        "count": 10
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+       
+        if prep_res.status_code != 201:
+            raise Exception("Failed to perform reservation of tickets in preparation for testing test_expired_session_out_of_tickets.")
+
+        self.client = Client()
+
+        response = self.client.post(
+            "/reserve_ticket/", 
+            {
+                "chapter_event": str(self.test_event.pk),
+                "email_address": "mail@mail.com",
+                "tickets": [
+                    {
+                        "ticket_type": self.test_ticket.pk,
+                        "count": 1
+                    }
+                ]
+            },
+            content_type="application/json"
+        )
+
+        payment= Payment.objects.exclude(id=prep_res.data).first()
+        payment_email = payment.email
+        self.assertEqual(response.status_code, 201, "/reserve_ticket/ did not return status code 201 correctly. ")
+        self.assertEqual(response.data, payment.id)
+        self.assertEqual(payment_email, "mail@mail.com")
+
+
     def test_negative_tickets(self):
         response = self.client.post(
             "/reserve_ticket/", 
