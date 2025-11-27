@@ -7,7 +7,7 @@ import EventDetails from './components/EventDetails';
 import Payment from './components/Payment';
 import BookingConfirmed from './components/BookingConfirmed';
 import TicketValidation from './components/TicketValidation';
-import AdminPage from './components/AdminPage.jsx'
+import AdminPage from './components/admin/AdminPage.jsx'
 
 const basename = process.env.PUBLIC_URL || "/";
 
