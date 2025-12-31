@@ -25,7 +25,7 @@ from bittan.settings import get_bittan_backend_url_path_prefix
 from .api.swish import debug_cancel, swish_callback, debug_make_request, debug_synchronize_request
 
 from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, resend_email, staff_dashboard, update_payment, update_tickets, send_mass_email
-from bittan.views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status
+from bittan.views.views import get_chapterevents, reserve_ticket, start_payment, validate_ticket, get_session_payment_status, export_chapter_event_csv
 
 _prefix = get_bittan_backend_url_path_prefix()
 
@@ -47,6 +47,7 @@ urlpatterns = [
     path(_prefix+"staff/resend_email", resend_email),
     path(_prefix+"staff/filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
     path(_prefix+"staff/send_mass_mail", send_mass_email),
+    path(_prefix+"get_csv/<int:chapter_event_id>/", export_chapter_event_csv),
 ]
 
 
