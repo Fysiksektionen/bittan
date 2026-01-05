@@ -387,3 +387,54 @@ class SubmitFormTest(TestCase):
 		self.assertEqual(r.status_code, 403)
 		self.assertEqual(r.data, "FormClosed")
 	
+	def test_update_form_submission(self):
+		form_submission = self.generateFormSubmission()
+		p = Payment.objects.get(id=self.session_id)
+		prep_r = self.client.post(
+			f"/submit_form/",
+			{
+				"session_id": self.session_id,
+				"form_data": list(form_submission.values()),
+			},
+            content_type="application/json"
+		)
+		
+		if prep_r.status_code != 200:		
+			raise Exception("Failed to perform initial form submission in preparation for testing test_update_form_submission.")
+
+		new_form_submission = self.generateFormSubmission()
+		q = Question.objects.get(title="Mandatory textbox")
+		new_form_submission[q.pk] = {
+			"question_id": q.pk, 
+			"option_ids": [q.questionoption_set.first().pk], "option_texts": ["Some other text"]
+		}
+
+		r = self.client.post(
+			f"/submit_form/",
+			{
+				"session_id": self.session_id,
+				"form_data": list(new_form_submission.values()),
+			},
+            content_type="application/json"
+		)
+		p = Payment.objects.get(id=self.session_id)
+		self.assertEqual(r.status_code, 200)
+
+		ticket = Ticket.objects.get(payment_id=self.session_id)
+
+		for question in new_form_submission.values():
+			answer_db = Answer.objects.filter(
+				ticket=ticket,
+				question__pk = question["question_id"]
+			)
+			self.assertEqual(answer_db.count(), 1)
+			answer_options_db = AnswerSelectedOptions.objects.filter(answer=answer_db.first())
+			self.assertEqual(answer_options_db.count(), len(question["option_ids"]))
+
+			for option_correct_id, option_correct_text in zip(question["option_ids"], question["option_texts"]):
+				answer_option_db = answer_options_db.get(question_option__pk=option_correct_id)
+				self.assertEqual(answer_option_db.text, option_correct_text) 
+
+		p = Payment.objects.get(id=self.session_id)
+		self.assertEqual(p.status, PaymentStatus.FORM_SUBMITTED)
+

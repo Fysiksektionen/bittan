@@ -7,11 +7,11 @@ from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
 
-from bittan.models import Answer, AnswerSelectedOptions, ChapterEvent, Payment, Ticket, Question, QuestionOption
+from bittan.models import Answer, AnswerSelectedOptions, ChapterEvent, Payment, QuestionOption
 from bittan.models.question import QuestionType
 from bittan.models.payment import PaymentStatus
 
-from typing import Dict, Optional, Tuple, TypedDict, List, Union
+from typing import Dict, Optional, TypedDict, List, Union
 
 class QuestionData(TypedDict):
 	question_id: int
@@ -29,6 +29,7 @@ CODE_MAPPINGS = {
     "SessionExpired": status.HTTP_403_FORBIDDEN,
     "FormClosed": status.HTTP_403_FORBIDDEN,
     "AlreadyPaidPayment": status.HTTP_403_FORBIDDEN,
+    "NoFormForChapterEvent": status.HTTP_403_FORBIDDEN,
     "NoSessionFound": status.HTTP_404_NOT_FOUND,
     "QuestionNotFound": status.HTTP_404_NOT_FOUND,
     "QuestionOptionNotFound": status.HTTP_404_NOT_FOUND
@@ -70,6 +71,8 @@ def validate_event(
 	) -> Optional[Response]:
 	if timezone.now() > chapter_event.sales_stop_at:
 		return error_helper("FormClosed")
+	if not chapter_event.question_set.exists():
+		return error_helper("NoFormForChapterEvent")
 	return None
 
 def validate_questions(
@@ -150,30 +153,27 @@ def submit_form(request: Request) -> Response:
 	# Update everhything at once (!?) if the session is valid. 
 	with transaction.atomic():
 		# Gets the payment and its related ticket and locks them.
+		chapter_event = ChapterEvent.objects.select_for_update().get(pk=ticket.chapter_event.pk)
 		payment = Payment.objects.select_for_update().get(id=response_data["session_id"])
 		ticket = payment.ticket_set.select_for_update().first()
 
 		if payment.status == PaymentStatus.CONFIRMED:
 			# Safe early return since no changes has been done.
 			return error_helper("FormClosed")
-		elif payment.status not in (PaymentStatus.RESERVED, PaymentStatus.FORM_SUBMITTED):
-			if payment.status != PaymentStatus.FAILED_EXPIRED_RESERVATION:
-				# Safe early return since no changes has been done.
-				return error_helper("SessionExpired")
+
+		if payment.status == PaymentStatus.FAILED_EXPIRED_RESERVATION:
 			if chapter_event.fcfs and chapter_event.total_seats - chapter_event.alive_ticket_count < 1:
-				payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-				payment.save()
 				return error_helper("SessionExpired")
 			payment.expires_at = timezone.now() + chapter_event.reservation_duration
 			payment.status = PaymentStatus.RESERVED
+			payment.save()
 
+		if payment.status not in (PaymentStatus.RESERVED, PaymentStatus.FORM_SUBMITTED):
+			return error_helper("FormClosed")
 
 		for q in ticket.chapter_event.question_set.all():
-			answer: Answer
-			if ticket.answer_set.filter(question=q).exists():
-				answer = ticket.answer_set.get(question=q)
-			else:
-				answer = Answer.objects.create(question=q, ticket=ticket)
+			answer, _ = Answer.objects.get_or_create(question=q, ticket=ticket)
+			answer.answerselectedoptions_set.all().delete()
 
 			submitted_answer = form_data_map[q.pk]
 			for text, option_id in zip(submitted_answer["option_texts"], submitted_answer["option_ids"]):
