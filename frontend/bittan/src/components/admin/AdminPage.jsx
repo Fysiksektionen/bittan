@@ -8,9 +8,10 @@ const AdminPage = () => {
 
   return (
     <div>
+      This is the <b>Admin</b> page
       <ul>
         <li>
-          Här
+          Här hejsan hoppsan
         </li>
         <li>
           Ser

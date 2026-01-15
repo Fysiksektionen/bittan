@@ -9,11 +9,12 @@ from bittan.models import chapter_event
 from bittan.models.chapter_event import ChapterEvent
 from bittan.models.question import Question
 
-@api_view(['GET'])
-def get_question_summary(request: Request, question_id): 
-    print(question_id)
+
+@api_view(["GET"])
+def get_question_summary(request: Request, question_id):
     with connection.cursor() as cursor:
-        cursor.execute("""
+        cursor.execute(
+            """
             WITH per_answer AS (
                 SELECT
                     answer.id AS answer_id,
@@ -31,12 +32,21 @@ def get_question_summary(request: Request, question_id):
                 COUNT(*)
             FROM per_answer
             GROUP BY (combination_ids, combination_names)
-        """, [question_id])
-        results = list(map(lambda entry: {"combination_ids": entry[0], "combination_names": entry[1], "combination_count": entry[2]}, cursor.fetchall()))
+        """,
+            [question_id],
+        )
+        results = list(
+            map(
+                lambda entry: {
+                    "combination_ids": entry[0],
+                    "combination_names": entry[1],
+                    "combination_count": entry[2],
+                },
+                cursor.fetchall(),
+            )
+        )
 
-    # print(type(results))
     return Response(results)
-    # print(results)
 
 
 # def get_event_meta():

@@ -8,18 +8,7 @@ const EventPage = () => {
 
   return (
     <div>
-      <ul>
-        <li>
-          Här
-        </li>
-        <li>
-          Ser
-        </li>
-        <li>
-          Vi dina evenemang
-        </li>
-      </ul>
-
+      This is the event page
     </div>
   );
 };
