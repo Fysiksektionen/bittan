@@ -1,7 +1,7 @@
 from bittan.models.payment import PaymentMethod, PaymentStatus
 from bittan.services.swish.swish_payment_request import SwishPaymentRequest
 
-from bittan.models import Payment
+from bittan.models import Payment, AnswerSelectedOptions, ChapterEvent
 
 from bittan.services.swish.swish import Swish
 
@@ -13,6 +13,7 @@ from rest_framework import serializers
 
 from django.utils import timezone
 from django.db.models import Sum
+from django.db import transaction
 
 import logging
 
@@ -41,76 +42,84 @@ def start_payment(request):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-    if payment.status == PaymentStatus.PAID:
-        return Response(
-                "AlreadyPaidPayment",
+    with transaction.atomic():
+        payment = Payment.objects.select_for_update().get(id=payment_id)
+        if payment.status == PaymentStatus.PAID:
+            return Response(
+                    "AlreadyPaidPayment",
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        swish = Swish.get_instance() # Gets the swish instance that is global for the entire application. 
+        if payment.payment_started:
+            return Response(swish.get_payment_request(payment.swish_id).token)
+
+        tickets = payment.ticket_set.select_for_update().all()
+
+        chapter_event = tickets.first().chapter_event
+        # Gets and locks the ChapterEvent. We seem to have get the chapter_event twice because of Django...
+        chapter_event = ChapterEvent.objects.select_for_update().get(pk=chapter_event.pk)
+
+        if payment.status == PaymentStatus.FAILED_EXPIRED_RESERVATION:
+            # TODO This comparison and update should also happen on the database 
+            if chapter_event.fcfs and tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
+                 payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
+                 payment.save()
+                 return Response(
+                     "SessionExpired", 
+                     status=status.HTTP_408_REQUEST_TIMEOUT
+                 )
+            payment.expires_at = timezone.now() + chapter_event.reservation_duration
+            payment.status = PaymentStatus.RESERVED
+            payment.save()
+        
+
+        good_status = PaymentStatus.RESERVED
+        if not chapter_event.fcfs:
+            good_status = PaymentStatus.CONFIRMED
+        elif chapter_event.question_set.exists():
+            good_status = PaymentStatus.FORM_SUBMITTED
+
+        if payment.status != good_status:
+            return Response(
+                "PaymentNotPayable",
                 status=status.HTTP_403_FORBIDDEN
             )
-
-    swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
-    if payment.payment_started:
-        return Response(swish.get_payment_request(payment.swish_id).token)
-
-    tickets = payment.ticket_set.all()
-
-    chapter_event = tickets.first().chapter_event
-
-    if payment.status not in (PaymentStatus.RESERVED, PaymentStatus.FORM_SUBMITTED, PaymentStatus.CONFIRMED):
-        # TODO This comparison and update should also happen on the database 
-        if chapter_event.fcfs and tickets.count() > chapter_event.total_seats - chapter_event.alive_ticket_count:
-             payment.status = PaymentStatus.FAILED_EXPIRED_RESERVATION
-             payment.save()
-             return Response(
-                 "SessionExpired", 
-                 status=status.HTTP_408_REQUEST_TIMEOUT
-             )
-        payment.expires_at = timezone.now() + chapter_event.reservation_duration
-        payment.status = PaymentStatus.RESERVED
-        payment.save()
-    
-
-    good_status = PaymentStatus.RESERVED
-    if not chapter_event.fcfs:
-        good_status = PaymentStatus.CONFIRMED
-    elif chapter_event.question_set.exists():
-        good_status = PaymentStatus.FORM_SUBMITTED
-
-    if payment.status != good_status:
-        return Response(
-            "PaymentNotPayable",
-            status=status.HTTP_403_FORBIDDEN
+        
+        Payment.objects.filter(
+            pk = payment_id,
+            status = good_status, # These are just so that we are sure that the payment is in the required status. If it is not get will throw an error and that should be OK. 
+            payment_started = False
+        ).update(
+            payment_started = True
         )
-    
-    # "Atomically" update the payment status.  
-    Payment.objects.filter(
-        pk = payment_id,
-        status = good_status, # These are just so that we are sure that the payment is in the required status. If it is not get will throw an error and that should be OK. 
-        payment_started = False
-    ).update(
-        payment_started = True
-    )
 
-    payment.refresh_from_db()
+        payment.refresh_from_db()
 
-    # payment.payment_started = True
-    logging.info(f"Started payment for payment with id {payment_id}")
+        # payment.payment_started = True
+        logging.info(f"Started payment for payment with id {payment_id}")
 
-    total_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
-    
-    swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
-    
-    payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
+        ticket_price = tickets.aggregate(Sum("ticket_type__price"))["ticket_type__price__sum"]
+        form_price = AnswerSelectedOptions.objects.filter(
+            answer__ticket__in=tickets
+        ).aggregate(
+            total = Sum("question_option__price")
+        )["total"] or 0
 
-    if payment_request.is_failed():
-        payment.PaymentStatus = PaymentStatus.FAILED_EXPIRED_RESERVATION
-        logging.warning(f"Payment with id {payment_id} did not get correctly initialised with Swish.")
-        return Response("PaymentStartFailed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+        total_price = ticket_price + form_price
+        swish = Swish.get_instance() # Gets the swish intstance that is global for the entire application. 
+        payment_request: SwishPaymentRequest = swish.create_swish_payment(total_price, chapter_event.swish_message)
 
-    payment.swish_id = payment_request.id
-    payment.payment_method = PaymentMethod.SWISH
-    payment.save()
-    logging.info(f"Sucessfully initialised payment for payment with id {payment_id} with Swish.")
-     
-    return Response(payment_request.token)
+        if payment_request.is_failed():
+            transaction.rollback(True)
+            logging.warning(f"Payment with id {payment_id} did not get correctly initialised with Swish.")
+            return Response("PaymentStartFailed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+        payment.swish_id = payment_request.id
+        payment.payment_method = PaymentMethod.SWISH
+        payment.save()
+        logging.info(f"Sucessfully initialised payment for payment with id {payment_id} with Swish.")
+         
+        return Response(payment_request.token)
 

@@ -1,13 +1,13 @@
 from bittan.models.payment import PaymentStatus, PaymentMethod
 from unittest.mock import patch
-from bittan.models.question import QuestionType
 from django.test import TestCase, Client
 
 
 from datetime import datetime
 from django.utils import timezone
 
-from bittan.models import TicketType, ChapterEvent, Payment, Question
+from bittan.models import Answer, AnswerSelectedOptions, TicketType, ChapterEvent, Payment, Question, QuestionOption
+from bittan.models.question import QuestionType
 from bittan.services.swish.swish import Swish
 
 class StartPaymentTest(TestCase):
@@ -295,4 +295,56 @@ class StartPaymentTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_form_payment(self):
+        q1 = Question.objects.create(
+            title = "Alkohol", 
+            question_type = QuestionType.MULTIPLE_CHOICE,
+            chapter_event = self.test_event
+        ) 
+        q1_opt1 = QuestionOption.objects.create(
+            price = 100,
+            name = "Mycket",
+            has_text = False,
+            question=q1
+        )
+        q1_opt2 = QuestionOption.objects.create(
+            price = 0,
+            name = "Inget",
+            has_text = False,
+            question=q1
+        )
+        payment = Payment.objects.get(id=self.session_id)
+        ticket = payment.ticket_set.first()
+        answer = Answer.objects.create(
+            question = q1,
+            ticket=ticket
+        )
+        _ = AnswerSelectedOptions.objects.create(
+            question_option = q1_opt1,
+            answer = answer,
+        )
+        _ = AnswerSelectedOptions.objects.create(
+            question_option = q1_opt2,
+            answer = answer,
+        )
+        payment.status = PaymentStatus.FORM_SUBMITTED
+        payment.save()
+        response = self.client.post(
+            "/start_payment/",
+            {
+                "session_id": self.session_id
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        payment = Payment.objects.get(pk=self.session_id)
+        swish_payment_request = self.swish.get_payment_request(payment.swish_id)
+
+        self.assertEqual(payment.payment_started, True)
+        self.assertEqual(payment.status, PaymentStatus.FORM_SUBMITTED)
+        self.assertEqual(payment.payment_method, PaymentMethod.SWISH)
+        self.assertEqual(swish_payment_request.amount, 4*self.test_ticket.price + q1_opt1.price + q1_opt2.price)
+
 
