@@ -5,9 +5,7 @@ The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.0/topics/http/urls/
 Examples:
 Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
+    1. Add an import:  from my_app import views 2. Add a URL to urlpatterns:  path('', views.home, name='home') Class-based views
     1. Add an import:  from other_app.views import Home
     2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
 Including another URLconf
@@ -17,7 +15,7 @@ Including another URLconf
 from os import environ
 from django.contrib import admin
 from django.contrib.auth import views as django_views
-from django.urls import path
+from django.urls import path, include
 
 from bittan.views.swish_views import get_qr
 from bittan.settings import get_bittan_backend_url_path_prefix
@@ -47,6 +45,7 @@ urlpatterns = [
     path(_prefix+"staff/resend_email", resend_email),
     path(_prefix+"staff/filter_ticket_type_by_chapter_event/<int:chapter_event_id>/", filter_ticket_type_from_chapter_event),
     path(_prefix+"staff/send_mass_mail", send_mass_email),
+    path(_prefix+"accounts/", include('allauth.urls'))
 ]
 
 

@@ -4,4 +4,5 @@ backend/postgres-data
 *.env
 backend/bittan/certificates
 backend/bittan/gmail_creds
+backend/bittan/google_login_creds
 *.log

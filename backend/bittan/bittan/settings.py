@@ -73,6 +73,14 @@ def get_bittan_backend_url_path_prefix():
         prefix += "/"
     return prefix
 
+def get_oauth_secrets():
+    if os.path.exists("google_login_creds/bittan-login-secret.json"):
+        with open("google_login_creds/bittan-login-secret.json", "r") as f:
+            secret = json.load(f)
+            return secret["web"]
+    raise FileNotFoundError(f"Could not find OAuth config file")
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -99,6 +107,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 	'bittan',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google'
 ]
 
 MIDDLEWARE = [
@@ -110,6 +122,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'bittan.urls'
@@ -154,6 +167,32 @@ DATABASES = {
         # 'OPTIONS': {  
         #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
         # }  
+    }
+}
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
+]
+
+SITE_ID = 1
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile', 
+            'email',
+            #'https://www.googleapis.com/auth/admin.directory.group.member.readonly'
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+            #'hd': 'fysiksektionen.se'
+        },
+        'APP': {
+            "client_id": get_oauth_secrets()["client_id"],
+            "secret": get_oauth_secrets()["client_secret"],
+            "key": ""
+        },
+        'OATH_PKCE_ENABLED': True
     }
 }
 
