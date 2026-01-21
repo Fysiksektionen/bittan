@@ -11,6 +11,7 @@ import aggdraw
 import io
 import logging
 import os
+from bittan.settings import ENV_VAR_NAMES, EnvVars
 
 def mail_payment(payment: Payment, send_receipt=True):
     """
@@ -205,3 +206,35 @@ def make_qr_image(text_qr: str, title: str) -> bytes:
 	img.save(b, format="PNG")
 	return b.getvalue()
  
+
+def mail_form_confirmation(payment: Payment, updated: bool=False):
+    """
+    Mails a confirmation of form submission to user. 
+    
+    Args:
+        payment (Payment): The users who is submitting the forms payment object. 
+        updated (bool): Default False. If the form was submitted for the first time or updated. 
+    """
+    ticket = payment.ticket_set.first()
+    ce = ticket.chapter_event
+    
+    greeting_line: str 
+    if updated:
+        greeting_line = f"Du har uppdaterat din anmälan till {ce.title}."
+    else:
+        greeting_line = f"Du har anmält dig till {ce.title}. "
+
+    frontend_url = EnvVars.get(ENV_VAR_NAMES.BITTAN_FRONTEND_URL)
+    
+    message = f"""
+<html>
+<p>{greeting_line}</p>   
+<p> För att visa och ändra din anmälan besök <a href={frontend_url}/event-form/{ce.id}/{payment.id}>{frontend_url[8:]}/event-form/{payment.id}</a>. <br> 
+Dela inte länken, samtliga med länken kan ändra i din anmälan. </p>
+<p> Vid frågor kontakta <a href="mailto:{ce.contact_email}">{ce.contact_email}</a> </p>
+</html>
+"""
+    subject = f"Bekräftelse av eventanmälan {ce.title}"
+
+    send_mail(receiver_address=payment.email, subject=subject, message_content=message, reply_address=ce.contact_email)
+

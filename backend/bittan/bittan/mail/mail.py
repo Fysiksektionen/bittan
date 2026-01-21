@@ -28,7 +28,7 @@ class MailImage:
 	filename: str
 	"The desired filename without any extension (no .png)"
 
-def send_mail(receiver_address: str, subject: str, message_content: str, images_to_attach: list[MailImage] = [], images_to_embed: list[MailImage] = [], format_as_html: bool = True):
+def send_mail(receiver_address: str, subject: str, message_content: str, reply_address: str = "biljettsupport@f.kth.se", images_to_attach: list[MailImage] = [], images_to_embed: list[MailImage] = [], format_as_html: bool = True):
 	"""
 	Sends an email message.
 
@@ -36,6 +36,7 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 		receiver_address (str): The email address that should receive the email.
 		subject (str): The subject of the email.
 		message_content (str): The text sent in the email.
+		reply_address (str): The reply address of the email. If left empty defaults to biljettsupport@f.kth.se
 		images_to_attach (list[MailImage]): A list of `MailImage`s to attach. Assumes png formatting. Defaults to an empty list.
 		images_to_embed (list[MailImage]): A list of `MailImage`s to embed. Their `Content-Id` will be set to the `filename` attributes. Assumes png formatting. Defaults to an empty list.
 		format_as_html (bool): Whether the `message_content` should be interpreted as html. Defaults to `True`.
@@ -51,6 +52,7 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 	message["Subject"] = subject
 	message["To"] = receiver_address
 	message["From"] = '"Fysiksektionen Biljetter" <biljett@fysiksektionen.se>'
+	message["Reply-To"] = reply_address
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
 
 	for image_to_embed in images_to_embed:
@@ -62,17 +64,17 @@ def send_mail(receiver_address: str, subject: str, message_content: str, images_
 		img = MIMEImage(image_to_attach.imagebytes, name=f"{image_to_attach.filename}.png")
 		img.add_header("Content-Disposition", "attachment", filename=f"{image_to_attach.filename}.png")
 		message.attach(img)
-	
+
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 	create_message = {"raw": encoded_message}
 
 	try:
 		sent_message = (
-			service.users()
-			.messages()
-			.send(userId="me", body=create_message)
-			.execute()
-		)
+				service.users()
+				.messages()
+				.send(userId="me", body=create_message)
+				.execute()
+				)
 	except HttpError as error:
 		if error.reason == "Invalid To header":
 			raise InvalidReceiverAddressError(f"Invalid address: '{receiver_address}'")
@@ -97,23 +99,23 @@ def send_bulk_mail(receiver_addresses: List[str], subject: str, message_content:
 	"""
 	creds = _get_credentials()
 	service = build("gmail", "v1", credentials=creds)
-	
+
 	message = MIMEMultipart("related")
 	message["Subject"] = subject
 	message["From"] = '"Fysiksektionen Biljetter" <biljett@fysiksektionen.se>'
 	message.attach(MIMEText(message_content, ("html" if format_as_html else "plain")))
 	message["Bcc"] = ", ".join(receiver_addresses)
-	
+
 	encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 	create_message = {"raw": encoded_message}
 
 	try:
 		sent_message = (
-			service.users()
-			.messages()
-			.send(userId="me", body=create_message)
-			.execute()
-		)
+				service.users()
+				.messages()
+				.send(userId="me", body=create_message)
+				.execute()
+				)
 	except HttpError as error:
 		if error.reason == "Invalid To header":
 			raise InvalidReceiverAddressError(f"Email addresses contains an invalid email address: '{receiver_addresses}'")
@@ -128,7 +130,7 @@ def _get_credentials() -> Credentials:
 	scopes = ["https://www.googleapis.com/auth/gmail.send"]
 
 	creds = None
-	
+
 	if os.path.exists("gmail_creds/gmail_token.json"):
 		creds = Credentials.from_authorized_user_file("gmail_creds/gmail_token.json", scopes)
 	if creds and creds.expired and creds.refresh_token:
@@ -143,5 +145,5 @@ def _get_credentials() -> Credentials:
 	if not creds:
 		logging.error("Could not get Google Credentials, unknown reason.")
 		raise MailError("Could not get Google Credentials")
-	
+
 	return creds

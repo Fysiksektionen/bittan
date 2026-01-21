@@ -18,6 +18,8 @@ class ChapterEvent(models.Model):
     # First come first serve. 
 	fcfs = models.BooleanField(default=True)
 
+	contact_email = models.EmailField(default="biljettsupport@f.kth.se")
+
 	def save(self, *args, **kwargs):
 		if not self.swish_message:
 			self.swish_message = self.title[:50]
