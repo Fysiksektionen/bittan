@@ -1,7 +1,8 @@
 import datetime
+from bittan.models import chapter_event
 from django.test import TestCase, tag
 from django.utils import timezone
-from bittan.mail import send_mail, mail_payment
+from bittan.mail import send_mail, mail_payment, mail_form_confirmation
 from bittan.mail import MailError, InvalidReceiverAddressError
 from bittan.mail.stylers import make_qr_image
 from bittan.mail.mail import MailImage
@@ -89,3 +90,32 @@ class StylersTest(TestCase):
 
 		mail_payment(payment1)
 		self.assertEqual(payment1.sent_email, True)
+	
+	@tag("no_ci")
+	def test_mail_form_submission(self):
+		NOW = timezone.now()
+		tt = TicketType.objects.create(price=100, title="testticket", description="")
+		ce = ChapterEvent.objects.create(
+			title="Test", 
+			description="Test", 
+			total_seats=10, 
+			sales_stop_at=NOW + datetime.timedelta(days=365), 
+			event_at=NOW + datetime.timedelta(days=365), 
+		)
+		ce.ticket_types.add(tt)
+		payment = Payment.objects.create(
+			expires_at = NOW, 
+			status = PaymentStatus.FORM_SUBMITTED,
+			email = "bittantest@gmail.com", 
+			sent_email = False,
+		)
+
+		ticket1 = Ticket.objects.create(
+			external_id="AAAAAA",
+			time_created=NOW, 
+			payment=payment,
+			ticket_type=tt,
+			chapter_event=ce
+		)
+
+		mail_form_confirmation(payment)
