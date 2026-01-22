@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.contrib.auth import views as django_views
 from django.urls import path
 
-from bittan.api.event_summary import get_question_summary
+from bittan.api.event_summary import get_event, get_event_answers, get_question_summary
 from bittan.views.swish_views import get_qr
 from bittan.settings import get_bittan_backend_url_path_prefix
 
@@ -33,7 +33,11 @@ _prefix = get_bittan_backend_url_path_prefix()
 urlpatterns = [
     path(_prefix+'admin/', admin.site.urls),
     path(_prefix+'swish/callback/', swish_callback),
+
     path(_prefix+'question/<str:question_id>/summary', get_question_summary),
+    path(_prefix+'event/<str:event_id>/', get_event),
+    path(_prefix+'event/<str:event_id>/answers', get_event_answers),
+
 	path(_prefix+'get_chapterevents/', get_chapter_events),
     path(_prefix+'validate_ticket/', validate_ticket),
     path(_prefix+"reserve_ticket/", reserve_ticket),

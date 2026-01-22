@@ -6,8 +6,87 @@ from rest_framework import serializers
 from django.db import connection
 
 from bittan.models import chapter_event
+from bittan.models import question
+from bittan.models.answer_selected_options import AnswerSelectedOptions
 from bittan.models.chapter_event import ChapterEvent
 from bittan.models.question import Question
+from bittan.models.answer import Answer
+from bittan.models.ticket import Ticket 
+from bittan.models.answer_selected_options import AnswerSelectedOptions 
+
+
+
+class AnswerSelectedOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnswerSelectedOptions
+        fields = ["text", "answer", "question_option"]
+
+class AnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
+        # title = models.TextField()
+        # description = models.TextField(default="")
+        # question_type = models.TextField(choices=QuestionType)
+        # chapter_event = models.ForeignKey("ChapterEvent", related_name="questions", on_delete=models.DO_NOTHING)
+        fields = ["question", "ticket"] #, "answer_selected_options"]
+
+    # answer_selected_options =  AnswerSelectedOptionSerializer()
+
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        # TODO Add a status, has to be taken from Payment though...
+        fields = ["ticket_type", "chapter_event", "times_used"]
+
+    answers = AnswerSerializer(many=True, read_only=True)
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        # title = models.TextField()
+        # description = models.TextField(default="")
+        # question_type = models.TextField(choices=QuestionType)
+        # chapter_event = models.ForeignKey("ChapterEvent", related_name="questions", on_delete=models.DO_NOTHING)
+        fields = ["id", "title", "description", "question_type", "chapter_event", "answers"]
+
+    answers = AnswerSerializer(many=True, read_only=True)
+
+
+class ChapterEventSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(
+        many=True, read_only=True
+    )  # uses related_name="books"
+
+    class Meta:
+        model = ChapterEvent
+        fields = ["id", "title", "questions"]
+
+
+@api_view(["GET"])
+def get_event(request: Request, event_id):
+    ch = ChapterEvent.objects.prefetch_related("questions").get(id=event_id)
+
+    print("-----------------------------------------------------")
+
+    # print(ch)
+    # print(ch.questions.all())
+    #
+    return Response(ChapterEventSerializer(ch).data)
+
+
+# Get all answers connected to an event
+@api_view(["GET"])
+def get_event_answers(request: Request, event_id):
+    questions = Question.objects.prefetch_related("answers").filter(
+        chapter_event = event_id
+    )
+    print(questions[0].answers)
+
+
+    return Response(QuestionSerializer(questions[0]).data)
 
 
 @api_view(["GET"])

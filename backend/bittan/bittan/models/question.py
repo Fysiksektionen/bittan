@@ -8,4 +8,4 @@ class Question(models.Model):
     title = models.TextField()
     description = models.TextField(default="")
     question_type = models.TextField(choices=QuestionType)
-    chapter_event = models.ForeignKey("ChapterEvent", on_delete=models.DO_NOTHING)
+    chapter_event = models.ForeignKey("ChapterEvent", related_name="questions", on_delete=models.DO_NOTHING)

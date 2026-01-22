@@ -20,13 +20,13 @@ from django.core.exceptions import ObjectDoesNotExist
 
 import logging
 
-class TicketsSerializer(serializers.Serializer):
+class CreateTicketsSerializer(serializers.Serializer):
     ticket_type = serializers.IntegerField(required=True)
     count = serializers.IntegerField(required=True, min_value=1)
 
 class ReserveTicketRequestSerializer(serializers.Serializer):
     chapter_event = serializers.CharField(required = True)
-    tickets = serializers.ListField(child=TicketsSerializer())
+    tickets = serializers.ListField(child=CreateTicketsSerializer())
     email_address = serializers.EmailField(max_length=255)
     session_id = serializers.CharField(required=False)
 
