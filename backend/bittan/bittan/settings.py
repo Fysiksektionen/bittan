@@ -42,6 +42,11 @@ class ENV_VAR_NAMES(Enum):
 
     TICKET_VALIDATION_PASSWORD="TICKET_VALIDATION_PASSWORD" 
 
+    LOGIN_AUTH_FILE="LOGIN_AUTH_FILE"
+    SUBJECT_EMAIL="SUBJECT_EMAIL"
+    SERVICE_ACCOUNT_AUTH_FILE="SERVICE_ACCOUNT_AUTH_FILE"
+    AUTH_GROUP_KEY="AUTH_GROUP_KEY"
+
     DEBUG="DEBUG"
 
 class EnvVars:
@@ -54,6 +59,9 @@ class EnvVars:
             ENV_VAR_NAMES.BITTAN_FRONTEND_URL.value: "http://localhost:3000",
             ENV_VAR_NAMES.BITTAN_BACKEND_URL.value: "http://localhost:8000",
             ENV_VAR_NAMES.TICKET_VALIDATION_PASSWORD.value: "bläckfiskarochtomtebloss",
+            ENV_VAR_NAMES.LOGIN_AUTH_FILE.value: "google_login_creds/bittan-login-secret.json",
+            ENV_VAR_NAMES.SERVICE_ACCOUNT_AUTH_FILE.value: "google_login_creds/bittan-service-secret.json",
+            ENV_VAR_NAMES.AUTH_GROUP_KEY.value: "biljettsupport@fysiksektionen.se"
     }
 
     @staticmethod
@@ -74,7 +82,7 @@ def get_bittan_backend_url_path_prefix():
     return prefix
 
 def get_oauth_secrets():
-    if os.path.exists("google_login_creds/bittan-login-secret.json"):
+    if os.path.exists(EnvVars.get(ENV_VAR_NAMES.LOGIN_AUTH_FILE)):
         with open("google_login_creds/bittan-login-secret.json", "r") as f:
             secret = json.load(f)
             return secret["web"]
@@ -181,21 +189,19 @@ SOCIALACCOUNT_PROVIDERS = {
         'SCOPE': [
             'profile', 
             'email',
-            #'https://www.googleapis.com/auth/admin.directory.group.member.readonly'
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
-            #'hd': 'fysiksektionen.se'
+            'hd': 'fysiksektionen.se'
         },
         'APP': {
             "client_id": get_oauth_secrets()["client_id"],
             "secret": get_oauth_secrets()["client_secret"],
-            "key": ""
         },
         'OATH_PKCE_ENABLED': True
     }
 }
-
+SOCIALACCOUNT_ADAPTER = "bittan.adapters.RestrictGroupAdapter"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
