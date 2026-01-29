@@ -82,8 +82,9 @@ def get_bittan_backend_url_path_prefix():
     return prefix
 
 def get_oauth_secrets():
-    if os.path.exists(EnvVars.get(ENV_VAR_NAMES.LOGIN_AUTH_FILE)):
-        with open("google_login_creds/bittan-login-secret.json", "r") as f:
+    path = EnvVars.get(ENV_VAR_NAMES.LOGIN_AUTH_FILE)
+    if os.path.exists(path):
+        with open(path) as f:
             secret = json.load(f)
             return secret["web"]
     raise FileNotFoundError(f"Could not find OAuth config file")
