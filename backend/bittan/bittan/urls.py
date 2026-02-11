@@ -25,7 +25,7 @@ from bittan.settings import get_bittan_backend_url_path_prefix
 from .api.swish import debug_cancel, swish_callback, debug_make_request, debug_synchronize_request
 
 from bittan.views.staffpage_views import create_tickets, filter_ticket_type_from_chapter_event, resend_email, staff_dashboard, update_payment, update_tickets, send_mass_email
-from bittan.views import validate_ticket, get_chapter_events, start_payment, reserve_ticket, get_session_payment_status
+from bittan.views import validate_ticket, get_chapter_events, start_payment, reserve_ticket, get_session_payment_status, get_session
 
 _prefix = get_bittan_backend_url_path_prefix()
 
@@ -36,6 +36,7 @@ urlpatterns = [
     path(_prefix+'validate_ticket/', validate_ticket),
     path(_prefix+"reserve_ticket/", reserve_ticket),
     path(_prefix+'session_payment_status/<slug:session_id>', get_session_payment_status),
+    path(_prefix+"get_session/<slug:session_id>/", get_session),
     path(_prefix+"start_payment/", start_payment),
     path(_prefix+"generate_qr/<str:token>", get_qr),
     path(_prefix+"accounts/login/", django_views.LoginView.as_view(), name="login"),
