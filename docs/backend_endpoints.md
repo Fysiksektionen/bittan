@@ -1,6 +1,7 @@
 # Backend endpoints
 
 - [/get_chapterevents/](#get-chapterevents)
+- [/get_session/](#get-session)
 - [/reserve_ticket/](#reserve-ticket)
 - [/session_payment_status/](#session-payment-status)
 - [/start_payment/](#start-payment)
@@ -53,6 +54,72 @@ Example of response content:
             "price": "99",
             "title": "Studentbiljett",
             "description": "En billigare biljett."
+        }
+    ]
+}
+```
+## Get session
+
+`GET /get_session/<payment_id>`
+
+Retrieves the data of a session. Retrieves the associated tickets, payment status, and if there is a form attached to the event, the answers to the form. 
+The tickets list consits of objects with a corresponding ticket type as well as the number of tickets of this type that is associated with the session. 
+The answers list contains answer to the chapter event's associated form if there exists one. Each object in this list contains the question id, 
+a list with the selected options, as welll as a list with the texts asscioated with the option. The texts are linked to their corresponding option 
+by having mathing indicies in their respective list. The answers array is only attached if there exists a form for the event.  
+
+Example of response content:
+```json
+{
+    "status": "FORM_SUBMITTED",
+    "tickets": [
+        {
+            "ticket_type": 1,
+            "count": 1
+        }
+    ],
+    "answers": [
+        {
+            "question": 1,
+            "options": [
+                1
+            ],
+            "texts": [
+                "Wohohoh"
+            ]
+        },
+        {
+            "question": 2,
+            "options": [
+                2,
+                3,
+                4
+            ],
+            "texts": [
+                "",
+                "",
+                "Allt"
+            ]
+        },
+        {
+            "question": 3,
+            "options": [
+                5
+            ],
+            "texts": [
+                ""
+            ]
+        },
+        {
+            "question": 4,
+            "options": [
+                7,
+                8
+            ],
+            "texts": [
+                "",
+                ""
+            ]
         }
     ]
 }
