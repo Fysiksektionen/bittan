@@ -86,7 +86,7 @@ def validate_questions(
 		chapter_event: ChapterEvent
 	) -> Optional[Response]:
 	# Get all the questions of the chapter event and their data and saves them in a cache.
-	questions_db = chapter_event.question_set.prefetch_related("question_option_set").all()
+	questions_db = chapter_event.question_set.prefetch_related("questionoption_set").all()
 	questions_db_dict = {q.pk: q for q in questions_db}
 	options_db_dict = {}
 	for q in questions_db:
@@ -134,7 +134,6 @@ def validate_questions(
 
 @api_view(["POST"])
 def submit_form(request: Request) -> Response:
-	print("Got to the view")
 	response_data: dict
 	valid_ser = FormSubmissionSerializer(data=request.data)
 	if valid_ser.is_valid():
