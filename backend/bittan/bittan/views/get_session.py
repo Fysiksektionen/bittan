@@ -52,9 +52,9 @@ def get_session(request: Request, session_id: str) -> Response:
         texts = [selected_option.text for selected_option in selected_options]
         answer_data.append(
             {
-                "question": answer.question.pk,
-                "options": options,
-                "texts": texts,
+                "question_id": answer.question.pk,
+                "options_ids": options,
+                "option_texts": texts,
             }
         )
     return Response({
