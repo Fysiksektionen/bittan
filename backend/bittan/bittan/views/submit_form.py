@@ -25,6 +25,7 @@ class FormData(TypedDict):
 CODE_MAPPINGS = {
 	"InvalidRequestData": status.HTTP_400_BAD_REQUEST,
     "UnansweredMandatory": status.HTTP_400_BAD_REQUEST,
+    "TooManyTickets": status.HTTP_400_BAD_REQUEST,
     "TooManyOptions": status.HTTP_400_BAD_REQUEST,
     "SessionExpired": status.HTTP_403_FORBIDDEN,
     "FormClosed": status.HTTP_403_FORBIDDEN,
@@ -34,7 +35,8 @@ CODE_MAPPINGS = {
     "QuestionNotFound": status.HTTP_404_NOT_FOUND,
     "QuestionOptionNotFound": status.HTTP_404_NOT_FOUND
 }
-error_helper = lambda msg: Response(msg, CODE_MAPPINGS[msg])
+def error_helper(msg: str) -> Response:
+    return Response(msg, CODE_MAPPINGS[msg])
  
 class QuestionSerializer(serializers.Serializer):
     question_id = serializers.IntegerField(required=True)
@@ -50,11 +52,11 @@ class FormSubmissionSerializer(serializers.Serializer):
     session_id = serializers.CharField(required=True)
     form_data = serializers.ListField(child=QuestionSerializer(), required=True)
 
-def validate_payment(
+def get_payment(
 		session_id: str
 	) -> Union[Response, Payment]:
 	"""
-		Validates that a payment exists and is valid for form submission. 
+		Gets and validates that a payment exists and is valid for form submission. 
 	"""
 	try:
 		payment: Payment = Payment.objects.get(id=session_id)
@@ -66,13 +68,17 @@ def validate_payment(
 	
 	return payment
 
-def validate_event(
+def check_event_open_and_has_form(
 		chapter_event: ChapterEvent
 	) -> Optional[Response]:
-	if timezone.now() > chapter_event.sales_stop_at:
-		return error_helper("FormClosed")
+	"""
+		Validates if a ChapterEvent is still open for accepting new answers and that the ChapterEvent
+		has a form attached
+	"""
 	if not chapter_event.question_set.exists():
 		return error_helper("NoFormForChapterEvent")
+	if timezone.now() > chapter_event.sales_stop_at:
+		return error_helper("FormClosed")
 	return None
 
 def validate_questions(
@@ -131,14 +137,16 @@ def submit_form(request: Request) -> Response:
 	else:
 		return error_helper("InvalidRequestData")
 
-	payment = validate_payment(response_data["session_id"])
+	payment = get_payment(response_data["session_id"])
 	if isinstance(payment, Response):
 		return payment
     
     # Only supports forms if there are one ticket (for now). 
+	if payment.ticket_set.count() > 1:
+		return error_helper("TooManyTickets")
 	ticket = payment.ticket_set.first()
 	chapter_event = ticket.chapter_event
-	ch_error = validate_event(chapter_event)
+	ch_error = check_event_open_and_has_form(chapter_event)
 	if ch_error:
 		return ch_error
 
@@ -150,9 +158,9 @@ def submit_form(request: Request) -> Response:
 	if q_errors:
 		return q_errors
 
-	# Update everhything at once (!?) if the session is valid. 
+	# Attempt to update everything inside the transaction. If successful updates everything at once. 
 	with transaction.atomic():
-		# Gets the payment and its related ticket and locks them.
+		# Gets the payment and its related ticket and locks them for the rest of the transaction.
 		chapter_event = ChapterEvent.objects.select_for_update().get(pk=ticket.chapter_event.pk)
 		payment = Payment.objects.select_for_update().get(id=response_data["session_id"])
 		ticket = payment.ticket_set.select_for_update().first()
