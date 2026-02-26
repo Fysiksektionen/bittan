@@ -85,18 +85,22 @@ def validate_questions(
 		form_data_map: Dict[int, QuestionData],
 		chapter_event: ChapterEvent
 	) -> Optional[Response]:
-	# Validates that all question_options in the submmission exists and are linked in a valid way
+	# Get all the questions of the chapter event and their data and saves them in a cache.
+	questions_db = chapter_event.question_set.prefetch_related("question_option_set").all()
+	questions_db_dict = {q.pk: q for q in questions_db}
+	options_db_dict = {}
+	for q in questions_db:
+		options_db_dict[q.pk] = {opt.pk: opt for opt in q.questionoption_set.all()}
+	
+	# Validates that all question_options in the submission exists and are linked in a valid way
 	for qs in form_data_map.values():
-		if not chapter_event.question_set.filter(pk=qs["question_id"]).exists():
+		if qs["question_id"] not in questions_db_dict:
 			return error_helper("QuestionNotFound")
 		
-		q_db = chapter_event.question_set.get(pk=qs["question_id"])
-		q_opts_db = q_db.questionoption_set
 		for q_opt in qs["option_ids"]:
-			if not q_opts_db.filter(pk=q_opt).exists():
+			if q_opt not in options_db_dict[qs["question_id"]]:
 				return error_helper("QuestionOptionNotFound")
 	
-	questions_db = chapter_event.question_set.all()
 	for q in questions_db:
 		# Validate radio buttons. 
 		if q.question_type == QuestionType.RADIO:
@@ -110,7 +114,7 @@ def validate_questions(
 					else "TooManyOptions"
 				)
 
-			chosen_option = q.questionoption_set.get(pk=q_ans["option_ids"][0])
+			chosen_option = options_db_dict[q.pk][q_ans["option_ids"][0]] 
 			if chosen_option.has_text and q_ans["option_texts"][0] == "":
 				return error_helper("UnansweredMandatory")
 		
@@ -122,14 +126,15 @@ def validate_questions(
 
 			q_ans = form_data_map[q.pk]
 			# Validate text fields multiple choice (mandatory if there are more than 1 option with text, otherwise optional).
-			if q.questionoption_set.count() > 1: 
+			if len(options_db_dict[q.pk]) > 1: 
 				for text, option in zip(q_ans["option_texts"], q_ans["option_ids"]):
-					chosen_option = q.questionoption_set.get(pk=option)
+					chosen_option = options_db_dict[q.pk][option]
 					if chosen_option.has_text and text == "":
 						return error_helper("UnansweredMandatory")
 
 @api_view(["POST"])
 def submit_form(request: Request) -> Response:
+	print("Got to the view")
 	response_data: dict
 	valid_ser = FormSubmissionSerializer(data=request.data)
 	if valid_ser.is_valid():
