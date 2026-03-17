@@ -183,7 +183,7 @@ def submit_form(request: Request) -> Response:
 		if payment.status not in (PaymentStatus.RESERVED, PaymentStatus.FORM_SUBMITTED):
 			return error_helper("FormClosed")
 
-		for q in ticket.chapter_event.question_set.all():
+		for q in ticket.chapter_event.question_set.filter(pk__in=form_data_map.keys()):
 			answer, _ = Answer.objects.get_or_create(question=q, ticket=ticket)
 			answer.answerselectedoptions_set.all().delete()
 
