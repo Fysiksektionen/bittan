@@ -4,6 +4,7 @@
 - [/reserve_ticket/](#reserve-ticket)
 - [/session_payment_status/](#session-payment-status)
 - [/start_payment/](#start-payment)
+- [/submit_form/](#submit-form)
 - [/validate_ticket/](#validate-ticket)
 
 ## Get chapterevents
@@ -173,6 +174,31 @@ Response
 ```
 Starts a swish payment and returns the Swish token. 
 
+## Submit form
+`POST`
+Submits answers to the questions of a form. 
+
+### Request body
+* `session_id` `string` *Required* <br>
+    The id of the session that the form belongs to.  
+* `form_data` `Array<Object>` *Required* <br>
+    A list of objects that contains the answers to the form. 
+    * `question_id`: `int` *Required* <br>
+        The id of the question with the answers. 
+    * `option_ids` `Array<int>` *Required* <br>
+        Array of ids of the question options that are chosen. 
+    * `option_texts` `Array<int>` *Required* <br>
+        Array of texts for the question options. The indicies of this list is matched 
+        to the questions in `option_ids` by index. The lengths of `option_ids` and 
+        `option_texts` should be equal. If an option has no text the corresponding 
+        value in `option_texts` should be an empty string `""`.
+
+|Response code|Data|
+|---------:|:---------------|
+|200 OK|Form was submitted successfully. |
+|400 BAD_REQUEST|`"InvalidRequestData"`, `"UnansweredMandatory"`, `TooManyOptions`|
+|403 FORBIDDEN|`"SessionExpired"`, `"FormClosed"`, `"AlreadyPaidPayment"`|
+|404 NOT_FOUND|`"NoSessionFound"`, `"QuestionNotFound"`, `"QuestionOptionNotFound"`|
 ## Validate ticket
 
 `PUT /validate_ticket/`

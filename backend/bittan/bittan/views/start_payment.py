@@ -68,7 +68,6 @@ def start_payment(request):
         payment.status = PaymentStatus.RESERVED
         payment.save()
     
-
     good_status = PaymentStatus.RESERVED
     if not chapter_event.fcfs:
         good_status = PaymentStatus.CONFIRMED
