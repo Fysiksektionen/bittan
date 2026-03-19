@@ -21,7 +21,7 @@ NOW = datetime.datetime.now()
 standardbiljett = TicketType.objects.create(price=200, title="Standardbiljett", description="En vanlig biljett.")
 studentbiljett = TicketType.objects.create(price=100, title="Studentbiljett", description="En billigare biljett.")
 
-chapter_event1 = ChapterEvent.objects.create(title="Fysikalen Dag 1", description="Första dagen av Fysikalen.", total_seats=10, sales_stop_at=NOW+datetime.timedelta(days=365), event_at=NOW+datetime.timedelta(days=365))
+chapter_event1 = ChapterEvent.objects.create(title="Fysikalen Dag 1", description="Första dagen av Fysikalen.", total_seats=10, sales_stop_at=NOW+datetime.timedelta(days=365), event_at=NOW+datetime.timedelta(days=365), fcfs=False)
 chapter_event1.ticket_types.add(standardbiljett, studentbiljett)
 
 

@@ -5,3 +5,4 @@ from bittan.views.reserve_ticket import reserve_ticket
 from bittan.views.get_session_payment_status import get_session_payment_status
 from bittan.views.submit_form import submit_form
 
+from bittan.views.get_session import get_session
