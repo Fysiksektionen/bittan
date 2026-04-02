@@ -5,18 +5,24 @@ import { startPayment } from "../api/startPayment";
 import { sessionPaymentStatus } from "../api/sessionPaymentStatus";
 import { generateQR } from "../api/generateQR";
 import { Container, Row, Col } from "react-bootstrap";
+import axiosInstance from "../api/axiosConfig";
 
 const basename = process.env.PUBLIC_URL || "";
 
 const Payment = () => {
   const location = useLocation();
   const { session_id } = useParams();
-  const { email, totalAmount, chosenTickets, event } = location.state || {};
-  const [swishToken, setSwishToken] = useState(null);
-  const [qrUrl, setQrUrl] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [status, setStatus] = useState("pending");
-  const [isChecked, setIsChecked] = useState(false);
+  const [ email, setEmail ] = useState();
+  const [ totalAmount, setTotalAmount ] = useState(); 
+  const [ chosenTickets, setChosenTickets ] = useState([]);
+  const [ swishToken, setSwishToken ] = useState(null);
+  const [ chapterEvent, setChapterEvent ] = useState({});
+  const [ qrUrl, setQrUrl ] = useState(null);
+  const [ isMobile, setIsMobile ] = useState(false);
+  const [ status, setStatus ] = useState("pending");
+  const [ isChecked, setIsChecked ] = useState(false);
+  const [ eventQuestions, setEventQuestions ] = useState([]);
+  const [ formAnswers, setFormAnswers ] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,13 +35,13 @@ const Payment = () => {
           clearInterval(interval);
           navigate("/booking-confirmed", { state: { mail: response.mail, status: response.status, reference: response.reference } });
           setStatus("paid")
-        }
-        else if(response.status == "FAILED_EXPIRED_RESERVATION") {
+        } else if(response.status == "FAILED_EXPIRED_RESERVATION") {
           clearInterval(interval);
           setStatus("timed_out")
         }
         // The payment must have faild if it is neither reserved nor paid
-        else if (response.status !== "RESERVED") {
+        // The payment is failed if it is not either RESERVED, CONFIRMED, or PAID at this step. 
+        else if ( !["RESERVED", "CONFIRMED"].includes(response.status)) {
           clearInterval(interval);
           setStatus("failed")
         }
@@ -52,6 +58,30 @@ const Payment = () => {
 
   useEffect(() => {
     setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
+    axiosInstance.get(`/get_session/${session_id}/`).then((response) => {
+      const session_data = response.data;
+      setEmail(session_data.email);
+      setFormAnswers(session_data.answers)
+      setTotalAmount(session_data.total_price)
+      axiosInstance.get(`/get_chapterevents/${session_data.chapter_event}`).then( (innerResponse) => {
+        const event_data = innerResponse.data.chapter_event; 
+        setChapterEvent(event_data);
+        setEventQuestions(innerResponse.data.questions);
+        
+        const ticket_types = innerResponse.data.ticket_types;
+        const session_tickets = new Map(session_data.tickets.map(item => [item.ticket_type, item]));
+        const chosen_tickets = ticket_types.map(ticket => {
+          const matchingTicket = session_tickets.get(ticket.id);
+          return {
+            title: ticket.title,
+            price: ticket.price,
+            ticket_type: ticket.id, 
+            count: matchingTicket ? matchingTicket.count : 0
+          }
+        });
+        setChosenTickets(chosen_tickets)
+      }).catch((e) => console.log(e)) 
+    }) 
   }, []);
 
   const handlePayment = async (sameDevice) => {
@@ -75,18 +105,72 @@ const Payment = () => {
     }
   };
 
+  const renderAnswerOverivew = () => {
+    if (!formAnswers || formAnswers.length === 0) return 
+  
+    const table_rows = formAnswers.reduce( (acc, answer) => {
+      const question = eventQuestions.find(q => q.id === answer.question_id);
+
+      const question_rows =  answer.option_ids.map((optionId, index) => {
+        const option = question.options.find(opt => opt.id === optionId);
+
+        const text = option.has_text ? answer.option_texts[index] : option.name
+
+        return {
+          questionTitle: question.title,
+          displayText: text,
+          price: option.price
+        }
+      }).filter(Boolean)
+      
+      if (question_rows.length > 0) {
+        acc.push({
+          questionTitle: question.title, 
+          rows: question_rows
+        })
+      }
+      return acc
+    }, [])
+
+    return (
+      <Container className="mb-4 small">
+      { table_rows.map((group, i) => (
+        <React.Fragment>
+        {group.rows.map((row, rowIndex) => 
+          <Row key={rowIndex} className={` py-2 ${rowIndex === 0 && i !== 0 ? 'border-top' : ''}`}>
+          {rowIndex === 0 ? (
+            <Col>
+            {group.questionTitle}
+            </Col>
+          ) : (
+            <Col></Col>
+          )}
+          <Col>{row.displayText}</Col>
+          <Col>{row.price !== 0 ? `${row.price} kr` : ''}</Col>
+          </Row>    
+        )}
+        </React.Fragment>
+      ))
+      }
+      </Container>
+    ) 
+  }
+
   return (
     <div>
       <h2>Betalning</h2>
     
-    <h4>{event.title}</h4>
+    <h4>{chapterEvent.title}</h4>
     <Container style={{maxWidth: "400px", float: "left"}}>
-        {chosenTickets.map((ticket) => (
-          <Row key={ticket.ticket_type} style={{ marginBottom: "15px" }}>
+        {chosenTickets.filter((ticket) => ticket.count > 0).map((ticket) => (
+          <>
+          <Row key={ticket.ticket_type} style={{ marginBottom: "8px" }}>
             <Col className="text-left">{ticket.title}:</Col>
             <Col className="text-left">{ticket.count}st</Col>
             <Col className="text-left">{ticket.price}kr</Col>
           </Row>
+          {renderAnswerOverivew()}
+          </>
         ))}
         <Row className="py-1">
           <Col className="text-left">

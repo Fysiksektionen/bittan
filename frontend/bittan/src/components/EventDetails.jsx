@@ -17,12 +17,14 @@ const EventDetails = () => {
   const [confirmEmail, setConfirmEmail] = useState("")
   const [maxTickets, setMaxTickets] = useState(8)
   const [error, setError] = useState('');
+  const [hasForm, setHasForm] = useState(false);
 
   useEffect(() => {
     // Fetch event details
-    axiosInstance.get(`/get_chapterevents?format=json`).then((response) => {
-      const event = response.data.chapter_events.find((event) => event.id == id);
+    axiosInstance.get(`/get_chapterevents/${id}?format=json`).then((response) => {
+      const event = response.data.chapter_event;
       setEvent(event);
+      setHasForm(response.data.questions.length !== 0);
 
       setMaxTickets(event.max_tickets_per_payment)
 
@@ -101,8 +103,14 @@ const EventDetails = () => {
       var session_id = await reserveTicket(requestBody);
 
 
-      // Navigate to confirmation page
-      navigate(`/Payment/${session_id}`, { state: { email, totalAmount, chosenTickets, event } });
+      if (hasForm === false) {
+        // Navigate to confirmation page
+        navigate(`/Payment/${session_id}`, { state: { email, totalAmount, chosenTickets, event } });
+      } else {
+        // Navigate to form page
+        navigate(`/event-form/${id}/${session_id}`, { state: { email, totalAmount, chosenTickets, event } });
+      }
+
     } catch (error) {
 
       if(error === "mail") {
@@ -224,7 +232,9 @@ const EventDetails = () => {
           {error && <Row className="py-1"><Col className="text-left text-danger">{error}</Col></Row>}
         <Row className="py-1">
           <Col className="text-left">
-            <button type="submit" className="btn btn-primary">Gå vidare till betalning</button>
+            <button type="submit" className="btn btn-primary">
+              {hasForm ? "Nästa" : "Gå vidare till betalning"}
+            </button>
           </Col>
         </Row>
     </form>

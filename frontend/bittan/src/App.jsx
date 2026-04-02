@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import EventGrid from './components/EventGrid';
 import EventDetails from './components/EventDetails';
+import EventForm from './components/EventForm';
 import Payment from './components/Payment';
 import BookingConfirmed from './components/BookingConfirmed';
 import TicketValidation from './components/TicketValidation';
@@ -20,6 +21,7 @@ function App() {
           <Route path="/payment/:session_id" element={<Payment />} />
           <Route path="/booking-confirmed" element={<BookingConfirmed />} />
           <Route path="/validate-ticket" element={<TicketValidation />} />
+          <Route path="/event-form/:event_id/:session_id" element={<EventForm />} />
         </Routes>
       </Layout>
     </Router>
