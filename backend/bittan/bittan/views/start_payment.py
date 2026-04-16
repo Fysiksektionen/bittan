@@ -85,7 +85,7 @@ def start_payment(request):
                 "PaymentNotPayable",
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         Payment.objects.filter(
             pk = payment_id,
             status = good_status, # These are just so that we are sure that the payment is in the required status. If it is not get will throw an error and that should be OK. 
